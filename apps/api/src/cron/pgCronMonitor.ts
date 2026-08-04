@@ -12,7 +12,7 @@ const CHECK_INTERVAL_MS = isNaN(parsedInterval)
 const WEBHOOK_URL = process.env.PG_CRON_MONITOR_WEBHOOK_URL;
 
 let intervalId: NodeJS.Timeout | null = null;
-let lastChecked: Date;
+let lastChecked: Date = new Date(Date.now() - 60 * 60 * 1000);
 
 export async function checkFailedPgCronJobs(): Promise<void> {
     const jobName = "cleanup_scan_history";
