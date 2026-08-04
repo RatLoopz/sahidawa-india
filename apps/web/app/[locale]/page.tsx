@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 const MedicineSafetyPanel = dynamic(() =>
     import("@/components/medicine").then((mod) => mod.MedicineSafetyPanel)
+    .catch(err => console.error("[Home] Dynamic import failed:", err))
 );
 import React, { useEffect, useState } from "react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
@@ -10,6 +11,7 @@ import { usePendingSearchQueue } from "@/hooks/usePendingSearchQueue";
 import { addToSearchQueue } from "@/lib/db/searchQueue";
 const PendingSearchQueue = dynamic(() =>
     import("@/components/SearchBar/PendingSearchQueue").then((m) => m.PendingSearchQueue)
+    .catch(err => console.error("[Home] Dynamic import failed:", err))
 );
 import {
     Camera,
