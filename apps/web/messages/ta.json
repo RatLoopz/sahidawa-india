@@ -1736,6 +1736,8 @@
         "no_search_results": "உங்கள் தேடலுக்கு எந்த மருந்தும் பொருந்தவில்லை.",
         "item_status_label": "நிலை:",
         "item_delete_button": "நீக்கு",
+        "sync_auth_title": "உங்கள் வரலாற்றை ஒத்திசைக்க உள்நுழைக",
+        "sync_auth_action": "உள்நுழை",
         "item_copy_success": "மருந்தின் பெயர் நகலெடுக்கப்பட்டது!"
     },
     "MyReports": {

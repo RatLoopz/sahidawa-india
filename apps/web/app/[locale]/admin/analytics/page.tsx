@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Link } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
+import { buildLoginPath } from "@/lib/authReturn";
 import {
     Pill,
     AlertTriangle,
@@ -95,6 +97,8 @@ function formatPercent(rate: number): string {
 
 export default function AnalyticsDashboard() {
     const { token, isLoading: authLoading } = useSession();
+    const locale = useLocale();
+    const pathname = usePathname();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d" | "all">("30d");
@@ -144,7 +148,11 @@ export default function AnalyticsDashboard() {
 
                 if (!pushAnalyticsRes.ok) {
                     if (pushAnalyticsRes.status === 401 && typeof window !== "undefined") {
-                        window.location.href = "/admin/login";
+                        // Session expired mid-flow: clear the stale auth state
+                        // (so the loop can't recur) and resume the intended
+                        // destination after re-authentication.
+                        void supabase.auth.signOut().catch(() => {});
+                        window.location.href = buildLoginPath(locale, pathname);
                         return;
                     }
                     const message =

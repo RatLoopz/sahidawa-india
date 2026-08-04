@@ -1424,6 +1424,8 @@
         "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
+        "sync_auth_title": "Sign in to sync your history",
+        "sync_auth_action": "Sign in",
         "item_copy_success": "Medicine name copied!"
     },
     "MyReports": {

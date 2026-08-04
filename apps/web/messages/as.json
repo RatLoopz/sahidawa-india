@@ -1736,6 +1736,8 @@
         "no_search_results": "আপোনাৰ সন্ধানৰ সৈতে কোনো ঔষধৰ মিল নাই।",
         "item_status_label": "অৱস্থা:",
         "item_delete_button": "মচি পেলাওক",
+        "sync_auth_title": "আপোনাৰ ইতিহাস চিংক কৰিবলৈ চাইন ইন কৰক",
+        "sync_auth_action": "চাইন ইন",
         "item_copy_success": "ঔষধৰ নাম কপি কৰা হৈছে!"
     },
     "MyReports": {
