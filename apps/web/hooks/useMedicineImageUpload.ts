@@ -192,7 +192,20 @@ export function useMedicineImageUpload({
             setOcrStatus("extracting-text");
 
             if (!ocrWorkerRef.current) {
-                ocrWorkerRef.current = await Tesseract.createWorker("eng");
+                const initPromise = Tesseract.createWorker("eng");
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("OCR initialization timed out")), 20000)
+                );
+
+                try {
+                    ocrWorkerRef.current = await Promise.race([initPromise, timeoutPromise]);
+                } catch (err) {
+                    throw new Error(
+                        err instanceof Error && err.message === "OCR initialization timed out"
+                            ? "OCR timed out"
+                            : "OCR Initialization failed"
+                    );
+                }
             }
 
             if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)

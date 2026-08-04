@@ -169,107 +169,118 @@ export function BarcodeScanner({
         let cancelled = false;
 
         const startScanner = async (): Promise<void> => {
-            const { BrowserMultiFormatReader } = await import("@zxing/browser");
-            const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
-
-            if (cancelled) return;
-
-            const hints = new Map();
-            hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-                BarcodeFormat.CODE_128,
-                BarcodeFormat.QR_CODE,
-                BarcodeFormat.EAN_13,
-                BarcodeFormat.EAN_8,
-                BarcodeFormat.CODE_39,
-                BarcodeFormat.DATA_MATRIX,
-            ]);
-            hints.set(DecodeHintType.TRY_HARDER, true);
-
-            const reader = new BrowserMultiFormatReader(hints, {
-                delayBetweenScanAttempts: 300,
-            });
-
             try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    if (!cancelled) {
-                        setStatus("unavailable");
-                        setErrorMessage("Camera access is not supported by this browser.");
-                    }
-                    return;
-                }
+                const { BrowserMultiFormatReader } = await import("@zxing/browser");
+                const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
 
-                let stream: MediaStream;
+                if (cancelled) return;
+
+                const hints = new Map();
+                hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.QR_CODE,
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.EAN_8,
+                    BarcodeFormat.CODE_39,
+                    BarcodeFormat.DATA_MATRIX,
+                ]);
+                hints.set(DecodeHintType.TRY_HARDER, true);
+
+                const reader = new BrowserMultiFormatReader(hints, {
+                    delayBetweenScanAttempts: 300,
+                });
+
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { ideal: "environment" } },
-                    });
-                } catch {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                }
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        if (!cancelled) {
+                            setStatus("unavailable");
+                            setErrorMessage("Camera access is not supported by this browser.");
+                        }
+                        return;
+                    }
 
-                if (cancelled) {
-                    stopMediaStream(stream);
-                    return;
-                }
+                    let stream: MediaStream;
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: "environment" } },
+                        });
+                    } catch {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    }
 
-                streamRef.current = stream;
-                if (!videoRef.current) return;
+                    if (cancelled) {
+                        stopMediaStream(stream);
+                        return;
+                    }
 
-                const controls = await reader.decodeFromStream(
-                    stream,
-                    videoRef.current,
-                    (result: any, error: any) => {
-                        if (result) {
-                            // Ignore scans if we are verifying or currently showing an error
-                            if (isVerifyingRef.current || apiErrorRef.current) return;
+                    streamRef.current = stream;
+                    if (!videoRef.current) return;
 
-                            const text = result.getText().trim();
-                            if (shouldEmitScan(text)) {
-                                resetInactivityTimer();
-                                playFeedback();
-                                onScan(text);
+                    const controls = await reader.decodeFromStream(
+                        stream,
+                        videoRef.current,
+                        (result: any, error: any) => {
+                            if (result) {
+                                // Ignore scans if we are verifying or currently showing an error
+                                if (isVerifyingRef.current || apiErrorRef.current) return;
+
+                                const text = result.getText().trim();
+                                if (shouldEmitScan(text)) {
+                                    resetInactivityTimer();
+                                    playFeedback();
+                                    onScan(text);
+                                }
+                            }
+
+                            if (error && error.name !== "NotFoundException") {
+                                // Ignore continuous decode errors
                             }
                         }
-
-                        if (error && error.name !== "NotFoundException") {
-                            // Ignore continuous decode errors
-                        }
-                    }
-                );
-
-                if (cancelled) {
-                    controls.stop();
-                    return;
-                }
-
-                controlsRef.current = controls;
-                setStatus("scanning");
-            } catch (err: unknown) {
-                if (cancelled) return;
-                const errorObj = err instanceof Error ? err : new Error(String(err));
-                if (
-                    errorObj.name === "NotAllowedError" ||
-                    errorObj.name === "PermissionDeniedError"
-                ) {
-                    setStatus("permission-denied");
-                    setErrorMessage(
-                        "Camera access was denied. Please allow camera permissions in your browser settings."
                     );
-                    onPermissionDenied?.();
-                } else if (
-                    errorObj.name === "NotFoundError" ||
-                    errorObj.name === "DevicesNotFoundError"
-                ) {
-                    setStatus("unavailable");
-                    setErrorMessage("No suitable camera was found on this device.");
-                } else {
-                    setStatus("error");
-                    setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+
+                    if (cancelled) {
+                        controls.stop();
+                        return;
+                    }
+
+                    controlsRef.current = controls;
+                    setStatus("scanning");
+                } catch (err: unknown) {
+                    if (cancelled) return;
+                    const errorObj = err instanceof Error ? err : new Error(String(err));
+                    if (
+                        errorObj.name === "NotAllowedError" ||
+                        errorObj.name === "PermissionDeniedError"
+                    ) {
+                        setStatus("permission-denied");
+                        setErrorMessage(
+                            "Camera access was denied. Please allow camera permissions in your browser settings."
+                        );
+                        onPermissionDenied?.();
+                    } else if (
+                        errorObj.name === "NotFoundError" ||
+                        errorObj.name === "DevicesNotFoundError"
+                    ) {
+                        setStatus("unavailable");
+                        setErrorMessage("No suitable camera was found on this device.");
+                    } else {
+                        setStatus("error");
+                        setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+                    }
                 }
+            } catch (importErr: unknown) {
+                if (cancelled) return;
+                setStatus("error");
+                setErrorMessage("Failed to load scanner dependencies: " + String(importErr));
             }
         };
 
-        startScanner();
+        startScanner().catch((err) => {
+            if (!cancelled) {
+                setStatus("error");
+                setErrorMessage("Critical failure starting scanner: " + String(err));
+            }
+        });
 
         return () => {
             cancelled = true;
@@ -494,6 +505,14 @@ export function BarcodeScanner({
                                 <span className="text-xs font-medium text-emerald-400">
                                     Scanning
                                 </span>
+                            </div>
+                            <div className="pointer-events-none absolute top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 text-center">
+                                <div className="h-64 w-64 rounded-xl border-2 border-dashed border-emerald-500/50"></div>
+                                <p className="mt-4 rounded bg-black/40 px-2 py-1 text-xs font-bold text-white/80 drop-shadow-md">
+                                    Looking for Barcode...
+                                    <br />
+                                    (No barcode? Use Upload Photo)
+                                </p>
                             </div>
                         </>
                     )}
