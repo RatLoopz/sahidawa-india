@@ -45,7 +45,8 @@ export function createSWRCache<T>(ttlMs: number = 60_000): SWRCache<T> {
                     .catch(() => {
                         inFlight.delete(key);
                         return cached.data;
-                    });
+                    })
+                    .catch(err => console.error("[CacheUtils] Failed:", err));
                 inFlight.set(key, revalidation);
             }
             return cached.data;
@@ -66,7 +67,8 @@ export function createSWRCache<T>(ttlMs: number = 60_000): SWRCache<T> {
             .catch((err) => {
                 inFlight.delete(key);
                 throw err;
-            });
+            })
+            .catch(err => console.error("[CacheUtils] Failed:", err));
 
         inFlight.set(key, promise);
         return promise;
