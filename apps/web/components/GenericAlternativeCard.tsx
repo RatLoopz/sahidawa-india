@@ -79,6 +79,7 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                         <button
                             onClick={handleBookmark}
                             className={`rounded-full p-2 transition-all ${isBookmarked ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}
+                            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
                         >
                             <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} />
                         </button>

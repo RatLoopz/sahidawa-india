@@ -368,6 +368,7 @@ export default function AdminDashboard() {
                             onClick={fetchReports}
                             className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                             title={t("actions.refresh")}
+                            aria-label={t("actions.refresh")}
                         >
                             <RefreshCw className="h-4 w-4" />
                         </button>

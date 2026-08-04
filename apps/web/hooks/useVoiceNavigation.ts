@@ -112,7 +112,9 @@ export function useVoiceNavigation() {
                     oscillator.connect(audioCtx.destination);
                     oscillator.start();
                     oscillator.stop(audioCtx.currentTime + 0.1);
-                } catch {}
+                } catch {
+                    // Ignore audio context errors (e.g. user hasn't interacted with page yet)
+                }
             }
 
             // Intent detection
@@ -144,7 +146,9 @@ export function useVoiceNavigation() {
         if (isWakeWordActive) {
             try {
                 recognition.start();
-            } catch {}
+            } catch {
+                // ignore already started errors
+            }
         }
 
         return () => {

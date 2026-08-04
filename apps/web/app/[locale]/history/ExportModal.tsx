@@ -140,6 +140,7 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
                         onClick={onClose}
                         disabled={isExporting}
                         className="rounded-full p-1 transition-colors hover:bg-(--color-surface-muted) disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Close export modal"
                     >
                         <X size={20} />
                     </button>
