@@ -212,7 +212,7 @@ export async function fetchWithRetry(
             const delay = getBackoffDelay(attempt, config);
 
             if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
-                console.log(
+                console.warn(
                     `[API Retry] Attempt ${attempt}/${config.maxRetries + 1} failed. ` +
                         `Retrying in ${Math.round(delay)}ms... Error: ${lastError.message}`
                 );
