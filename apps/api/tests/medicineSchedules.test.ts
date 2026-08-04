@@ -64,14 +64,14 @@ import { redisClient } from "../src/utils/redis";
 import { Request, Response, NextFunction } from "express";
 import { supabase } from "../src/db/client";
 
-const mockSupabaseChain = supabase as any;
+const mockSupabaseClient = supabase as any;
 const mockRedisClient = redisClient as any;
 
 const app = express();
 app.use(express.json());
 app.use("/api/schedules", medicineSchedulesRouter);
 
-const mockedSupabase = mockSupabaseChain as jest.Mocked<typeof mockSupabaseChain>;
+const mockedSupabase = mockSupabaseClient as jest.Mocked<typeof mockSupabaseChain>;
 
 beforeEach(() => {
     jest.clearAllMocks();
