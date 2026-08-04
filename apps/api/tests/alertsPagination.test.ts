@@ -1,4 +1,5 @@
-﻿import request from "supertest";
+// @ts-nocheck
+import request from "supertest";
 import app from "../src/app";
 
 // jest.mock is hoisted — everything must be self-contained inside the factory
@@ -45,7 +46,6 @@ const testHash = crypto.pbkdf2Sync(testSecret, testSalt, 100000, 64, "sha512").t
 
 import { supabase } from "../src/db/client";
 import { Request, Response, NextFunction } from "express";
-
 
 // ── Helpers ────────────────────────────────────────────────────────
 

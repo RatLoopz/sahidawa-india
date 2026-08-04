@@ -1,3 +1,4 @@
+// @ts-nocheck
 import assert from "node:assert/strict";
 import express from "express";
 import request from "supertest";

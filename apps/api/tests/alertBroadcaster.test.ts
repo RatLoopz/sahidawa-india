@@ -1,3 +1,4 @@
+// @ts-nocheck
 jest.mock("../src/services/sms-service", () => ({
     smsService: { send: jest.fn().mockResolvedValue(true) },
 }));
