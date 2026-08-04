@@ -80,6 +80,29 @@ const upload = multer({
     },
 });
 
+// ── Shared request-scoped temp-file cleanup ─────────────────────────────────
+// Deletes every path in the provided list exactly once.  Used by both /extract
+// and /submit via res.once("finish") / res.once("close") so that temp files
+// are removed the moment the response is done — regardless of success,
+// validation failure, processing error, or client disconnect.
+function cleanupTempFiles(filePaths: string[]): () => void {
+    let cleaned = false;
+    return () => {
+        if (cleaned) return;
+        cleaned = true;
+        for (const filePath of filePaths) {
+            if (fs.existsSync(filePath)) {
+                try {
+                    fs.unlinkSync(filePath);
+                    logger.info(`Cleaned up temp file: ${filePath}`);
+                } catch (err) {
+                    logger.error(`Failed to delete temp file ${filePath}:`, err);
+                }
+            }
+        }
+    };
+}
+
 /**
  * @openapi
  * /api/v1/scan/extract:
@@ -172,21 +195,11 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             ? path.join(UPLOAD_DIR, path.basename(file.filename))
             : undefined;
 
-        const cleanupTempFile = () => {
-            if (tempFilePath && fs.existsSync(tempFilePath)) {
-                try {
-                    fs.unlinkSync(tempFilePath);
-                    logger.info(`Cleaned up temp file: ${tempFilePath}`);
-                } catch (err) {
-                    logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
-                }
-            }
-        };
-
         // Guarantees cleanup on every response outcome — success, thrown error,
         // or the client disconnecting before a response is ever sent.
-        res.on("finish", cleanupTempFile);
-        res.on("close", cleanupTempFile);
+        const cleanup = cleanupTempFiles(tempFilePath ? [tempFilePath] : []);
+        res.once("finish", cleanup);
+        res.once("close", cleanup);
 
         if (multerErr) {
             const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
@@ -293,7 +306,9 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             const confidence = data.confidence ?? 0;
 
             if (rawText.trim().length === 0) {
-                logger.warn(`OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`);
+                logger.warn(
+                    `OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`
+                );
                 res.status(400).json({
                     error: "No text could be extracted from the image.",
                     code: "OCR_EMPTY_TEXT",
@@ -625,6 +640,22 @@ router.post(
     upload.fields([{ name: "image" }, { name: "voice" }]),
     idempotencyMiddleware,
     async (req: AuthenticatedRequest, res: Response) => {
+        // ── Request-scoped temp-file cleanup ────────────────────────────────
+        // Collect every temp file multer may have written for this request so
+        // they are removed the moment the response is finished — reusing the
+        // same cleanup helper as /extract (issue #4112).
+        const uploadedFiles: Express.Multer.File[] = [
+            ...((req.files as any)?.image ?? []),
+            ...((req.files as any)?.voice ?? []),
+        ];
+        const tempFilePaths = uploadedFiles
+            .filter((f): f is Express.Multer.File => !!f?.filename)
+            .map((f) => path.join(UPLOAD_DIR, path.basename(f.filename)));
+
+        const cleanup = cleanupTempFiles(tempFilePaths);
+        res.once("finish", cleanup);
+        res.once("close", cleanup);
+
         const idempotencyKey = (req as any).idempotencyKey;
         const submitSchema = z
             .object({
