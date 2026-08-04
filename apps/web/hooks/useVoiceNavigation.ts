@@ -146,8 +146,12 @@ export function useVoiceNavigation() {
         if (isWakeWordActive) {
             try {
                 recognition.start();
-            } catch {
-                // ignore already started errors
+            } catch (err) {
+                if (err instanceof DOMException && err.name === "InvalidStateError") {
+                    // Ignore already-started errors
+                } else {
+                    console.warn("Speech recognition start failed", err);
+                }
             }
         }
 
