@@ -382,6 +382,15 @@
         "description": "अखन अहाँक इंटरनेट कनेक्शन नहि अछि।",
         "subtitle": "ऑफलाइन रहलापर किछु सुविधा अनुपलब्ध अछि। इंटरनेटसँ जुड़बाक प्रयास करू वा कैश्ड सामग्री देखू।",
         "tryAgain": "फेर प्रयास करू",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "होम पर जाऊ",
         "footer": "कनेक्शन वापस आयलापर SahiDawa स्वचालित रूपसँ सिंक हयत।",
         "cachedContent": "अहाँ पहिने लोड कयल सामग्री देखि सकैत छी",

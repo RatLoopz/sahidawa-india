@@ -370,25 +370,30 @@ async function handleApiRequest(request, url, cacheName) {
 }
 
 async function fetchWithoutCache(request) {
-    const clonedRequest = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) ? request.clone() : null;
+    const clonedRequest = ["POST", "PUT", "DELETE", "PATCH"].includes(request.method)
+        ? request.clone()
+        : null;
 
     try {
         return await fetchWithTimeout(request);
     } catch {
         if (clonedRequest) {
             await saveFailedRequest(clonedRequest);
-            if ('sync' in self.registration) {
+            if ("sync" in self.registration) {
                 try {
-                    await self.registration.sync.register('sahidawa-sync-mutations');
+                    await self.registration.sync.register("sahidawa-sync-mutations");
                 } catch (e) {
-                    console.warn('[SW] Sync registration failed', e);
+                    console.warn("[SW] Sync registration failed", e);
                 }
             }
-            return new Response(JSON.stringify({ 
-                error: "You are offline. Request queued for sync.", 
-                offline: true,
-                queued: true 
-            }), { status: 503, headers: { "Content-Type": "application/json" } });
+            return new Response(
+                JSON.stringify({
+                    error: "You are offline. Request queued for sync.",
+                    offline: true,
+                    queued: true,
+                }),
+                { status: 503, headers: { "Content-Type": "application/json" } }
+            );
         }
         return createOfflineApiResponse();
     }
@@ -735,15 +740,15 @@ async function notifyClientsToFlush() {
 // ---------------------------------------------------------------------------
 function openSyncDb() {
     return new Promise((resolve, reject) => {
-        const req = indexedDB.open('sahidawa-sync-db', 1);
+        const req = indexedDB.open("sahidawa-sync-db", 1);
         req.onupgradeneeded = (e) => {
             const db = e.target.result;
-            if (!db.objectStoreNames.contains('requests')) {
-                db.createObjectStore('requests', { keyPath: 'id', autoIncrement: true });
+            if (!db.objectStoreNames.contains("requests")) {
+                db.createObjectStore("requests", { keyPath: "id", autoIncrement: true });
             }
         };
         req.onsuccess = (e) => resolve(e.target.result);
-        req.onerror = () => reject('Failed to open sync DB');
+        req.onerror = () => reject("Failed to open sync DB");
     });
 }
 
@@ -760,17 +765,88 @@ async function saveFailedRequest(request) {
             method: request.method,
             headers,
             body: bodyText,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
-        
+
         return new Promise((resolve, reject) => {
-            const tx = db.transaction('requests', 'readwrite');
-            tx.objectStore('requests').add(serialized);
-            tx.oncomplete = () => { db.close(); resolve(); };
-            tx.onerror = () => { db.close(); reject(); };
+            const tx = db.transaction("requests", "readwrite");
+            tx.objectStore("requests").add(serialized);
+            tx.oncomplete = () => {
+                db.close();
+                resolve();
+            };
+            tx.onerror = () => {
+                db.close();
+                reject();
+            };
         });
     } catch (e) {
-        console.error('[SW] Failed to save request to sync queue', e);
+        console.error("[SW] Failed to save request to sync queue", e);
+    }
+}
+
+function deleteQueuedRequest(db, id) {
+    return new Promise((resolve) => {
+        const tx = db.transaction("requests", "readwrite");
+        tx.objectStore("requests").delete(id);
+        tx.oncomplete = resolve;
+    });
+}
+
+async function readErrorBody(response) {
+    try {
+        const text = await response.clone().text();
+        return text.length > 500 ? `${text.slice(0, 500)}…` : text;
+    } catch {
+        return "";
+    }
+}
+
+/**
+ * Refresh the CSRF credentials for a queued mutation and retry it once.
+ * Used when a flush hits a 401/403 (session/CSRF token expired). The worker
+ * rotates the token via /api/csrf-token, stamps it onto a copy of the queued
+ * request's headers, and re-sends the mutation. Returns { ok } on success, or
+ * { ok: false, status, error } if the retry still failed.
+ */
+async function refreshCredentialsAndRetry(reqData) {
+    try {
+        const csrfResponse = await fetch("/api/csrf-token", {
+            method: "GET",
+            credentials: "include",
+        });
+        if (!csrfResponse.ok) {
+            return {
+                ok: false,
+                status: csrfResponse.status,
+                error: await readErrorBody(csrfResponse),
+            };
+        }
+        const payload = await csrfResponse.json();
+        const token = payload?.csrfToken || payload?.csrf_token;
+        if (!token) {
+            return { ok: false, status: 403, error: "No CSRF token returned by server" };
+        }
+
+        const headers = { ...reqData.headers };
+        headers["x-csrf-token"] = token;
+
+        const retryResponse = await fetch(reqData.url, {
+            method: reqData.method,
+            headers,
+            body: reqData.method !== "GET" && reqData.method !== "HEAD" ? reqData.body : undefined,
+        });
+
+        if (retryResponse.ok) {
+            return { ok: true };
+        }
+        return {
+            ok: false,
+            status: retryResponse.status,
+            error: await readErrorBody(retryResponse),
+        };
+    } catch {
+        return { ok: false, status: 401, error: "" };
     }
 }
 
@@ -778,45 +854,94 @@ async function flushMutationsQueue() {
     try {
         const db = await openSyncDb();
         const requests = await new Promise((resolve, reject) => {
-            const tx = db.transaction('requests', 'readonly');
-            const req = tx.objectStore('requests').getAll();
+            const tx = db.transaction("requests", "readonly");
+            const req = tx.objectStore("requests").getAll();
             req.onsuccess = () => resolve(req.result);
             req.onerror = () => reject();
         });
-        
+
         if (!requests || requests.length === 0) {
             db.close();
             return;
         }
-        
+
+        const rejected = [];
+        let flushedAny = false;
+        let authFailure = false;
+
         for (const reqData of requests) {
             try {
                 const response = await fetch(reqData.url, {
                     method: reqData.method,
                     headers: reqData.headers,
-                    body: reqData.method !== 'GET' && reqData.method !== 'HEAD' ? reqData.body : undefined
+                    body:
+                        reqData.method !== "GET" && reqData.method !== "HEAD"
+                            ? reqData.body
+                            : undefined,
                 });
-                
-                if (response.ok || response.status >= 400) { 
-                    await new Promise((resolve) => {
-                        const tx = db.transaction('requests', 'readwrite');
-                        tx.objectStore('requests').delete(reqData.id);
-                        tx.oncomplete = resolve;
-                    });
+
+                // Only a confirmed successful response may remove the queued action.
+                // A 401/403/409/422/5xx must NEVER be treated as "synced" — dropping
+                // the entry would silently destroy a counterfeiter report or
+                // medication action the user believed was safely queued.
+                if (response.ok) {
+                    await deleteQueuedRequest(db, reqData.id);
+                    flushedAny = true;
+                    continue;
                 }
+
+                // Authentication/CSRF failure — refresh credentials and retry once.
+                if (response.status === 401 || response.status === 403) {
+                    const recovery = await refreshCredentialsAndRetry(reqData);
+                    if (recovery.ok) {
+                        await deleteQueuedRequest(db, reqData.id);
+                        flushedAny = true;
+                        continue;
+                    }
+                    authFailure = true;
+                    rejected.push({
+                        id: reqData.id,
+                        status: recovery.status,
+                        url: reqData.url,
+                        method: reqData.method,
+                        authFailure: true,
+                        error: recovery.error || "",
+                    });
+                    continue;
+                }
+
+                // Validation / conflict / server errors — keep the entry queued and
+                // surface it so the user can retry, edit, or discard. Never lose data.
+                rejected.push({
+                    id: reqData.id,
+                    status: response.status,
+                    url: reqData.url,
+                    method: reqData.method,
+                    authFailure: false,
+                    error: await readErrorBody(response),
+                });
             } catch (e) {
-                console.warn('[SW] Sync flush fetch failed (still offline?)', e);
-                break;
+                // Network failure (still offline) — leave the entry queued for a
+                // later sync. Each queued request is independent, so keep going.
+                console.warn("[SW] Sync flush fetch failed (still offline?)", e);
             }
         }
         db.close();
-        
+
+        // Ask open clients to refresh their in-memory CSRF token/session so the
+        // next real request (or manual retry) uses fresh credentials.
+        if (authFailure) {
+            notifyClientsCsrfRefresh();
+        }
+
         const clients = await self.clients.matchAll({ type: "window" });
         for (const client of clients) {
-            client.postMessage({ type: "SYNC_QUEUE_FLUSHED" });
+            if (flushedAny) {
+                client.postMessage({ type: "SYNC_QUEUE_FLUSHED" });
+            }
+            client.postMessage({ type: "SYNC_QUEUE_REJECTED", entries: rejected });
         }
     } catch (e) {
-        console.error('[SW] Sync flush error', e);
+        console.error("[SW] Sync flush error", e);
     }
 }
-
