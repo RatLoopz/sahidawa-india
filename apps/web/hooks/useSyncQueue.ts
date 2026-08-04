@@ -24,7 +24,8 @@ export const useSyncQueue = () => {
                     setPendingCount(countReq.result);
                 };
                 tx.oncomplete = () => db.close();
-            } catch {
+            } catch (err) {
+                console.error("useSyncQueue: failed to read indexedDB requests count", err);
                 db.close();
             }
         };
