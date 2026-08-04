@@ -152,7 +152,7 @@ describe("cache.service", () => {
 
         beforeEach(() => {
             mockFetch.mockClear();
-            process.env.PG_CRON_MONITOR_WEBHOOK_URL = "http://mock-webhook";
+            process.env.DISCORD_APP_ALERTS_WEBHOOK_URL = "http://mock-webhook";
         });
 
         it("should return live stats and save snapshot on success", async () => {
