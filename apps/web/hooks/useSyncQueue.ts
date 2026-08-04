@@ -20,7 +20,7 @@ export const useSyncQueue = () => {
     const checkQueue = useCallback(() => {
         if (typeof window === "undefined") return;
 
-        const req = indexedDB.open("sahidawa-sync-db", 1);
+        const req = indexedDB.open("sahidawa-sync-db", 2);
         req.onsuccess = (e: any) => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains("requests")) {
@@ -73,7 +73,7 @@ export const useSyncQueue = () => {
     const discard = useCallback(
         (id: number) => {
             if (typeof window === "undefined") return;
-            const req = indexedDB.open("sahidawa-sync-db", 1);
+            const req = indexedDB.open("sahidawa-sync-db", 2);
             req.onsuccess = (e: any) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains("requests")) {
