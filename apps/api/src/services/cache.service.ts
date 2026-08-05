@@ -403,8 +403,8 @@ export async function getCacheStats(): Promise<{
         if (snapshotResult.status === "fulfilled" && snapshotResult.value) {
             try {
                 snapshot = JSON.parse(snapshotResult.value);
-            } catch (e) {
-                // Ignore parse errors
+            } catch (_e) {
+                // Ignore parse errors - snapshot will remain null
             }
         }
 
