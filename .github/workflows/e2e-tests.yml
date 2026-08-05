@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  web-e2e:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -38,6 +38,30 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: apps/web
+
+  api-e2e:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .nvmrc
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Build Shared Packages
+      run: |
+        npm run build -w @sahidawa/types --if-present || true
+        npm run build -w @sahidawa/validators --if-present || true
+        npm run build -w @sahidawa/shared --if-present || true
+
+    - name: Run API E2E tests
+      run: npm test -- apps/api/tests/e2e
+      working-directory: apps/api
       env:
         # Use the production build via `next start` (set via playwright.config.ts)
         PLAYWRIGHT_CI: true
