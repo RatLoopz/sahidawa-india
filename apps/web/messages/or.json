@@ -1736,6 +1736,8 @@
         "no_search_results": "କ search ଣସି medicines ଷଧ ଆପଣଙ୍କ ସନ୍��ାନ ସହିତ ମେଳ ଖାଉ ନାହିଁ |",
         "item_status_label": "ସ୍ଥିତି:",
         "item_delete_button": "ବିଲୋପ କରନ୍ତୁ |",
+        "sync_auth_title": "ଆପଣଙ୍କ ଇତିହାସ ସିଙ୍କ କରିବାକୁ ସାଇନ ଇନ କରନ୍ତୁ",
+        "sync_auth_action": "ସାଇନ ଇନ",
         "item_copy_success": "Ic ଷଧ ନାମ କପି ହୋଇଛି!"
     },
     "MyReports": {

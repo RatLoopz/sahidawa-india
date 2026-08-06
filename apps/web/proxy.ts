@@ -49,7 +49,7 @@ export default async function middleware(req: NextRequest) {
                 "https://overpass.kumi.systems",
                 "https://lz4.overpass-api.de",
                 "https://z.overpass-api.de",
-                "https://unpkg.com"
+                "https://unpkg.com",
             ].filter(Boolean)
         ),
     ].join(" ");
@@ -103,9 +103,10 @@ export default async function middleware(req: NextRequest) {
     if (/^\/[a-z]{2}\/admin\//.test(pathname) || /^\/[a-z]{2}\/admin$/.test(pathname)) {
         if (!session) {
             const locale = pathname.split("/")[1] ?? "en";
-            // Important: we need to redirect but also preserve the CSP headers?
-            // Actually NextResponse.redirect handles itself.
-            return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
+            // Preserve the intended destination so the user is returned to it
+            // after re-authenticating instead of being dumped at the home page.
+            const returnTo = encodeURIComponent(pathname);
+            return NextResponse.redirect(new URL(`/${locale}/login?returnTo=${returnTo}`, req.url));
         }
     }
 

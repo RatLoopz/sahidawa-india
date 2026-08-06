@@ -1736,6 +1736,8 @@
         "no_search_results": "તમારી શોધ સાથે કોઈ દવાઓ મેળ ખાતી નથી.",
         "item_status_label": "સ્થિતિ:",
         "item_delete_button": "કાઢી નાખો",
+        "sync_auth_title": "તમારો ઇતિહાસ સિંક કરવા માટે સાઇન ઇન કરો",
+        "sync_auth_action": "સાઇન ઇન",
         "item_copy_success": "દવાના નામની નકલ કરી!"
     },
     "MyReports": {

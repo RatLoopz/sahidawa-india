@@ -42,7 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 syncServiceWorkerSession(s);
             })
-            .catch((err) => console.error("[AuthProvider] Failed:", err));
+            .catch((err) => {
+                console.error("[AuthProvider] Failed:", err);
+                // Never leave consumers stuck in an infinite loading state:
+                // treat an unreadable session as signed-out so protected pages
+                // render their graceful re-authentication state.
+                setIsLoading(false);
+                localStorage.removeItem("sb-access-token");
+                syncServiceWorkerSession(null);
+            });
 
         const {
             data: { subscription },

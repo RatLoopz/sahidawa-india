@@ -1348,6 +1348,8 @@
         "no_search_results": "ꯅꯍꯥꯛꯅꯥ ꯊꯤꯕꯒꯥ ꯃꯥꯟꯅꯕꯥ ꯃꯦꯗꯤꯁꯤꯟ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤꏏ",
         "item_status_label": "ꯐꯤꯚꯝ (Status): ",
         "item_delete_button": "ꯃꯨꯠꯊꯠꯄꯥ",
+        "sync_auth_title": "ꯅꯍꯥꯛꯀꯤ ꯄꯨꯋꯥꯔꯤ ꯁꯤꯟꯛ ꯇꯧꯅꯕ ꯁꯥꯏꯟ ꯏꯟ ꯇꯧ",
+        "sync_auth_action": "ꯁꯥꯏꯟ ꯏꯟ",
         "item_copy_success": "ꯍꯤꯗꯥꯛꯀꯤ ꯃꯤꯡ ꯀꯣꯄꯤ ꯇꯧꯈ꯭ꯔꯦ!"
     },
     "MyReports": {

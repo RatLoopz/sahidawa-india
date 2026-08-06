@@ -1736,6 +1736,8 @@
         "no_search_results": "మీ శోధనకు సరిపోలే మందులు లేవు.",
         "item_status_label": "స్థితి:",
         "item_delete_button": "తొలగించు",
+        "sync_auth_title": "మీ చరిత్రను సింక్ చేయడానికి సైన్ ఇన్ చేయండి",
+        "sync_auth_action": "సైన్ ఇన్",
         "item_copy_success": "ఔషధం పేరు కాపీ చేయబడింది!"
     },
     "MyReports": {

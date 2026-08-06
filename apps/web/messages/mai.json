@@ -1372,6 +1372,8 @@
         "no_search_results": "अहाँक खोजसँ मेल खायवला कोनो दवाइ नहि भेटल।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "मेटाऊ",
+        "sync_auth_title": "अपन इतिहास सिंक करबाक लेल साइन इन करू",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "दवाइक नाम कॉपी भेल!"
     },
     "MyReports": {
