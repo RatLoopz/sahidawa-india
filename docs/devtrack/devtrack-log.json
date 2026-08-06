@@ -16,6 +16,22 @@
     "adr": null
   },
   {
+    "prNumber": 4122,
+    "title": "fix(scan): add request-scoped temp file cleanup to /submit endpoint",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-08-06",
+    "area": "Backend",
+    "score": 9,
+    "docPath": "docs/devtrack/2026-08/PR-4122-fix-scan-add-request-scoped-temp-file-cleanup-to-s.md",
+    "linkedIssue": "#4112",
+    "labels": "level:advanced,quality:exceptional,gssoc:approved,type:bug,type:testing,type:refactor",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "apps/api/tests/scanSubmitCleanup.test.ts"
+    ],
+    "adr": null
+  },
+  {
     "prNumber": 4067,
     "title": "fix: remove leaked console.log in usePackagingHint.ts",
     "author": "kumudasrip",
