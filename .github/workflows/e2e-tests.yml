@@ -63,7 +63,6 @@ jobs:
       run: npm test -- apps/api/tests/e2e
       working-directory: apps/api
       env:
-        # Use the production build via `next start` (set via playwright.config.ts)
         PLAYWRIGHT_CI: true
         NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
         NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
