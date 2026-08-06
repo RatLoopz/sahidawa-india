@@ -207,6 +207,7 @@ export default function Chatbot() {
                 aria-hidden={!isOpen}
                 aria-label={titleLabel}
                 inert={!isOpen}
+                tabIndex={-1}
                 className={`${getChatbotPanelClasses({ pathname })} ${
                     isOpen
                         ? "pointer-events-auto scale-100 opacity-100"
