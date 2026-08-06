@@ -1212,7 +1212,7 @@ router.get("/nearest-open", limiter, async (req: Request, res: Response, next: N
         const { data, error } = await pharmacyService.getNearestOpen(lat, lng, limit);
 
         if (error) {
-            handleFetchError(error);
+            handleFetchError(error, res);
             return;
         }
 

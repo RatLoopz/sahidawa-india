@@ -476,7 +476,7 @@ export const pharmacyService = {
 
         // Cache for 5 minutes (pharmacy status doesn't change frequently)
         if (data) {
-            await redisRepository.set(cacheKey, JSON.stringify(data), { EX: 300 });
+            await redisRepository.set(cacheKey, JSON.stringify(data), 300);
         }
 
         return { data, error: null };
