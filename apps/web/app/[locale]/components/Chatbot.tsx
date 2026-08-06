@@ -189,9 +189,7 @@ export default function Chatbot() {
             setMessages((prev) => {
                 const finalText = reply || "Sorry, I received an empty response.";
                 return prev.map((msg) =>
-                    msg.id === typingMessage.id
-                        ? { id: msg.id, text: finalText, isBot: true }
-                        : msg
+                    msg.id === typingMessage.id ? { id: msg.id, text: finalText, isBot: true } : msg
                 );
             });
         } catch (error: any) {

@@ -135,6 +135,7 @@ export function AlertItem({
                         </h4>
                         <div className="flex items-center gap-3">
                             <button
+                                type="button"
                                 onClick={handleShareAlert}
                                 className="text-slate-400 transition-colors hover:text-emerald-500"
                                 title="Share Alert"
@@ -143,6 +144,7 @@ export function AlertItem({
                                 <Share2 size={16} />
                             </button>
                             <button
+                                type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     snoozeAlert(alert.id);
