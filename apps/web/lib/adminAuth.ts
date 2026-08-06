@@ -16,6 +16,11 @@ export function getAdminRoleFromUser(
     return toAdminRole(user?.app_metadata?.role);
 }
 
+/**
+ * Prefer getAdminRoleFromUser() after supabase.auth.getUser() for any
+ * authorization decision. This helper only unwraps session.user for UI code
+ * that already holds a Session object — it does not validate the JWT.
+ */
 export function getAdminRoleFromSession(
     session: Pick<Session, "user"> | null | undefined
 ): AdminRole | null {
