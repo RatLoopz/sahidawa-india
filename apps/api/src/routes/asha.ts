@@ -28,11 +28,13 @@ ashaRouter.get(
             }
 
             if (!userProfile) {
+                // Default role stays "user" until enrollment/admin promotion.
+                // Never auto-promote to asha_worker on a stats fetch.
                 const { data: newProfile, error: insertError } = await supabase
                     .from("users")
                     .insert({
                         id: userId,
-                        role: "asha_worker",
+                        role: "user",
                         points: 0,
                         badges: [],
                     })
