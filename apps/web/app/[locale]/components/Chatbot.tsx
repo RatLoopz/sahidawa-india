@@ -11,11 +11,26 @@ import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/li
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type Message = {
+    id: string;
     text: string;
     isBot: boolean;
     isTranslationKey?: boolean;
     isTyping?: boolean;
 };
+
+// Stable, collision-safe id generator. Falls back gracefully if
+// crypto.randomUUID isn't available (older browsers / non-secure contexts).
+const genId = (): string => {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const createMessage = (data: Omit<Message, "id">): Message => ({
+    id: genId(),
+    ...data,
+});
 
 const safeT = (nsT: (k: string) => string, key: string, fallback: string) => {
     try {
@@ -61,11 +76,11 @@ export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoadingWelcome, setIsLoadingWelcome] = useState(true);
     const [messages, setMessages] = useState<Message[]>([
-        {
+        createMessage({
             text: "welcome",
             isBot: true,
             isTranslationKey: true,
-        },
+        }),
     ]);
     const [input, setInput] = useState("");
     const [isConfirmingClear, setIsConfirmingClear] = useState(false);
@@ -80,11 +95,11 @@ export default function Chatbot() {
     const handleClear = () => {
         activeRequestRef.current?.abort();
         setMessages([
-            {
+            createMessage({
                 text: "welcome",
                 isBot: true,
                 isTranslationKey: true,
-            },
+            }),
         ]);
         setInput("");
         setIsConfirmingClear(false);
@@ -135,12 +150,13 @@ export default function Chatbot() {
         activeRequestRef.current?.abort();
         const requestController = new AbortController();
         activeRequestRef.current = requestController;
-        const userMessage = { text: input, isBot: false };
+        const userMessage = createMessage({ text: input, isBot: false });
         const currentMessages = [...messages, userMessage];
         setMessages(currentMessages);
         setInput("");
 
-        setMessages((prev) => [...prev, { text: "Thinking...", isBot: true, isTyping: true }]);
+        const typingMessage = createMessage({ text: "Thinking...", isBot: true, isTyping: true });
+        setMessages((prev) => [...prev, typingMessage]);
 
         try {
             const response = await fetch("/api/chat", {
@@ -161,7 +177,9 @@ export default function Chatbot() {
                     streamedReply += chunk;
                     setMessages((prev) =>
                         prev.map((msg) =>
-                            msg.isTyping ? { ...msg, text: streamedReply || "Thinking..." } : msg
+                            msg.id === typingMessage.id
+                                ? { ...msg, text: streamedReply || "Thinking..." }
+                                : msg
                         )
                     );
                 },
@@ -170,22 +188,26 @@ export default function Chatbot() {
 
             setMessages((prev) => {
                 const finalText = reply || "Sorry, I received an empty response.";
-                return prev.map((msg) => (msg.isTyping ? { text: finalText, isBot: true } : msg));
+                return prev.map((msg) =>
+                    msg.id === typingMessage.id
+                        ? { id: msg.id, text: finalText, isBot: true }
+                        : msg
+                );
             });
         } catch (error: any) {
             if (isAbortError(error)) return;
 
             console.error("Chatbot API Error:", error);
             setMessages((prev) => {
-                const withoutTyping = prev.filter((msg) => !msg.isTyping);
+                const withoutTyping = prev.filter((msg) => msg.id !== typingMessage.id);
                 return [
                     ...withoutTyping,
-                    {
+                    createMessage({
                         text:
                             error.message ||
                             "Sorry, I am having trouble connecting to the AI. Please make sure the GEMINI_API_KEY environment variable is set.",
                         isBot: true,
-                    },
+                    }),
                 ];
             });
         } finally {
@@ -277,9 +299,9 @@ export default function Chatbot() {
                     {isLoadingWelcome ? (
                         <ChatSkeleton />
                     ) : (
-                        messages.map((msg, idx) => (
+                        messages.map((msg) => (
                             <div
-                                key={idx}
+                                key={msg.id}
                                 className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${
                                     msg.isBot
                                         ? "self-start rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary)"
