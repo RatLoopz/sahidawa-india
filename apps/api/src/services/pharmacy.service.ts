@@ -456,4 +456,29 @@ export const pharmacyService = {
         }
         await pharmacyRepository.softDelete(pharmacyId);
     },
+
+    // GET /nearest-open
+    async getNearestOpen(lat: number, lng: number, limit = 10) {
+        const cacheKey = `pharmacies:nearest-open:${lat.toFixed(4)}:${lng.toFixed(4)}:${limit}`;
+        const cached = await redisRepository.get(cacheKey);
+        if (cached) return JSON.parse(cached);
+
+        const { data, error } = await pharmacyRepository.rpcGetNearestOpenPharmacies(
+            lat,
+            lng,
+            limit
+        );
+
+        if (error) {
+            logger.error("Error fetching nearest open pharmacies:", error);
+            return { data: null, error };
+        }
+
+        // Cache for 5 minutes (pharmacy status doesn't change frequently)
+        if (data) {
+            await redisRepository.set(cacheKey, JSON.stringify(data), { EX: 300 });
+        }
+
+        return { data, error: null };
+    },
 };

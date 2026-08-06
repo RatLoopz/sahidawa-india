@@ -35,6 +35,13 @@ const router = Router();
 const MAX_RESULTS = 200;
 const BATCH_SIZE = 500;
 
+// Schema for nearest-open pharmacy query
+const nearestOpenSchema = z.object({
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(10),
+});
+
 const validateInventoryUploadSize = (req: Request, res: Response, next: NextFunction) => {
     const contentLengthHeader = req.headers["content-length"];
     const contentLength = Array.isArray(contentLengthHeader)
@@ -1082,5 +1089,154 @@ router.post(
         }
     }
 );
+
+/**
+ * @openapi
+ * /api/pharmacies/nearest-open:
+ *   get:
+ *     summary: Find nearest open pharmacies using PostGIS KNN
+ *     description: >
+ *       Returns the K nearest pharmacies to a given location using PostGIS's
+ *       K-Nearest Neighbor (KNN) search with the <-> operator. Results are
+ *       filtered by operating hours to only show pharmacies that are currently open.
+ *       Uses the GiST spatial index for efficient queries.
+ *     tags:
+ *       - Pharmacies
+ *     parameters:
+ *       - in: query
+ *         name: lat
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: -90
+ *           maximum: 90
+ *         description: Latitude of the search location
+ *         example: 28.5672
+ *       - in: query
+ *         name: lng
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: -180
+ *           maximum: 180
+ *         description: Longitude of the search location
+ *         example: 77.2088
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Maximum number of results to return
+ *     responses:
+ *       200:
+ *         description: List of nearest open pharmacies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pharmacies:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       name:
+ *                         type: string
+ *                         example: "HealthFirst Pharmacy"
+ *                       address:
+ *                         type: string
+ *                         example: "123 Main Street, Karol Bagh"
+ *                       lat:
+ *                         type: number
+ *                         example: 28.6518
+ *                       lng:
+ *                         type: number
+ *                         example: 77.2219
+ *                       distance:
+ *                         type: string
+ *                         description: Distance in kilometers
+ *                         example: "2.3 km"
+ *                       phone_number:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "+91-11-23555555"
+ *                       is_verified:
+ *                         type: boolean
+ *                         example: true
+ *                       district:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "Central Delhi"
+ *                       state:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "Delhi"
+ *                       operating_hours:
+ *                         type: object
+ *                         description: Operating hours JSON object
+ *                 count:
+ *                   type: integer
+ *                   description: Number of pharmacies returned
+ *       400:
+ *         description: Invalid coordinates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 details:
+ *                   type: object
+ */
+router.get("/nearest-open", limiter, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = nearestOpenSchema.safeParse(req.query);
+
+        if (!result.success) {
+            res.status(400).json({
+                error: "Invalid coordinates or parameters",
+                details: result.error.flatten().fieldErrors,
+            });
+            return;
+        }
+
+        const { lat, lng, limit } = result.data;
+
+        const { data, error } = await pharmacyService.getNearestOpen(lat, lng, limit);
+
+        if (error) {
+            handleFetchError(error);
+            return;
+        }
+
+        const pharmacies = (data || []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            lat: p.lat,
+            lng: p.lng,
+            distance: `${p.distance} km`,
+            phone_number: p.phone_number,
+            is_verified: p.is_verified,
+            district: p.district,
+            state: p.state,
+            operating_hours: p.operating_hours,
+        }));
+
+        res.json({
+            pharmacies,
+            count: pharmacies.length,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 export default router;

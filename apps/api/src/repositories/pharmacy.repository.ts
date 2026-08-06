@@ -137,4 +137,12 @@ export const pharmacyRepository = {
         if (error) throw error;
         return data;
     },
+
+    async rpcGetNearestOpenPharmacies(lat: number, lng: number, maxResults = 10) {
+        return supabase.rpc("get_nearest_open_pharmacies", {
+            query_lat: lat,
+            query_lng: lng,
+            max_results: maxResults,
+        });
+    },
 };
