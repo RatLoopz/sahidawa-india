@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Copy, Loader2, Plus, Sparkles, ShieldCheck, X } from "lucide-react";
 import { parseAsString, useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
@@ -15,7 +15,7 @@ import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, compareMedicineSimilarity, type CompareSimilarityResult } from "@/lib/api";
 import { buildMedicineNameSearchFilter } from "@/lib/supabase/medicineSearch";
 
 type InteractionSeverity = "High Risk" | "Moderate" | "Safe";
@@ -174,6 +174,11 @@ export default function ComparePage() {
     const [interactions, setInteractions] = useState<InteractionWarning[]>([]);
     const [interactionsLoading, setInteractionsLoading] = useState(false);
     const [interactionsError, setInteractionsError] = useState<string | null>(null);
+    const [similarityResult, setSimilarityResult] = useState<CompareSimilarityResult | null>(
+        null
+    );
+    const [similarityLoading, setSimilarityLoading] = useState(false);
+    const [similarityError, setSimilarityError] = useState<string | null>(null);
     const [medicineQuery, setMedicineQuery] = useQueryStates(compareMedicineQueryParsers, {
         history: "replace",
         shallow: true,
@@ -280,6 +285,35 @@ export default function ComparePage() {
 
         return () => window.clearTimeout(timeoutId);
     }, [selectedIds.length, selectedIdsKey]);
+
+    // Reset the AI similarity result whenever the selection changes, so a
+    // stale result from a previous pair is never shown against a new pair.
+    useEffect(() => {
+        setSimilarityResult(null);
+        setSimilarityError(null);
+        setSimilarityLoading(false);
+    }, [selectedIdsKey]);
+
+    const handleCheckSimilarity = async () => {
+        if (!medicine1 || !medicine2) return;
+
+        setSimilarityLoading(true);
+        setSimilarityError(null);
+        try {
+            const result = await compareMedicineSimilarity(
+                medicine1.brand_name || medicine1.generic_name,
+                medicine2.brand_name || medicine2.generic_name
+            );
+            setSimilarityResult(result);
+        } catch (error) {
+            setSimilarityResult(null);
+            setSimilarityError(
+                error instanceof Error ? error.message : tCompare("aiSimilarity.errorMessage")
+            );
+        } finally {
+            setSimilarityLoading(false);
+        }
+    };
 
     const handleCopy = (text: string) => {
         void navigator.clipboard.writeText(text);
@@ -424,15 +458,77 @@ export default function ComparePage() {
                     </button>
                 </section>
                 {medicine1 && medicine2 && (
-                    <div className="flex justify-end">
+                    <div className="flex flex-wrap items-center justify-end gap-3 print:hidden">
                         <button
                             type="button"
                             onClick={() => window.print()}
-                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 print:hidden"
+                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                         >
                             {tCompare("printExport")}
                         </button>
                     </div>
+                )}
+                {selectedIds.length === 2 && (
+                    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h2 className="text-lg font-semibold text-slate-900">
+                                    {tCompare("aiSimilarity.checkButton")}
+                                </h2>
+                                <p className="text-sm text-slate-500">
+                                    {tCompare("aiSimilarity.scoreLabel")}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleCheckSimilarity}
+                                disabled={similarityLoading}
+                                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {similarityLoading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={16} />
+                                        {tCompare("aiSimilarity.checking")}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={16} />
+                                        {tCompare("aiSimilarity.checkButton")}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {similarityError && (
+                            <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                                {similarityError}
+                            </div>
+                        )}
+
+                        {similarityResult && (
+                            <div
+                                className={`mt-4 rounded-lg border p-3 text-sm ${
+                                    similarityResult.verdict === "highly_similar"
+                                        ? "border-amber-200 bg-amber-50 text-amber-800"
+                                        : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                }`}
+                            >
+                                <p className="font-semibold">
+                                    {tCompare("aiSimilarity.scoreLabel")}:{" "}
+                                    {(similarityResult.similarity_score * 100).toFixed(1)}%
+                                </p>
+                                <p className="mt-1 flex items-start gap-2">
+                                    {similarityResult.verdict === "highly_similar" && (
+                                        <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                                    )}
+                                    {similarityResult.verdict === "highly_similar"
+                                        ? tCompare("aiSimilarity.highlySimilarWarning")
+                                        : tCompare("aiSimilarity.differentResult")}
+                                </p>
+                            </div>
+                        )}
+                    </section>
                 )}
                 <ComparisonGrid medicines={selectedMedicines} labels={comparisonLabels} />
                 {selectedIds.length >= 2 && (

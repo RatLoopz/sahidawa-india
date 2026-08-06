@@ -217,7 +217,20 @@ router.delete(
 
 /**
  * GET /api/wishlist
- * Fetch all products in the authenticated user's wishlist.
+ * Fetch a page of the authenticated user's wishlist, newest first.
+ *
+ * Query params:
+ *   page  — 1-based page index (default: 1)
+ *   limit — items per page (default: 20, max: 100)
+ *
+ * Response schema:
+ *   {
+ *     items:      WishlistItem[],
+ *     count:      number, // total wishlist size across all pages
+ *     page:       number,
+ *     limit:      number,
+ *     totalPages: number,
+ *   }
  */
 router.get(
     "/",
@@ -230,21 +243,38 @@ router.get(
         }
 
         try {
-            const { data: wishlistItems, error: fetchError } = await supabase
+            const rawPage = parseInt(req.query.page as string, 10);
+            const rawLimit = parseInt(req.query.limit as string, 10);
+
+            const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+            const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
+
+            const offset = (page - 1) * limit;
+
+            const {
+                data: wishlistItems,
+                error: fetchError,
+                count,
+            } = await supabase
                 .from("wishlists")
-                .select("id, product_id, created_at")
+                .select("id, product_id, created_at", { count: "exact" })
                 .eq("user_id", req.user.id)
-                .order("created_at", { ascending: false });
+                .order("created_at", { ascending: false })
+                .range(offset, offset + limit - 1);
 
             if (fetchError) {
                 next(fetchError);
                 return;
             }
 
+            const totalCount = count ?? 0;
+
             res.json({
-                success: true,
-                count: (wishlistItems || []).length,
                 items: wishlistItems || [],
+                count: totalCount,
+                page,
+                limit,
+                totalPages: Math.ceil(totalCount / limit),
             });
         } catch (err) {
             next(err);

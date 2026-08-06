@@ -406,10 +406,6 @@
         "description": "You don't have an internet connection right now.",
         "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
         "tryAgain": "Try Again",
-        "syncFailedTitle": "Queued actions were rejected",
-        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-        "syncRetry": "Retry all",
-        "syncDiscard": "Discard",
         "goHome": "Go to Home",
         "footer": "SahiDawa will automatically sync when your connection returns.",
         "cachedContent": "You can still access previously loaded content",
@@ -692,6 +688,14 @@
             "approved": "Approved",
             "recalled": "Recalled",
             "banned": "Banned"
+        },
+        "aiSimilarity": {
+            "checkButton": "Check AI similarity",
+            "checking": "Checking similarity…",
+            "scoreLabel": "AI similarity score",
+            "highlySimilarWarning": "These names look highly similar and may be confused with each other. Double-check before dispensing or purchasing.",
+            "differentResult": "These medicine names are not considered look-alike/sound-alike by the AI model.",
+            "errorMessage": "Couldn't check similarity right now. Please try again."
         }
     },
     "Calculator": {
@@ -1027,10 +1031,18 @@
         "areaSpecific": "Area Specific",
         "exportToCalendar": "Export to Calendar",
         "stages": {
-            "birth": { "label": "Birth" },
-            "infant": { "label": "Infant" },
-            "child": { "label": "Child" },
-            "adolescent": { "label": "Adolescent" }
+            "birth": {
+                "label": "Birth"
+            },
+            "infant": {
+                "label": "Infant"
+            },
+            "child": {
+                "label": "Child"
+            },
+            "adolescent": {
+                "label": "Adolescent"
+            }
         },
         "nis": {
             "bcg": {
