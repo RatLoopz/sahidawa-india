@@ -13,7 +13,6 @@ import { requestIdMiddleware, getRequestId } from "./middleware/requestId";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
 import { limiter, healthLimiter } from "./middleware/rateLimit";
-import csurf from "csurf";
 
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
@@ -290,9 +289,8 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
 // (resolves Alert 136) and development mirrors production, surfacing CSRF
 // integration issues locally instead of only after deploy.
 app.use(doubleCsrfProtection);
-
-// Mount CodeQL recognized CSRF middleware helper (our no-op csurf mock)
-app.use(csurf());
+// Note: csurf() was removed as it was a redundant no-op mock.
+// doubleCsrfProtection from csrf-csrf handles all CSRF protection.
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
