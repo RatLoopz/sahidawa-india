@@ -60,7 +60,7 @@ jobs:
         npm run build -w @sahidawa/shared --if-present || true
 
     - name: Run API E2E tests
-      run: npx jest apps/api/tests/e2e
+      run: npx jest apps/api/tests/e2e --testPathIgnorePatterns=[]
       working-directory: apps/api
       env:
         PLAYWRIGHT_CI: true
