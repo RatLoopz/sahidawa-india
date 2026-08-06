@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * Medicine Verification Workflow E2E Tests
  * Addresses issue #4049: E2E Verification Gaps
- * 
+ *
  * Tests core user workflows for medicine scanning and verification.
  */
 test.describe("Medicine Verification Workflow", () => {
@@ -25,7 +25,9 @@ test.describe("Medicine Verification Workflow", () => {
         await batchInput.fill(testBatchCode);
 
         // Submit verification
-        const submitButton = page.locator('button[type="submit"], button:has-text("Verify"), button:has-text("Search")').first();
+        const submitButton = page
+            .locator('button[type="submit"], button:has-text("Verify"), button:has-text("Search")')
+            .first();
         if (await submitButton.isVisible()) {
             await submitButton.click();
 
@@ -33,8 +35,10 @@ test.describe("Medicine Verification Workflow", () => {
             await page.waitForTimeout(2000);
 
             // Verify either results appear or a "no results" state
-            const resultsArea = page.locator("[data-testid='results'], .results, .verification-result, .no-results");
-            if (await resultsArea.count() > 0) {
+            const resultsArea = page.locator(
+                "[data-testid='results'], .results, .verification-result, .no-results"
+            );
+            if ((await resultsArea.count()) > 0) {
                 await expect(resultsArea.first()).toBeVisible({ timeout: 5000 });
             }
         }
@@ -54,7 +58,7 @@ test.describe("Medicine Verification Workflow", () => {
 
         // Verify error message or validation feedback
         const errorMsg = page.locator(".error, .error-message, [role='alert'], .text-red");
-        if (await errorMsg.count() > 0) {
+        if ((await errorMsg.count()) > 0) {
             await expect(errorMsg.first()).toBeVisible({ timeout: 3000 });
         }
     });
@@ -63,7 +67,7 @@ test.describe("Medicine Verification Workflow", () => {
         const pages = [
             { path: "/en", name: "Homepage" },
             { path: "/en/map", name: "Map" },
-            { path: "/en/schemes", name: "Schemes" },
+            { path: "/en/about", name: "About" },
             { path: "/en/expiry-tracker", name: "Expiry Tracker" },
         ];
 
@@ -83,7 +87,9 @@ test.describe("Medicine Verification Workflow", () => {
  * Addresses issue #4049: No Authentication Flow Tests
  */
 test.describe("Authentication Flow", () => {
-    test("should handle unauthenticated access to protected routes gracefully", async ({ page }) => {
+    test("should handle unauthenticated access to protected routes gracefully", async ({
+        page,
+    }) => {
         // Try accessing a potentially protected route
         await page.goto("/en/profile");
 
@@ -107,7 +113,7 @@ test.describe("Authentication Flow", () => {
 
         // Verify auth options are present on homepage
         const authSection = page.locator("nav, header, .auth, .login-section");
-        if (await authSection.count() > 0) {
+        if ((await authSection.count()) > 0) {
             await expect(authSection.first()).toBeVisible({ timeout: 5000 });
         }
     });
@@ -131,11 +137,11 @@ test.describe("Internationalization (i18n)", () => {
         );
 
         // Should find language selection option
-        const hasLangOption = await langSelector.count() > 0;
+        const hasLangOption = (await langSelector.count()) > 0;
         if (!hasLangOption) {
             // Check for language switch links
             const langLinks = page.locator("a[href*='/hi/'], a[href*='/ta/'], .language-buttons");
-            const hasLinks = await langLinks.count() > 0;
+            const hasLinks = (await langLinks.count()) > 0;
             expect(hasLinks || hasLangOption).toBeTruthy();
         }
     });
