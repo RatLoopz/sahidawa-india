@@ -278,8 +278,7 @@ async function parseCsvIncremental(
                                 `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
                             );
                             finishWithError("Database operation failed during insertion.", parser);
-                        })
-                        .catch(err => console.error("[Pharmacies] Failed:", err));
+                        });
                 }
             },
             complete: () => {
@@ -319,8 +318,7 @@ async function parseCsvIncremental(
                                 totalRows: nonEmptyDataRows,
                                 error: "Database operation failed during insertion.",
                             });
-                        })
-                        .catch(err => console.error("[Pharmacies] Failed:", err));
+                        });
                 } else {
                     isDone = true;
                     resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows });

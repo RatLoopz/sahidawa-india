@@ -8,21 +8,6 @@ import { getClientIp } from "@/lib/getClientIp";
 const CACHE_TTL = 24 * 60 * 60;
 const MAX_QUERY_LENGTH = 100;
 
-function getClientIp(request: NextRequest): string {
-    return (
-        request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
-        request.headers.get("x-real-ip") ??
-        "anonymous"
-    );
-function escapePostgrest(val: string) {
-    // Escape backslash first (must be first to avoid double-escaping),
-    // then LIKE wildcards, then PostgREST .or() syntax characters
-    return val
-        .replace(/\\/g, "\\\\")
-        .replace(/[%_]/g, "\\$&")
-        .replace(/[,"'()]/g, "\\$&");
-}
-
 export async function GET(request: NextRequest) {
     try {
         // Rate limiting — before any cache or DB work

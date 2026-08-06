@@ -20,7 +20,6 @@ import { AuthProvider } from "@/src/components/AuthProvider";
 import { TracingInitializer } from "@/components/TracingInitializer";
 const InteractiveOverlays = dynamic(() =>
     import("./components/InteractiveOverlays").then((mod) => mod.InteractiveOverlays)
-    .catch(err => console.error("[Layout] Dynamic import failed:", err))
 );
 import { ReactQueryProvider } from "./components/ReactQueryProvider";
 const PrivacyConsentBanner = dynamic(() => import("@/components/PrivacyConsentBanner"));

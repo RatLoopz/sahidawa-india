@@ -222,10 +222,13 @@ export default function AnalyticsDashboard() {
             setReportCount(allReports.length);
             setResolvedCount(
                 allReports.filter(
-                    (_r: AuditLogEntry) => r.status === "verified_fake" || r.status === "false_alarm"
+                    (_r: AuditLogEntry) =>
+                        r.status === "verified_fake" || r.status === "false_alarm"
                 ).length
             );
-            setDistrictCount(new Set(allReports.map((_r: AuditLogEntry) => r.district).filter(Boolean)).size);
+            setDistrictCount(
+                new Set(allReports.map((_r: AuditLogEntry) => r.district).filter(Boolean)).size
+            );
         } catch (err) {
             console.error("Failed to fetch analytics data:", err);
             setError("Failed to load analytics data. Please try again.");
@@ -694,12 +697,12 @@ function MetricCard({
 }: {
     label: string;
     value: string;
-    icon: React.ComponentType<{className?: string};
+    icon: React.ComponentType<{ className?: string }>;
     color: string;
     bg: string;
     trend?: string;
     trendColor?: string;
-    TrendIcon?: React.ComponentType<{className?: string}>;
+    TrendIcon?: React.ComponentType<{ className?: string }>;
 }) {
     return (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
