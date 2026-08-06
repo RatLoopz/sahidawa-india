@@ -1736,6 +1736,8 @@
         "no_search_results": "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಔಷಧಿಗಳು ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ.",
         "item_status_label": "ಸ್ಥಿತಿ:",
         "item_delete_button": "ಅಳಿಸಿ",
+        "sync_auth_title": "ನಿಮ್ಮ ಇತಿಹಾಸವನ್ನು ಸಿಂಕ್ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+        "sync_auth_action": "ಸೈನ್ ಇನ್",
         "item_copy_success": "ಔಷಧದ ಹೆಸರನ್ನು ನಕಲಿಸಲಾಗಿದೆ!"
     },
     "MyReports": {

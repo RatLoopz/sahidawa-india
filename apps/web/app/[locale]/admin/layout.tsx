@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { getAdminRoleFromSession } from "@/lib/adminAuth";
+import { getAdminRoleFromUser } from "@/lib/adminAuth";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -37,15 +37,17 @@ export default async function AdminLayout({
             },
         },
     });
+    // getUser() revalidates the JWT with Supabase Auth; getSession() only reads local storage.
     const {
-        data: { session },
-    } = await supabase.auth.getSession();
+        data: { user },
+        error: userError,
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (userError || !user) {
         return redirect(`/${resolvedParams.locale}/login`);
     }
 
-    const role = getAdminRoleFromSession(session);
+    const role = getAdminRoleFromUser(user);
 
     if (role !== "admin" && role !== "moderator") {
         return (

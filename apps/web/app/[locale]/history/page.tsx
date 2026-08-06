@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
 
 import {
@@ -11,9 +11,12 @@ import {
     ScanHistoryEntry,
 } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, Download, LogIn, RefreshCw, Trash2 } from "lucide-react";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Link, usePathname } from "@/i18n/routing";
+import { useSession } from "@/src/components/AuthProvider";
+import { buildLoginPath } from "@/lib/authReturn";
 
 const ExportModal = dynamic(() => import("./ExportModal"));
 
@@ -33,6 +36,9 @@ export default function HistoryPage() {
     );
 
     const t = useTranslations("ScanHistory");
+    const locale = useLocale();
+    const pathname = usePathname();
+    const { session } = useSession();
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     const loadHistory = useCallback(async () => {
@@ -265,6 +271,17 @@ export default function HistoryPage() {
                     </div>
                 )}
                 {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
+                {syncStatus === "error" && !session && (
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm">
+                        <span className="text-amber-300">{t("sync_auth_title")}</span>
+                        <Link
+                            href={buildLoginPath(locale, pathname) as any}
+                            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 font-semibold text-amber-950 transition hover:bg-amber-400"
+                        >
+                            <LogIn size={16} /> {t("sync_auth_action")}
+                        </Link>
+                    </div>
+                )}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                         <p className="text-sm opacity-70">{t("stat_total")}</p>

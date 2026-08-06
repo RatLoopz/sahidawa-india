@@ -1736,6 +1736,8 @@
         "no_search_results": "ਕੋਈ ਵੀ ਦਵਾਈ ਤੁਹਾਡੀ ਖੋਜ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ।",
         "item_status_label": "ਸਥਿਤੀ:",
         "item_delete_button": "ਮਿਟਾਓ",
+        "sync_auth_title": "ਆਪਣਾ ਇਤਿਹਾਸ ਸਿੰਕ ਕਰਨ ਲਈ ਸਾਈਨ ਇਨ ਕਰੋ",
+        "sync_auth_action": "ਸਾਈਨ ਇਨ",
         "item_copy_success": "ਦਵਾਈ ਦਾ ਨਾਮ ਕਾਪੀ ਕੀਤਾ ਗਿਆ!"
     },
     "MyReports": {

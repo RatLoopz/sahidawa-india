@@ -30,7 +30,7 @@ jobs:
     steps:
       # ── 1. Checkout ───────────────────────────────────────────────────────────
       - name: "⬇️ Checkout full history"
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
@@ -38,7 +38,7 @@ jobs:
 
       # ── 2. Setup Node.js ──────────────────────────────────────────────────────
       - name: "⚙️ Setup Node.js from .nvmrc"
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
 

@@ -748,7 +748,13 @@ export default function PharmacyMap({
 
     // Handle selected pharmacy changes (Panels -> Map flight)
     useEffect(() => {
-        if (!isMapReady || !map.current || selectedPharmacyId == null) return;
+        if (
+            !isMapReady ||
+            !map.current ||
+            selectedPharmacyId === null ||
+            selectedPharmacyId === undefined
+        )
+            return;
 
         const marker = markersRef.current.get(selectedPharmacyId);
         if (marker) {

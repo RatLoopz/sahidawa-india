@@ -1680,6 +1680,8 @@
         "no_search_results": "भवतः अन्वेषणेन सह कोऽपि औषधः न मेलति।",
         "item_status_label": "स्थितिः : १.",
         "item_delete_button": "विलोपयतु",
+        "sync_auth_title": "स्वस्य इतिहासं सिंक कर्तुं प्रवेशं कुरु",
+        "sync_auth_action": "प्रवेशं कुरु",
         "item_copy_success": "औषधस्य नाम प्रतिलिपिकृतम् !"
     },
     "MyReports": {
