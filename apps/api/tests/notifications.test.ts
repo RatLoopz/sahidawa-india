@@ -127,6 +127,26 @@ jest.mock("../src/services/otpStore", () => ({
     },
 }));
 
+// In-memory store to simulate Redis for pending phone changes in tests
+const mockPendingPhoneChanges = new Map<string, string>();
+
+jest.mock("../src/utils/redis", () => ({
+    redisClient: {
+        get isOpen() {
+            return true;
+        },
+        get: jest.fn().mockImplementation(async (key: string) => {
+            return mockPendingPhoneChanges.get(key) ?? null;
+        }),
+        setEx: jest.fn().mockImplementation(async (key: string, _ttl: number, value: string) => {
+            mockPendingPhoneChanges.set(key, value);
+        }),
+        del: jest.fn().mockImplementation(async (key: string) => {
+            mockPendingPhoneChanges.delete(key);
+        }),
+    },
+}));
+
 import express from "express";
 import request from "supertest";
 import notificationsRouter from "../src/routes/notifications";
@@ -134,8 +154,12 @@ import { computeTwilioSignature } from "../src/middleware/twilioSignature";
 import { signGuestToken, verifyGuestPhone } from "../src/utils/guestToken";
 import { Request, Response, NextFunction } from "express";
 import { otpStore } from "../src/services/otpStore";
+import { smsService } from "../src/services/sms-service";
+import { whatsappService } from "../src/services/whatsapp-service";
 
 const mockOtpStore = otpStore as any;
+const smsServiceMock = smsService as any;
+const whatsappServiceMock = whatsappService as any;
 
 describe("notifications routes", () => {
     let app: express.Express;
@@ -725,6 +749,239 @@ describe("notifications routes", () => {
 
             expect(response.status).toBe(401);
             expect(mockQueryBuilder.eq).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("authenticated phone change via OTP verification", () => {
+        beforeEach(() => {
+            mockPendingPhoneChanges.clear();
+            // Default: subscriber exists with phone +919876543210
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, phone: "+919876543210" },
+                error: null,
+            });
+        });
+
+        it("returns 200 with verificationRequired and current subscriber when phone change requested", async () => {
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.verificationRequired).toBe(true);
+            expect(response.body.subscriber).toBeDefined();
+            // Returns the CURRENT phone, not the new one (not yet verified)
+            expect(response.body.subscriber.phone).toBe("+919876543210");
+            // Must NOT update the DB directly
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+        });
+
+        it("sends OTP to the new phone number via sms and whatsapp", async () => {
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            expect(response.status).toBe(200);
+            expect(smsServiceMock.sendOtp).toHaveBeenCalledWith(
+                "+919123456789",
+                expect.any(String),
+                "en"
+            );
+            expect(whatsappServiceMock.sendOtp).toHaveBeenCalledWith(
+                "+919123456789",
+                expect.any(String),
+                "en"
+            );
+        });
+
+        it("stores the OTP in otpStore for the new phone", async () => {
+            await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            expect(mockOtpStore.store).toHaveBeenCalledWith(
+                "+919123456789",
+                expect.stringMatching(/^\d{6}$/),
+                expect.any(String)
+            );
+        });
+
+        it("returns 400 when changing to the same phone number", async () => {
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9876543210" });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("New phone number is the same as the current one.");
+        });
+
+        it("returns 404 when authenticated user has no subscriber", async () => {
+            mockQueryBuilder.maybeSingle.mockReset();
+            // First call: phone change lookup returns no subscriber
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            expect(response.status).toBe(404);
+            expect(response.body.error).toBe("Subscriber not found");
+        });
+
+        it("completes phone change when OTP is valid", async () => {
+            // Request phone change first
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, phone: "+919876543210" },
+                error: null,
+            });
+            await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            // Now verify OTP
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, phone: "+919123456789", status: "pending" },
+                error: null,
+            });
+            mockOtpStore.hasPending.mockResolvedValueOnce(true);
+            mockOtpStore.verify.mockResolvedValueOnce(true);
+
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9123456789", otp: "123456" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toBe("Phone number changed successfully");
+            // The DB should have been updated with the new phone
+            expect(mockQueryBuilder.update).toHaveBeenCalledWith({ phone: "+919123456789" });
+            expect(mockQueryBuilder.eq).toHaveBeenCalledWith("user_id", "test-user-uuid");
+        });
+
+        it("does not complete phone change with invalid OTP", async () => {
+            // Request phone change first
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, phone: "+919876543210" },
+                error: null,
+            });
+            await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            // Verify OTP with wrong code
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, phone: "+919123456789", status: "pending" },
+                error: null,
+            });
+            mockOtpStore.hasPending.mockResolvedValueOnce(true);
+            mockOtpStore.verify.mockResolvedValueOnce(false);
+
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9123456789", otp: "000000" });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid or expired OTP");
+            // Phone should NOT have been updated
+            expect(mockQueryBuilder.update).not.toHaveBeenCalledWith(
+                expect.objectContaining({ phone: expect.anything() })
+            );
+        });
+
+        it("allows updating other fields without triggering OTP flow", async () => {
+            mockQueryBuilder.maybeSingle.mockReset();
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", district: "New District", channels: ["sms"] });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(mockQueryBuilder.update).toHaveBeenCalledWith({
+                district: "New District",
+                channels: ["sms"],
+            });
+        });
+
+        it("guest phone change is still blocked", async () => {
+            mockAuthenticatedUser = null;
+            const token = signGuestToken("+919876543210");
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .set("X-Guest-Token", token)
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe(
+                "Changing your number requires verifying the new number first."
+            );
+        });
+
+        it("scopes pending phone change to the authenticated user (not the phone number)", async () => {
+            // User A requests phone change
+            mockAuthenticatedUser = {
+                id: "user-a-uuid",
+                role: "user",
+                email: "a@example.com",
+            };
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, user_id: "user-a-uuid", phone: "+919876543210" },
+                error: null,
+            });
+            await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            // User B also requests change to same newPhone
+            mockAuthenticatedUser = {
+                id: "user-b-uuid",
+                role: "user",
+                email: "b@example.com",
+            };
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, user_id: "user-b-uuid", phone: "+919876543211" },
+                error: null,
+            });
+            await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543211", newPhone: "9123456789" });
+
+            // Now verify OTP as User A — should succeed (pending change is under user-a-uuid)
+            mockAuthenticatedUser = {
+                id: "user-a-uuid",
+                role: "user",
+                email: "a@example.com",
+            };
+            mockQueryBuilder.maybeSingle.mockReset();
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: {
+                    ...mockSubscriber,
+                    user_id: "user-a-uuid",
+                    phone: "+919123456789",
+                    status: "pending",
+                },
+                error: null,
+            });
+            mockOtpStore.hasPending.mockResolvedValueOnce(true);
+            mockOtpStore.verify.mockResolvedValueOnce(true);
+
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9123456789", otp: "123456" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.message).toBe("Phone number changed successfully");
+            // DB update is scoped to User A
+            expect(mockQueryBuilder.update).toHaveBeenCalledWith({ phone: "+919123456789" });
+            expect(mockQueryBuilder.eq).toHaveBeenCalledWith("user_id", "user-a-uuid");
         });
     });
 });
