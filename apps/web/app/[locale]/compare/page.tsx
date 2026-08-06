@@ -353,7 +353,8 @@ export default function ComparePage() {
             try {
                 const result = await fetchSimilarity(medicine1.name, medicine2.name);
                 setSimilarityResult(result);
-            } catch {
+            } catch (err) {
+                console.error("Failed to fetch similarity:", err);
                 setSimilarityResult(null);
             } finally {
                 setSimilarityLoading(false);
