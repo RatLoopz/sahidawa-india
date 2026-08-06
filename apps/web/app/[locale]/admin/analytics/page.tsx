@@ -71,7 +71,7 @@ type AuditLogEntry = {
     action: string;
     userId: string | null;
     details: string | null;
-    createdAt: string;
+    created_at: string;
 };
 
 type ReportEntry = {
@@ -79,7 +79,7 @@ type ReportEntry = {
     status: string;
     district: string | null;
     medicineName: string | null;
-    createdAt: string;
+    created_at: string;
 };
 
 type MedicineEntry = {
@@ -87,7 +87,7 @@ type MedicineEntry = {
     name: string;
     manufacturer: string | null;
     status: string;
-    createdAt: string;
+    created_at: string;
 };
 
 const EMPTY_PUSH_ANALYTICS: PushAnalytics = {
@@ -222,12 +222,11 @@ export default function AnalyticsDashboard() {
             setReportCount(allReports.length);
             setResolvedCount(
                 allReports.filter(
-                    (_r: AuditLogEntry) =>
-                        r.status === "verified_fake" || r.status === "false_alarm"
+                    (r: ReportEntry) => r.status === "verified_fake" || r.status === "false_alarm"
                 ).length
             );
             setDistrictCount(
-                new Set(allReports.map((_r: AuditLogEntry) => r.district).filter(Boolean)).size
+                new Set(allReports.map((r: ReportEntry) => r.district).filter(Boolean)).size
             );
         } catch (err) {
             console.error("Failed to fetch analytics data:", err);
@@ -258,8 +257,8 @@ export default function AnalyticsDashboard() {
             const d = new Date(item.created_at);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             if (!monthMap[key]) monthMap[key] = { medicines: 0, reports: 0 };
-            if (medicines.includes(item)) monthMap[key].medicines++;
-            if (reports.includes(item)) monthMap[key].reports++;
+            if ((medicines as any[]).includes(item)) monthMap[key].medicines++;
+            if ((reports as any[]).includes(item)) monthMap[key].reports++;
         });
 
         return Object.entries(monthMap)
@@ -596,7 +595,7 @@ export default function AnalyticsDashboard() {
                                         No recent activity
                                     </div>
                                 ) : (
-                                    recentActivity.slice(0, 10).map((item: AuditLogEntry, idx) => {
+                                    recentActivity.slice(0, 10).map((item: any, idx) => {
                                         const isReport = item.status !== undefined;
                                         const isMedicine =
                                             item.brand_name !== undefined &&
