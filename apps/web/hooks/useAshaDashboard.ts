@@ -43,35 +43,6 @@ export function useAshaDashboard() {
         }
     }, []);
 
-    const awardPoints = useCallback(async (points: number, reason: string) => {
-        try {
-            const data = await fetchWithCsrf<any>("/api/v1/asha/award-points", {
-                method: "POST",
-                body: JSON.stringify({ points, reason }),
-            });
-
-            setStats((prev) =>
-                prev ? { ...prev, points: data.points, badges: data.badges } : null
-            );
-
-            if (data.unlockedBadges && data.unlockedBadges.length > 0) {
-                setUnlockedBadges((prev) => [...prev, ...data.unlockedBadges]);
-            }
-
-            // Refresh leaderboard
-            const leaderboardData = await fetchWithCsrf<{ leaderboard: LeaderboardEntry[] }>(
-                "/api/v1/asha/leaderboard",
-                { method: "GET" }
-            );
-            setLeaderboard(leaderboardData.leaderboard);
-
-            return data;
-        } catch (err: any) {
-            console.error(err);
-            throw err;
-        }
-    }, []);
-
     const clearUnlockedBadges = useCallback(() => {
         setUnlockedBadges([]);
     }, []);
@@ -86,7 +57,6 @@ export function useAshaDashboard() {
         loading,
         error,
         unlockedBadges,
-        awardPoints,
         clearUnlockedBadges,
         refresh: fetchDashboardData,
     };

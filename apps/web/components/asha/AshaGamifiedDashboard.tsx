@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useAshaDashboard } from "../../hooks/useAshaDashboard";
 import { PointsProgressBar } from "./PointsProgressBar";
 import { LeaderboardWidget } from "./LeaderboardWidget";
 import { BadgeUnlockModal } from "./BadgeUnlockModal";
-import { motion } from "framer-motion";
 
 export function AshaGamifiedDashboard() {
-    const { stats, leaderboard, loading, error, unlockedBadges, awardPoints, clearUnlockedBadges } =
+    const { stats, leaderboard, loading, error, unlockedBadges, clearUnlockedBadges } =
         useAshaDashboard();
-    const [isAwarding, setIsAwarding] = useState(false);
 
     if (loading) {
         return (
@@ -37,17 +35,6 @@ export function AshaGamifiedDashboard() {
     if (currentPoints >= 500) nextMilestone = 1000;
     if (currentPoints >= 1000) nextMilestone = currentPoints + 500;
 
-    const handleSimulateAction = async (points: number, actionName: string) => {
-        setIsAwarding(true);
-        try {
-            await awardPoints(points, actionName);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsAwarding(false);
-        }
-    };
-
     return (
         <div className="mx-auto max-w-4xl space-y-8">
             <header className="mb-8">
@@ -62,49 +49,36 @@ export function AshaGamifiedDashboard() {
                 <div className="space-y-8 md:col-span-2">
                     <PointsProgressBar points={currentPoints} targetPoints={nextMilestone} />
 
-                    {/* Action Cards (Gamification loop triggers) */}
                     <div>
-                        <h2 className="mb-4 text-xl font-bold text-slate-800">Available Tasks</h2>
+                        <h2 className="mb-4 text-xl font-bold text-slate-800">How to earn tokens</h2>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() =>
-                                    handleSimulateAction(10, "Verified Pharmacy Location")
-                                }
-                                disabled={isAwarding}
-                                className="flex flex-col items-start rounded-2xl border border-slate-100 bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md disabled:opacity-50"
-                            >
+                            <div className="flex flex-col items-start rounded-2xl border border-slate-100 bg-white p-5 text-left shadow-sm">
                                 <span className="mb-3 rounded-lg bg-blue-100 p-2 text-blue-700">
                                     📍
                                 </span>
                                 <h3 className="font-semibold text-slate-700">Verify Pharmacy</h3>
                                 <p className="mt-1 mb-3 text-sm text-slate-500">
-                                    Confirm a newly added Jan Aushadhi store.
+                                    Confirm a newly added Jan Aushadhi store. Tokens are awarded
+                                    after the server verifies the action.
                                 </p>
                                 <span className="text-sm font-bold text-emerald-600">
                                     +10 Tokens
                                 </span>
-                            </motion.button>
+                            </div>
 
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleSimulateAction(25, "Reported Fake Medicine")}
-                                disabled={isAwarding}
-                                className="flex flex-col items-start rounded-2xl border border-slate-100 bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md disabled:opacity-50"
-                            >
+                            <div className="flex flex-col items-start rounded-2xl border border-slate-100 bg-white p-5 text-left shadow-sm">
                                 <span className="mb-3 rounded-lg bg-red-100 p-2 text-red-700">
                                     🚨
                                 </span>
                                 <h3 className="font-semibold text-slate-700">Report Counterfeit</h3>
                                 <p className="mt-1 mb-3 text-sm text-slate-500">
-                                    Submit a verified report for a fake drug.
+                                    Submit a verified report for a fake drug. Tokens are awarded
+                                    after the server verifies the report.
                                 </p>
                                 <span className="text-sm font-bold text-emerald-600">
                                     +25 Tokens
                                 </span>
-                            </motion.button>
+                            </div>
                         </div>
                     </div>
 
