@@ -23,7 +23,7 @@ import {
     Database,
 } from "lucide-react";
 import { useSession } from "@/src/components/AuthProvider";
-import { canMutateAdminData, getAdminRoleFromSession } from "@/lib/adminAuth";
+import { canMutateAdminData, getAdminRoleFromUser } from "@/lib/adminAuth";
 
 type VerificationStatus = "pending" | "approved" | "rejected";
 
@@ -109,7 +109,7 @@ export default function ApprovalQueuePage() {
 
     useEffect(() => {
         if (authLoading) return;
-        const role = getAdminRoleFromSession(session);
+        const role = getAdminRoleFromUser(session?.user);
         setCanMutate(canMutateAdminData(role));
     }, [authLoading, session]);
 
