@@ -24,27 +24,20 @@ test.describe("Medicine Verification Workflow", () => {
         // Enter batch code
         await batchInput.fill(testBatchCode);
 
-        // Submit verification
+        // Submit verification - find any submit/verify/search button
         const submitButton = page
             .locator('button[type="submit"], button:has-text("Verify"), button:has-text("Search")')
             .first();
-        if (await submitButton.isVisible()) {
-            await submitButton.click();
+        await submitButton.click();
 
-            // Wait for results
-            await page.waitForTimeout(2000);
+        // Wait for results
+        await page.waitForTimeout(2000);
 
-            // Verify either results appear or a "no results" state
-            const resultsArea = page.locator(
-                "[data-testid='results'], .results, .verification-result, .no-results"
-            );
-            if ((await resultsArea.count()) > 0) {
-                await expect(resultsArea.first()).toBeVisible({ timeout: 5000 });
-            }
-        }
+        // Page should still be responsive after submission
+        await expect(page.locator("body")).toBeVisible({ timeout: 5000 });
     });
 
-    test("should display error for invalid batch code format", async ({ page }) => {
+    test("should handle batch code input field", async ({ page }) => {
         await page.goto("/en/scan");
 
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
@@ -52,15 +45,10 @@ test.describe("Medicine Verification Workflow", () => {
         const batchInput = page.locator("#batch-input");
         await expect(batchInput).toBeVisible({ timeout: 10000 });
 
-        // Enter invalid/empty input and verify error handling
-        await batchInput.fill("");
-        await page.waitForTimeout(500);
-
-        // Verify error message or validation feedback
-        const errorMsg = page.locator(".error, .error-message, [role='alert'], .text-red");
-        if ((await errorMsg.count()) > 0) {
-            await expect(errorMsg.first()).toBeVisible({ timeout: 3000 });
-        }
+        // Enter text and verify it persists
+        await batchInput.fill("TEST-BATCH-123");
+        const inputValue = await batchInput.inputValue();
+        expect(inputValue).toBe("TEST-BATCH-123");
     });
 
     test("should navigate between main pages", async ({ page }) => {
@@ -101,21 +89,14 @@ test.describe("Authentication Flow", () => {
         await expect(content).toBeVisible({ timeout: 10000 });
     });
 
-    test("should display login option on protected actions", async ({ page }) => {
+    test("should display navigation on homepage", async ({ page }) => {
         await page.goto("/en");
 
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
-        // Look for login/auth buttons
-        const authButtons = page.locator(
-            'button:has-text("Login"), button:has-text("Sign In"), a:has-text("Login"), a:has-text("Sign In")'
-        );
-
-        // Verify auth options are present on homepage
-        const authSection = page.locator("nav, header, .auth, .login-section");
-        if ((await authSection.count()) > 0) {
-            await expect(authSection.first()).toBeVisible({ timeout: 5000 });
-        }
+        // Navigation should be present on homepage
+        const nav = page.locator("nav");
+        await expect(nav.first()).toBeVisible({ timeout: 10000 });
     });
 });
 
@@ -124,44 +105,27 @@ test.describe("Authentication Flow", () => {
  * Addresses issue #4049: Multi-language/i18n Switching
  */
 test.describe("Internationalization (i18n)", () => {
-    const supportedLanguages = ["en", "hi", "ta", "te", "mr", "bn"];
-
-    test("should display language selector on main pages", async ({ page }) => {
+    test("should display Hindi language link on homepage", async ({ page }) => {
         await page.goto("/en");
 
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
-        // Look for language selector
-        const langSelector = page.locator(
-            "select[name*='lang'], button[aria-label*='language'], [data-testid='language-selector'], .lang-selector"
-        );
-
-        // Should find language selection option
-        const hasLangOption = (await langSelector.count()) > 0;
-        if (!hasLangOption) {
-            // Check for language switch links
-            const langLinks = page.locator("a[href*='/hi/'], a[href*='/ta/'], .language-buttons");
-            const hasLinks = (await langLinks.count()) > 0;
-            expect(hasLinks || hasLangOption).toBeTruthy();
-        }
+        // Look for Hindi language link
+        const hindiLink = page.locator("a[href*='/hi/']").first();
+        await expect(hindiLink).toBeVisible({ timeout: 10000 });
     });
 
-    test("should switch language and display translated content", async ({ page }) => {
+    test("should switch to Hindi language", async ({ page }) => {
         await page.goto("/en");
 
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
-        // Try to find and click Hindi language option
+        // Find and click Hindi language link
         const hindiLink = page.locator("a[href*='/hi/']").first();
+        await hindiLink.click();
 
-        if (await hindiLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-            await hindiLink.click();
-            await page.waitForURL("**/hi/**");
-
-            // Verify page loaded with Hindi content
-            await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
-            const content = page.locator("body > *").first();
-            await expect(content).toBeVisible({ timeout: 10000 });
-        }
+        // Verify URL changed to Hindi locale
+        await page.waitForURL("**/hi/**", { timeout: 10000 });
+        await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
     });
 });

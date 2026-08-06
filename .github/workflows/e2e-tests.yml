@@ -43,9 +43,9 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v7
+    - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
         cache: 'npm'
@@ -60,7 +60,7 @@ jobs:
         npm run build -w @sahidawa/shared --if-present || true
 
     - name: Run API E2E tests
-      run: npm test -- apps/api/tests/e2e
+      run: npx jest apps/api/tests/e2e
       working-directory: apps/api
       env:
         PLAYWRIGHT_CI: true
