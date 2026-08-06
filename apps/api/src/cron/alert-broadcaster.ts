@@ -164,7 +164,7 @@ async function sendNotificationToSubscriber(
     sub: NotificationSubscriber,
     type: "counterfeit" | "recall" | "expiry",
     data: NotificationAlertData
-): Promise<void> {
+): Promise<boolean> {
     const { title, body } = getLocalizedMessage(type, data, sub.language);
     const fullMessage = `${title}\n\n${body}`;
 
@@ -176,7 +176,10 @@ async function sendNotificationToSubscriber(
         sendPromises.push(whatsappService.send(sub.phone, fullMessage, sub.language));
     }
 
-    await Promise.all(sendPromises);
+    if (sendPromises.length === 0) return false;
+
+    const results = await Promise.allSettled(sendPromises);
+    return results.some((result) => result.status === "fulfilled" && result.value);
 }
 
 interface ExpiringBatchSummary {
@@ -248,24 +251,10 @@ export async function broadcastDistrictAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting counterfeit alert for district: ${alert.district}`);
 
-            const { error: markError } = await supabase
-                .from("district_alerts")
-                .update({ broadcasted: true })
-                .eq("id", alert.id);
-
-            if (markError) {
-                logger.error({
-                    message:
-                        "Failed to mark district alert as broadcasted, skipping send to avoid duplicate delivery on next tick",
-                    error: markError,
-                    alertId: alert.id,
-                });
-                continue;
-            }
-
             let from = 0;
             let to = PAGE_SIZE - 1;
             let hasMore = true;
+            let hasSuccessfulDelivery = false;
 
             while (hasMore) {
                 const { data: subscribers, error: subsError } = await supabase
@@ -296,7 +285,10 @@ export async function broadcastDistrictAlerts(): Promise<void> {
                             district: alert.district,
                         })
                     );
-                    await Promise.allSettled(promises);
+                    const results = await Promise.allSettled(promises);
+                    hasSuccessfulDelivery ||= results.some(
+                        (result) => result.status === "fulfilled" && result.value
+                    );
                 }
 
                 if (subscribers.length < PAGE_SIZE) {
@@ -307,7 +299,26 @@ export async function broadcastDistrictAlerts(): Promise<void> {
                 }
             }
 
-            await supabase.from("district_alerts").update({ broadcasted: true }).eq("id", alert.id);
+            if (!hasSuccessfulDelivery) {
+                logger.warn(
+                    "District alert delivery failed for every eligible subscriber; will retry.",
+                    { alertId: alert.id, district: alert.district }
+                );
+                continue;
+            }
+
+            const { error: markError } = await supabase
+                .from("district_alerts")
+                .update({ broadcasted: true })
+                .eq("id", alert.id);
+
+            if (markError) {
+                logger.error({
+                    message: "Failed to mark district alert as broadcasted",
+                    error: markError,
+                    alertId: alert.id,
+                });
+            }
         }
     } catch (err) {
         logger.error({ message: "Error in broadcastDistrictAlerts", error: err });
@@ -334,25 +345,10 @@ export async function broadcastDrugAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting CDSCO drug recall: ${alert.reported_brand_name}`);
 
-            // MARK AS BROADCASTED BEFORE SENDING
-            const { error: markError } = await supabase
-                .from("drug_alerts")
-                .update({ broadcasted: true })
-                .eq("id", alert.id);
-
-            if (markError) {
-                logger.error({
-                    message:
-                        "Failed to mark drug alert as broadcasted, skipping send to avoid duplicate delivery on next tick",
-                    error: markError,
-                    alertId: alert.id,
-                });
-                continue;
-            }
-
             let from = 0;
             let to = PAGE_SIZE - 1;
             let hasMore = true;
+            let hasSuccessfulDelivery = false;
 
             while (hasMore) {
                 let query = supabase
@@ -387,7 +383,10 @@ export async function broadcastDrugAlerts(): Promise<void> {
                             batchNumber: alert.batch_number,
                         })
                     );
-                    await Promise.allSettled(promises);
+                    const results = await Promise.allSettled(promises);
+                    hasSuccessfulDelivery ||= results.some(
+                        (result) => result.status === "fulfilled" && result.value
+                    );
                 }
 
                 if (subscribers.length < PAGE_SIZE) {
@@ -396,6 +395,27 @@ export async function broadcastDrugAlerts(): Promise<void> {
                     from += PAGE_SIZE;
                     to += PAGE_SIZE;
                 }
+            }
+
+            if (!hasSuccessfulDelivery) {
+                logger.warn(
+                    "Drug alert delivery failed for every eligible subscriber; will retry.",
+                    { alertId: alert.id, drug: alert.reported_brand_name }
+                );
+                continue;
+            }
+
+            const { error: markError } = await supabase
+                .from("drug_alerts")
+                .update({ broadcasted: true })
+                .eq("id", alert.id);
+
+            if (markError) {
+                logger.error({
+                    message: "Failed to mark drug alert as broadcasted",
+                    error: markError,
+                    alertId: alert.id,
+                });
             }
         }
     } catch (err) {

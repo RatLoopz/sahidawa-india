@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { redis } from "@/lib/redis";
 import { rateLimit } from "@/lib/rateLimit";
 import { escapePostgrest } from "@sahidawa/shared";
+import { getClientIp } from "@/lib/getClientIp";
 
 const CACHE_TTL = 24 * 60 * 60;
 const MAX_QUERY_LENGTH = 100;
@@ -13,6 +14,13 @@ function getClientIp(request: NextRequest): string {
         request.headers.get("x-real-ip") ??
         "anonymous"
     );
+function escapePostgrest(val: string) {
+    // Escape backslash first (must be first to avoid double-escaping),
+    // then LIKE wildcards, then PostgREST .or() syntax characters
+    return val
+        .replace(/\\/g, "\\\\")
+        .replace(/[%_]/g, "\\$&")
+        .replace(/[,"'()]/g, "\\$&");
 }
 
 export async function GET(request: NextRequest) {

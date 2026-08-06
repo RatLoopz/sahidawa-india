@@ -1736,6 +1736,8 @@
         "no_search_results": "আপনার অনুসন্ধানের সাথে মেলে এমন কোনো ওষুধ পাওয়া যায়নি।",
         "item_status_label": "স্থিতি: ",
         "item_delete_button": "মুছে ফেলুন",
+        "sync_auth_title": "আপনার ইতিহাস সিঙ্ক করতে সাইন ইন করুন",
+        "sync_auth_action": "সাইন ইন",
         "item_copy_success": "ওষুধের নাম কপি করা হয়েছে!"
     },
     "MyReports": {

@@ -101,6 +101,16 @@ const COUNTERFEIT_REPORT_HOTSPOTS: RiskHotspot[] = [
     },
 ];
 
+// ── Error auto-dismiss timeouts (ms) ─────────────────────────────────────
+/** Duration before fetch-error toast disappears */
+const FETCH_ERROR_DISMISS_MS = 5000;
+/** Longer duration for specific error states */
+const FETCH_ERROR_LONG_DISMISS_MS = 6000;
+/** Duration before location-error banner disappears */
+const LOCATION_ERROR_DISMISS_MS = 3000;
+/** Duration before location-error persists in challenging areas */
+const LOCATION_ERROR_LONG_DISMISS_MS = 4000;
+
 function buildDensityHotspots(pharmacies: Pharmacy[]): RiskHotspot[] {
     const buckets = new Map<string, { count: number; lat: number; lng: number; named: number }>();
 
@@ -614,12 +624,12 @@ export default function PharmacyMapPage() {
                     setFetchError(
                         "Live search temporarily offline. Showing verified partners only."
                     );
-                    setTimeout(() => setFetchError(null), 6000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
                 } else if (merged.length === 0) {
                     setFetchError(
                         "No pharmacies found in this area. Try searching a wider region."
                     );
-                    setTimeout(() => setFetchError(null), 5000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
                 }
 
                 setPharmacies(merged);
@@ -642,7 +652,7 @@ export default function PharmacyMapPage() {
                 }
 
                 setFetchError("Could not load pharmacies. Try again.");
-                setTimeout(() => setFetchError(null), 5000);
+                setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
             } finally {
                 setIsLoading(false);
             }
@@ -684,14 +694,14 @@ export default function PharmacyMapPage() {
                     // Surface a localized message (e.g. permission denied) instead
                     // of silently falling back with no feedback to the user.
                     setLocationError(getGeolocationErrorMessage(err.code, t));
-                    setTimeout(() => setLocationError(null), 4000);
+                    setTimeout(() => setLocationError(null), LOCATION_ERROR_LONG_DISMISS_MS);
                     fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         } else {
             setLocationError(t("errors.generic"));
-            setTimeout(() => setLocationError(null), 4000);
+            setTimeout(() => setLocationError(null), LOCATION_ERROR_LONG_DISMISS_MS);
             fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
     }, [fetchNearby, t]);
@@ -764,12 +774,12 @@ export default function PharmacyMapPage() {
                     setFetchError(
                         "Live search temporarily offline. Showing verified partners only."
                     );
-                    setTimeout(() => setFetchError(null), 6000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
                 } else if (merged.length === 0) {
                     setFetchError(
                         "No pharmacies found in this area. Try searching a wider region."
                     );
-                    setTimeout(() => setFetchError(null), 5000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
                 }
 
                 setPharmacies(merged);
@@ -791,7 +801,7 @@ export default function PharmacyMapPage() {
                 }
 
                 setFetchError("Could not load pharmacies. Try again.");
-                setTimeout(() => setFetchError(null), 5000);
+                setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
             } finally {
                 setIsLoading(false);
             }
@@ -803,7 +813,7 @@ export default function PharmacyMapPage() {
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
             setLocationError(t("errors.generic"));
-            setTimeout(() => setLocationError(null), 3000);
+            setTimeout(() => setLocationError(null), LOCATION_ERROR_DISMISS_MS);
             return;
         }
         setIsLocating(true);
@@ -818,7 +828,7 @@ export default function PharmacyMapPage() {
             (err) => {
                 setIsLocating(false);
                 setLocationError(getGeolocationErrorMessage(err.code, t));
-                setTimeout(() => setLocationError(null), 4000);
+                setTimeout(() => setLocationError(null), LOCATION_ERROR_LONG_DISMISS_MS);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );

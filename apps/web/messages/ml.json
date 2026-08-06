@@ -1680,6 +1680,8 @@
         "no_search_results": "നിങ്ങളുടെ തിരയലുമായി പൊരുത്തപ്പെടുന്ന മരുന്നുകളൊന്നും ഇല്ല.",
         "item_status_label": "നില:",
         "item_delete_button": "ഇല്ലാതാക്കുക",
+        "sync_auth_title": "നിങ്ങളുടെ ചരിത്രം സിൻക് ചെയ്യാൻ സൈൻ ഇൻ ചെയ്യുക",
+        "sync_auth_action": "സൈൻ ഇൻ",
         "item_copy_success": "മരുന്നിൻ്റെ പേര് പകർത്തി!"
     },
     "MyReports": {

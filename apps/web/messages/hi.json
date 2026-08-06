@@ -1431,6 +1431,8 @@
         "no_search_results": "आपकी खोज से मेल खाने वाली कोई दवा नहीं मिली।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "हटाएं",
+        "sync_auth_title": "अपना इतिहास सिंक करने के लिए साइन इन करें",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "दवा का नाम कॉपी हो गया!"
     },
     "MyReports": {

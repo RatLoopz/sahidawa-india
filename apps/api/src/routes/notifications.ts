@@ -247,6 +247,75 @@ function getGuestToken(req: AuthenticatedRequest): string | undefined {
     return typeof header === "string" ? header : undefined;
 }
 
+// ── Pending phone-change state (authenticated users) ───────────────────────────
+// When an authenticated user requests a phone number change, we don't write it
+// immediately. Instead we generate an OTP, send it to the new number, and store
+// the pending change in Redis.  Only after the user presents a valid OTP through
+// POST /verify-otp do we apply the change.
+const PENDING_PHONE_CHANGE_PREFIX = "pending_phone_change:";
+const PENDING_PHONE_CHANGE_TTL_SECONDS = 10 * 60; // 10 minutes
+
+interface PendingPhoneChange {
+    userId: string;
+    oldPhone: string;
+    newPhone: string;
+    expiresAt: string;
+}
+
+function getPendingPhoneChangeKey(userId: string): string {
+    return `${PENDING_PHONE_CHANGE_PREFIX}${userId}`;
+}
+
+async function storePendingPhoneChange(
+    userId: string,
+    oldPhone: string,
+    newPhone: string
+): Promise<void> {
+    const data: PendingPhoneChange = {
+        userId,
+        oldPhone,
+        newPhone,
+        expiresAt: new Date(Date.now() + PENDING_PHONE_CHANGE_TTL_SECONDS * 1000).toISOString(),
+    };
+    if (redisClient.isOpen) {
+        try {
+            await redisClient.setEx(
+                getPendingPhoneChangeKey(userId),
+                PENDING_PHONE_CHANGE_TTL_SECONDS,
+                JSON.stringify(data)
+            );
+        } catch (err) {
+            logger.warn({
+                message: "Redis error storing pending phone change",
+                error: String(err),
+            });
+        }
+    }
+}
+
+async function getPendingPhoneChange(userId: string): Promise<PendingPhoneChange | null> {
+    if (!redisClient.isOpen) return null;
+    try {
+        const raw = await redisClient.get(getPendingPhoneChangeKey(userId));
+        if (!raw) return null;
+        const data: PendingPhoneChange = JSON.parse(raw);
+        if (new Date(data.expiresAt) < new Date()) {
+            await clearPendingPhoneChange(userId);
+            return null;
+        }
+        return data;
+    } catch {
+        return null;
+    }
+}
+
+async function clearPendingPhoneChange(userId: string): Promise<void> {
+    if (!redisClient.isOpen) return;
+    try {
+        await redisClient.del(getPendingPhoneChangeKey(userId));
+    } catch {}
+}
+
 router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
         // Guests have no account, so they prove ownership of the number with a
@@ -682,6 +751,42 @@ router.post(
             await clearOtpAttempts(formattedPhone);
             await otpStore.clear(formattedPhone);
 
+            // Check if this OTP verification is for a pending phone change
+            // (authenticated user changing their notification phone number).
+            if (req.user) {
+                const pendingChange = await getPendingPhoneChange(req.user.id);
+                if (pendingChange && pendingChange.newPhone === formattedPhone) {
+                    await clearPendingPhoneChange(req.user.id);
+
+                    if (!dbFailed) {
+                        const { error: updateError } = await supabase
+                            .from("notification_subscribers")
+                            .update({ phone: formattedPhone })
+                            .eq("user_id", req.user.id);
+
+                        if (updateError) {
+                            logger.error({
+                                message: "Failed to update phone number",
+                                error: updateError,
+                            });
+                            res.status(500).json({ error: "Database error" });
+                            return;
+                        }
+                    } else {
+                        const sub = memorySubscriberStore.find((s) => s.user_id === req.user!.id);
+                        if (sub) {
+                            memorySubscriberStore.delete(sub.phone);
+                            sub.phone = formattedPhone;
+                            memorySubscriberStore.set(formattedPhone, sub);
+                            sub.updated_at = new Date().toISOString();
+                        }
+                    }
+
+                    res.json({ success: true, message: "Phone number changed successfully" });
+                    return;
+                }
+            }
+
             if (!dbFailed) {
                 const { error: updateError } = await supabase
                     .from("notification_subscribers")
@@ -752,9 +857,9 @@ router.patch(
 
         // Resolve who is making the change: a signed-in user (scoped by user_id)
         // or a guest who proved ownership of their number with a token (scoped by
-        // that number). Guests may not move their subscription to a different
-        // number here — changing the number means re-verifying it through
-        // register + OTP, so the new number's owner still has to consent.
+        // that number). Neither guests nor authenticated users may move their
+        // subscription to a different number without proving ownership of the
+        // new number via OTP.
         let guestPhone: string | undefined;
         if (!req.user) {
             const verified = verifyGuestPhone(getGuestToken(req));
@@ -773,11 +878,85 @@ router.patch(
             guestPhone = verified;
         }
 
+        // Authenticated users who want to change their phone number must verify
+        // ownership of the new number via OTP. Generate the OTP, send it, store
+        // the pending change, and return the current subscriber state. The actual
+        // phone update happens only after the user presents the OTP through
+        // POST /verify-otp. The response is 200 (not 202) to preserve backward
+        // compatibility with existing clients that expect subscriber in the body.
+        if (req.user && formattedNewPhone) {
+            let currentSubscriber = null;
+            if (!dbConfig?.isSupabaseOffline) {
+                try {
+                    const { data } = await supabase
+                        .from("notification_subscribers")
+                        .select("phone, channels, language, district, is_active")
+                        .eq("user_id", req.user.id)
+                        .maybeSingle();
+                    currentSubscriber = data;
+                } catch {}
+            }
+            if (!currentSubscriber) {
+                currentSubscriber = memorySubscriberStore.find((s) => s.user_id === req.user!.id);
+            }
+
+            if (!currentSubscriber) {
+                res.status(404).json({ error: "Subscriber not found" });
+                return;
+            }
+
+            if (formattedNewPhone === currentSubscriber.phone) {
+                res.status(400).json({ error: "New phone number is the same as the current one." });
+                return;
+            }
+
+            const otp = randomInt(100000, 1000000).toString();
+            const otpExpires = new Date(
+                Date.now() + PENDING_PHONE_CHANGE_TTL_SECONDS * 1000
+            ).toISOString();
+
+            await otpStore.store(formattedNewPhone, otp, otpExpires);
+            await storePendingPhoneChange(req.user.id, currentSubscriber.phone, formattedNewPhone);
+
+            const sends: Promise<unknown>[] = [];
+            const channelsForOtp =
+                channels ?? (currentSubscriber.channels as ("sms" | "whatsapp")[]);
+            if (channelsForOtp.includes("sms")) {
+                sends.push(
+                    smsService
+                        .sendOtp(
+                            formattedNewPhone,
+                            otp,
+                            language ?? (currentSubscriber.language as string)
+                        )
+                        .catch((e) => logger.error("SMS OTP failed", e))
+                );
+            }
+            if (channelsForOtp.includes("whatsapp")) {
+                sends.push(
+                    whatsappService
+                        .sendOtp(
+                            formattedNewPhone,
+                            otp,
+                            language ?? (currentSubscriber.language as string)
+                        )
+                        .catch((e) => logger.error("WhatsApp OTP failed", e))
+                );
+            }
+            await Promise.allSettled(sends);
+
+            res.json({
+                success: true,
+                verificationRequired: true,
+                subscriber: toPublicSubscriber(currentSubscriber),
+            });
+            return;
+        }
+
         // Build the set of columns to change up front. With nothing to change the
         // request is a no-op, and issuing an empty PostgREST UPDATE is undefined
         // behaviour, so reject it before touching the database.
         const updateData: Record<string, unknown> = {};
-        if (formattedNewPhone !== undefined) updateData.phone = formattedNewPhone;
         if (channels !== undefined) updateData.channels = channels;
         if (language !== undefined) updateData.language = language;
         if (district !== undefined) updateData.district = district;
@@ -832,11 +1011,6 @@ router.patch(
                     : memorySubscriberStore.get(guestPhone!);
 
                 if (sub) {
-                    if (formattedNewPhone) {
-                        memorySubscriberStore.delete(sub.phone);
-                        sub.phone = formattedNewPhone;
-                        memorySubscriberStore.set(formattedNewPhone, sub);
-                    }
                     if (channels) sub.channels = channels;
                     if (language) sub.language = language;
                     if (district) sub.district = district;

@@ -20,6 +20,11 @@ export const maxDuration = 60;
 
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
+// Retry tuning for withRetry(): number of retry attempts after the initial
+// try, and the base delay used for exponential backoff between attempts.
+const DEFAULT_MAX_RETRIES = 3;
+const BASE_RETRY_DELAY_MS = 100;
+
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
 
@@ -183,21 +188,77 @@ function isErrorWithStatus(error: unknown): error is ErrorWithStatus {
     );
 }
 
-async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-    while (true) {
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Retries `fn` up to `maxRetries` additional times (so up to maxRetries + 1
+ * attempts total) with exponential backoff + jitter between attempts.
+ *
+ * 429 (quota exceeded) and 503 (overloaded) are treated as non-retryable:
+ * Gemini can't serve the request right now, so retrying just burns time we'd
+ * rather spend on the Groq fallback. Those statuses are rethrown immediately.
+ *
+ * Any other transient error (network blips, 5xx, etc.) is retried. Once
+ * retries are exhausted, the final error is thrown wrapped with attempt
+ * count + the last error's message for easier debugging, and the original
+ * error is preserved via `cause`.
+ */
+async function withRetry<T>(
+    fn: () => Promise<T>,
+    maxRetries: number = DEFAULT_MAX_RETRIES
+): Promise<T> {
+    let attempt = 0;
+    let lastError: unknown;
+
+    while (attempt <= maxRetries) {
         try {
             return await fn();
         } catch (error: unknown) {
+            lastError = error;
             const status = isErrorWithStatus(error) ? error.status : undefined;
+
             // 429 (Quota Exceeded) or 503 (Overloaded) means Gemini cannot serve
             // the request right now. Retrying wastes our Groq fallback budget.
             // Re-throw immediately so the caller can switch providers.
             if (status === 429 || status === 503) {
                 throw error;
             }
-            throw error;
+
+            attempt += 1;
+
+            if (attempt > maxRetries) {
+                break;
+            }
+
+            // Exponential backoff with jitter: 100ms, 200ms, 400ms, ... capped
+            // implicitly by maxRetries, plus up to 100ms of random jitter to
+            // avoid retry storms when multiple requests fail simultaneously.
+            const backoffMs = BASE_RETRY_DELAY_MS * 2 ** (attempt - 1);
+            const jitterMs = Math.floor(Math.random() * 100);
+
+            structuredLog({
+                log_level: "warn",
+                route: "/api/chat",
+                meta: {
+                    reason: "withRetry_transient_failure",
+                    attempt,
+                    maxRetries,
+                    delayMs: backoffMs + jitterMs,
+                    error: error instanceof Error ? error.message : String(error),
+                },
+            });
+
+            await sleep(backoffMs + jitterMs);
         }
     }
+
+    const lastErrorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(
+        `withRetry: exhausted ${maxRetries} retr${maxRetries === 1 ? "y" : "ies"} (last error: ${lastErrorMessage})`,
+        { cause: lastError }
+    );
 }
 
 function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {

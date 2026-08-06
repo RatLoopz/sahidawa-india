@@ -1736,6 +1736,8 @@
         "no_search_results": "कोणतीही औषधे तुमच्��ा शोधाशी जुळत नाहीत.",
         "item_status_label": "स्थिती:",
         "item_delete_button": "हटवा",
+        "sync_auth_title": "तुमचा इतिहास सिंक करण्यासाठी साइन इन करा",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "औषधाचे नाव कॉपी केले!"
     },
     "MyReports": {
