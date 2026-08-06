@@ -58,7 +58,9 @@ ashaRouter.get(
 );
 
 // POST /api/v1/asha/award-points
+// FIX: Only supervisors/admins can award points. Users cannot self-mint points.
 const awardPointsSchema = z.object({
+    recipient_id: z.string().uuid("Invalid recipient ID format"),
     points: z.number().int().positive().max(100),
     reason: z.string().min(1).max(255),
 });
@@ -69,7 +71,15 @@ ashaRouter.post(
     limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            const userId = req.user!.id;
+            const awarderId = req.user!.id;
+            const awarderRole = req.user!.role;
+
+            // SECURITY: Only supervisors and admins can award points
+            if (awarderRole !== "supervisor" && awarderRole !== "admin") {
+                return res
+                    .status(403)
+                    .json({ error: "Forbidden: Only supervisors and admins can award points" });
+            }
 
             const parsed = awardPointsSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -78,21 +88,26 @@ ashaRouter.post(
                     .json({ error: "Invalid points data", details: parsed.error.issues });
             }
 
-            const { points, reason } = parsed.data;
+            const { recipient_id, points, reason } = parsed.data;
 
-            // Fetch current points
-            const { data: userProfile, error: fetchError } = await supabase
+            // Fetch recipient's current points
+            const { data: recipientProfile, error: fetchError } = await supabase
                 .from("users")
-                .select("points, badges")
-                .eq("id", userId)
+                .select("points, badges, role")
+                .eq("id", recipient_id)
                 .maybeSingle();
 
-            if (fetchError || !userProfile) {
-                return res.status(500).json({ error: "Failed to fetch profile" });
+            if (fetchError || !recipientProfile) {
+                return res.status(404).json({ error: "Recipient not found" });
             }
 
-            const newPoints = userProfile.points + points;
-            let newBadges = [...(userProfile.badges || [])];
+            // Only award points to ASHA workers
+            if (recipientProfile.role !== "asha_worker") {
+                return res.status(400).json({ error: "Can only award points to ASHA workers" });
+            }
+
+            const newPoints = recipientProfile.points + points;
+            let newBadges = [...(recipientProfile.badges || [])];
 
             // Badge logic based on points
             if (newPoints >= 100 && !newBadges.includes("Village Guardian")) {
@@ -109,7 +124,7 @@ ashaRouter.post(
                     badges: newBadges,
                     updated_at: new Date().toISOString(),
                 })
-                .eq("id", userId)
+                .eq("id", recipient_id)
                 .select()
                 .single();
 
@@ -120,12 +135,13 @@ ashaRouter.post(
 
             // Return updated stats and newly unlocked badges if any
             const newUnlockedBadges = newBadges.filter(
-                (b) => !(userProfile.badges || []).includes(b)
+                (b) => !(recipientProfile.badges || []).includes(b)
             );
 
             return res.json({
                 success: true,
-                message: `Awarded ${points} points for ${reason}`,
+                message: `Awarded ${points} points to ${recipient_id} for ${reason}`,
+                recipient_id,
                 points: updatedProfile.points,
                 badges: updatedProfile.badges,
                 unlockedBadges: newUnlockedBadges,
