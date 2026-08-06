@@ -351,7 +351,10 @@ export default function ComparePage() {
         const fetchAndSetSimilarity = async () => {
             setSimilarityLoading(true);
             try {
-                const result = await fetchSimilarity(medicine1.name, medicine2.name);
+                const result = await fetchSimilarity(
+                    medicine1.brand_name || medicine1.generic_name,
+                    medicine2.brand_name || medicine2.generic_name
+                );
                 setSimilarityResult(result);
             } catch (err) {
                 console.error("Failed to fetch similarity:", err);
