@@ -212,7 +212,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         "Reply STRICTLY with exactly one word: APPROVE or REJECT."
     )
     user_prompt = f"PR Title: {pr['title']}\n\nGit Diff:\n{diff[:50000]}"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={gemini_api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_api_key}"
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"parts": [{"text": user_prompt}]}],
@@ -371,7 +371,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
         f"Codebase URL: {PROJECT_GITHUB_URL}\n\n"
         f"Git Diff Context:\n{pr.get('diff', '')[:3000]}"
     )
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={gemini_api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_api_key}"
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"parts": [{"text": user_prompt}]}],
