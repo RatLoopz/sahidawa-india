@@ -50,6 +50,8 @@ export default async function middleware(req: NextRequest) {
                 "https://lz4.overpass-api.de",
                 "https://z.overpass-api.de",
                 "https://unpkg.com",
+                "https://cdn.jsdelivr.net",
+                "https://tessdata.projectnaptha.com",
             ].filter(Boolean)
         ),
     ].join(" ");
@@ -57,7 +59,8 @@ export default async function middleware(req: NextRequest) {
     // Nonce-based strict CSP
     const csp = [
         "default-src 'self'",
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com`,
+        "worker-src 'self' blob:",
         `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
         `connect-src ${connectSrc}`,
         "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
