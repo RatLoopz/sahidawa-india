@@ -48,15 +48,6 @@ export function useMedicineImageUpload({
     const ocrCancelledRef = useRef(false);
     const preprocessWorkerRef = useRef<Worker | null>(null);
 
-    useEffect(() => {
-        const worker = new Worker("/workers/imageEnhancer.worker.js");
-        preprocessWorkerRef.current = worker;
-        return () => {
-            worker.terminate();
-            preprocessWorkerRef.current = null;
-        };
-    }, []);
-
     const reset = () => {
         setUploadedImage(null);
         setOcrText(null);

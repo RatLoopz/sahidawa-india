@@ -348,9 +348,9 @@ export default function ScanPage() {
             />
 
             {/* ── Main layout: camera + control card ── */}
-            <div className="relative flex w-full flex-1 flex-col md:flex-row">
+            <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col shadow-sm md:my-6 md:flex-row md:rounded-2xl md:border md:border-(--color-border-muted) md:px-0 lg:my-8 lg:max-w-7xl">
                 {/* ── Camera / Scanner area ── */}
-                <div className="relative flex min-h-[55vw] flex-1 flex-col items-center justify-center md:min-h-full">
+                <div className="relative flex min-h-[55vw] flex-1 flex-col items-center justify-center overflow-hidden md:min-h-full md:rounded-l-2xl">
                     {/* Camera background */}
                     <div
                         className={`absolute inset-0 overflow-hidden transition-colors duration-500 ${isCameraActive ? "bg-black" : "bg-(--color-surface-muted)"}`}
@@ -610,7 +610,7 @@ export default function ScanPage() {
                 {/* ── Clean Light Control Card ── */}
                 <aside
                     aria-label="Scan controls and batch verification"
-                    className="flex w-full shrink-0 flex-col justify-start gap-5 border-t border-(--color-border-muted) bg-(--color-surface-page) p-5 sm:p-6 md:w-[360px] md:justify-center md:border-t-0 md:border-l md:shadow-lg lg:w-[400px]"
+                    className="flex w-full shrink-0 flex-col justify-start gap-5 border-t border-(--color-border-muted) bg-(--color-surface-page) p-5 sm:p-6 md:w-[360px] md:justify-center md:rounded-r-2xl md:border-t-0 md:border-l lg:w-[400px]"
                 >
                     {/* Pending queue */}
                     <PendingScanQueue pending={pending} isSyncing={isSyncing} />
