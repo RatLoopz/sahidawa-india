@@ -183,6 +183,11 @@ export function BarcodeScanner({
                     BarcodeFormat.EAN_8,
                     BarcodeFormat.CODE_39,
                     BarcodeFormat.DATA_MATRIX,
+                    BarcodeFormat.UPC_A,
+                    BarcodeFormat.UPC_E,
+                    BarcodeFormat.ITF,
+                    BarcodeFormat.CODE_93,
+                    BarcodeFormat.CODABAR,
                 ]);
                 hints.set(DecodeHintType.TRY_HARDER, true);
 
@@ -202,7 +207,12 @@ export function BarcodeScanner({
                     let stream: MediaStream;
                     try {
                         stream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: { ideal: "environment" } },
+                            video: {
+                                facingMode: { ideal: "environment" },
+                                width: { ideal: 1920, min: 1280 },
+                                height: { ideal: 1080, min: 720 },
+                                focusMode: { ideal: "continuous" },
+                            } as any,
                         });
                     } catch {
                         stream = await navigator.mediaDevices.getUserMedia({ video: true });
