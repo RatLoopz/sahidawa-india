@@ -9,6 +9,7 @@ All PR summaries are now stored in a centralized JSON log.
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
 | [#4187](https://github.com/RatLoopz/sahidawa-india/pull/4187) | 2026-08-06 | Frontend | 5 | @kumudasrip | [View Doc](./2026-08/PR-4187-bug-fix-dead-code-and-hook-up-share-alert-feature.md) |
+| [#4122](https://github.com/RatLoopz/sahidawa-india/pull/4122) | 2026-08-06 | Backend | 9 | @Shreya-nipunge | [View Doc](./2026-08/PR-4122-fix-scan-add-request-scoped-temp-file-cleanup-to-s.md) |
 | [#4067](https://github.com/RatLoopz/sahidawa-india/pull/4067) | 2026-08-04 | Frontend | 10 | @kumudasrip | [View Doc](./2026-08/PR-4067-fix-remove-leaked-console-log-in-usepackaginghint-.md) |
 | [#3889](https://github.com/RatLoopz/sahidawa-india/pull/3889) | 2026-07-28 | Backend | 6 | @Shreya-nipunge | [View Doc](./2026-07/PR-3889-fix-alerts-retry-expiry-notifications-after-delive.md) |
 | [#3894](https://github.com/RatLoopz/sahidawa-india/pull/3894) | 2026-07-28 | i18n | 23 | @jamunatg2006-sys | [View Doc](./2026-07/PR-3894-feat-web-implement-offline-first-scan-history-sync.md) / [ADR](./adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md) |
