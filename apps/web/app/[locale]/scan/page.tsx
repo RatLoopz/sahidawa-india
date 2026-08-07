@@ -353,7 +353,7 @@ export default function ScanPage() {
                 <div className="relative flex min-h-[55vw] flex-1 flex-col items-center justify-center md:min-h-full">
                     {/* Camera background */}
                     <div
-                        className={`absolute inset-0 overflow-hidden transition-colors duration-500 ${isCameraActive ? "bg-black" : "bg-[#060F1A]"}`}
+                        className={`absolute inset-0 overflow-hidden transition-colors duration-500 ${isCameraActive ? "bg-black" : "bg-(--color-surface-muted)"}`}
                     >
                         {isCameraActive ? (
                             <BarcodeScanner
@@ -421,15 +421,15 @@ export default function ScanPage() {
 
                     {/* Camera permission denied modal */}
                     {cameraPermissionDenied && !showResult && (
-                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
+                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm">
                             <section
-                                className="w-full max-w-sm rounded-3xl border border-red-400/30 bg-[#0A1726]/95 p-6 text-center text-white shadow-2xl"
+                                className="w-full max-w-sm rounded-3xl border border-red-200 bg-(--color-surface-page) p-6 text-center text-(--color-text-primary) shadow-2xl"
                                 role="alert"
                                 aria-live="assertive"
                                 aria-labelledby="camera-permission-title"
                                 aria-describedby="camera-permission-description camera-permission-steps"
                             >
-                                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 text-red-300">
+                                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600">
                                     <AlertCircle size={30} aria-hidden="true" />
                                 </div>
                                 <h2 id="camera-permission-title" className="text-xl font-bold">
@@ -437,7 +437,7 @@ export default function ScanPage() {
                                 </h2>
                                 <p
                                     id="camera-permission-description"
-                                    className="mt-3 text-sm leading-6 text-[#A7B3C5]"
+                                    className="mt-3 text-sm leading-6 text-(--color-text-muted)"
                                 >
                                     SahiDawa needs camera access to scan medicine barcodes. Please
                                     allow camera permission in your browser settings, then retry the
@@ -445,9 +445,9 @@ export default function ScanPage() {
                                 </p>
                                 <div
                                     id="camera-permission-steps"
-                                    className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-xs leading-5 text-[#A7B3C5]"
+                                    className="mt-4 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-4 text-left text-xs leading-5 text-(--color-text-muted)"
                                 >
-                                    <p className="font-semibold text-white">
+                                    <p className="font-semibold text-(--color-text-primary)">
                                         How to re-enable camera:
                                     </p>
                                     <p>Chrome or Edge: open site settings, set Camera to Allow.</p>
