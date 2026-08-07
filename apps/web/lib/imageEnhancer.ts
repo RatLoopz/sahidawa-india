@@ -189,7 +189,7 @@ export async function preprocessMedicineImage(
 
                     let width = img.width;
                     let height = img.height;
-                    const maxLongEdge = 1200;
+                    const maxLongEdge = 2400;
 
                     if (Math.max(width, height) > maxLongEdge) {
                         if (width > height) {

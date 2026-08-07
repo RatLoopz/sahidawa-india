@@ -77,8 +77,8 @@ export function useMedicineImageUpload({
         if (file.size > COMPRESSION_THRESHOLD) {
             try {
                 processedFile = (await imageCompression(file, {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 2,
+                    maxWidthOrHeight: 2400,
                     useWebWorker: true,
                 })) as File; // using 'as File' since typescript might infer Blob from compression
             } catch {
@@ -189,7 +189,11 @@ export function useMedicineImageUpload({
                 );
 
                 try {
-                    ocrWorkerRef.current = await Promise.race([initPromise, timeoutPromise]);
+                    const worker = await Promise.race([initPromise, timeoutPromise]);
+                    await worker.setParameters({
+                        tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
+                    });
+                    ocrWorkerRef.current = worker;
                 } catch (err) {
                     throw new Error(
                         err instanceof Error && err.message === "OCR initialization timed out"
