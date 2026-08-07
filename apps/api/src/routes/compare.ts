@@ -13,13 +13,13 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 const router = Router();
 
 const compareRequestSchema = z.object({
-    medicine_a: z.string().min(1, "Medicine A is required"),
-    medicine_b: z.string().min(1, "Medicine B is required"),
+    medicine_a: z.string().min(1, "Medicine A is required").max(200, "Medicine A is too long"),
+    medicine_b: z.string().min(1, "Medicine B is required").max(200, "Medicine B is too long"),
 });
 
 function getCacheKey(medA: string, medB: string): string {
     const sorted = [medA.trim().toLowerCase(), medB.trim().toLowerCase()].sort();
-    const hash = crypto.createHash("sha256").update(sorted.join("||")).digest("hex");
+    const hash = crypto.createHash("sha256").update(JSON.stringify(sorted)).digest("hex");
     return `cmp_result:${hash}`;
 }
 
