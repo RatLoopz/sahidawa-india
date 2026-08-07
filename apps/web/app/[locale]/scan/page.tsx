@@ -248,8 +248,8 @@ export default function ScanPage() {
 
             try {
                 await handleVerify(scannedText);
-            } catch (error: any) {
-                setApiError(error.message || "Failed to verify medicine with CDSCO.");
+            } catch (error: unknown) {
+                setApiError(error instanceof Error ? error.message : "Failed to verify medicine with CDSCO.");
             } finally {
                 setIsVerifying(false);
             }

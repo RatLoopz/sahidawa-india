@@ -44,8 +44,8 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
             composition: row.composition,
             cdsco_approval_status: row.cdsco_approval_status || "approved",
         }));
-    } catch (error: any) {
-        console.error(error.message || error);
+    } catch (error: unknown) {
+        console.error(error instanceof Error ? error.message : error);
         return [];
     }
 }

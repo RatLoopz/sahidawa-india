@@ -362,9 +362,9 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
                 } else {
                     subscriber = data;
                 }
-            } catch (dbError: any) {
+            } catch (dbError: unknown) {
                 dbFailed = true;
-                const msg = dbError?.message || String(dbError);
+                const msg = dbError instanceof Error ? dbError.message : String(dbError);
                 if (
                     msg.includes("fetch failed") ||
                     msg.includes("refused") ||
@@ -467,9 +467,9 @@ router.post(
                     } else {
                         existing = data;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -706,9 +706,9 @@ router.post(
                     } else {
                         subscriber = data;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -991,9 +991,9 @@ router.patch(
                     } else {
                         data = dbData;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -1074,9 +1074,9 @@ router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest,
                 } else {
                     data = dbData;
                 }
-            } catch (dbError: any) {
+            } catch (dbError: unknown) {
                 dbFailed = true;
-                const msg = dbError?.message || String(dbError);
+                const msg = dbError instanceof Error ? dbError.message : String(dbError);
                 if (
                     msg.includes("fetch failed") ||
                     msg.includes("refused") ||

@@ -84,9 +84,9 @@ router.post(
                 }
 
                 res.status(200).json(resultData);
-            } catch (mlError: any) {
+            } catch (mlError: unknown) {
                 clearTimeout(timeoutId);
-                logger.error(`Failed to connect or fetch from ML Service: ${mlError.message}`);
+                logger.error("ML service failed, falling back to basic matching", { error: mlError instanceof Error ? mlError.message : String(mlError) });
                 res.status(502).json({ error: "ML service comparison failed or timed out." });
             }
         } catch (error) {
