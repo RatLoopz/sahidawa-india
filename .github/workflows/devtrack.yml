@@ -76,7 +76,7 @@ jobs:
 
           # Count lines changed
           LINES_CHANGED=$(gh pr diff "$PR_NUM" --repo "$REPO" 2>/dev/null | \
-            grep -c '^[+-]' || echo "0")
+            grep -c '^[+-]' || true)
 
           # Linked issue (first closing keyword match in body)
           LINKED_ISSUE=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | \
