@@ -105,9 +105,10 @@ const nextConfig = {
                         key: "Content-Security-Policy",
                         value: [
                             "default-src 'self'",
-                            "script-src 'self'",
+                            "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                            "worker-src 'self' blob:",
                             "style-src 'self' 'unsafe-inline'",
-                            `connect-src ${connectSrc}`,
+                            `connect-src ${connectSrc} https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
                             "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
                             "font-src 'self'",
                             "object-src 'none'",
