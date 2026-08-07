@@ -13,7 +13,17 @@ const OVERPASS_MIRRORS = [
     "https://z.overpass-api.de/api/interpreter",
 ];
 
-async function queryOverpass(query: string): Promise<any> {
+interface OverpassResponse {
+    version?: number;
+    generator?: string;
+    osm3s?: {
+        timestamp_osm_base: string;
+        copyright: string;
+    };
+    elements: Array<OverpassElement & { center?: { lat: number; lon: number } }>;
+}
+
+async function queryOverpass(query: string): Promise<OverpassResponse> {
     // 1. Primary Path: Parallel client-side GET requests (races the first 2 mirrors for maximum speed)
     const clientMirrors = OVERPASS_MIRRORS.slice(0, 2);
     const requests = clientMirrors.map((mirror) => {
@@ -250,7 +260,7 @@ export async function fetchPharmacies(
             } as OverpassPharmacy & { _distance: number; _distanceFormatted: string };
         })
         // Sort by distance (nearest first)
-        .sort((a: any, b: any) => a._distance - b._distance);
+        .sort((a: OverpassPharmacy & { _distance: number }, b: OverpassPharmacy & { _distance: number }) => a._distance - b._distance);
 
     return pharmacies;
 }
@@ -302,5 +312,5 @@ export async function fetchPharmaciesInBounds(
                 _distanceFormatted: formatDistance(distance),
             } as OverpassPharmacy & { _distance: number; _distanceFormatted: string };
         })
-        .sort((a: any, b: any) => a._distance - b._distance);
+        .sort((a: OverpassPharmacy & { _distance: number }, b: OverpassPharmacy & { _distance: number }) => a._distance - b._distance);
 }
