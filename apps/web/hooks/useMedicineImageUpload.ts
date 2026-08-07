@@ -185,7 +185,7 @@ export function useMedicineImageUpload({
             if (!ocrWorkerRef.current) {
                 const initPromise = Tesseract.createWorker("eng");
                 const timeoutPromise = new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error("OCR initialization timed out")), 20000)
+                    setTimeout(() => reject(new Error("OCR initialization timed out")), 60000)
                 );
 
                 try {
@@ -204,7 +204,7 @@ export function useMedicineImageUpload({
 
             let timeoutId: ReturnType<typeof setTimeout> | undefined;
             const timeoutPromise = new Promise<never>((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 30000);
+                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 60000);
             });
 
             const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
@@ -340,10 +340,12 @@ export function useMedicineImageUpload({
             }
 
             const errorMsg = err instanceof Error ? err.message : String(err);
-            if (errorMsg === "OCR timed out") {
-                toast.error("OCR timed out. Please try again with a clearer image.");
+            if (errorMsg === "OCR timed out" || errorMsg === "OCR initialization timed out") {
+                toast.error(
+                    "OCR timed out. Please check your internet connection or try a clearer image."
+                );
                 setVerifyError(
-                    "The scan took too long. Please ensure the image is clear and try again."
+                    "The scan took too long. This may be due to a slow internet connection or a complex image. Please check your connection and try again."
                 );
                 void saveScanHistory({
                     id: crypto.randomUUID(),
