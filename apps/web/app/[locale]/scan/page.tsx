@@ -330,10 +330,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div
-            className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip font-sans"
-            style={{ background: "linear-gradient(160deg, #06121F 0%, #0A1726 60%, #081A2A 100%)" }}
-        >
+        <div className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
             <input
                 type="file"
                 id="medicine-upload"
@@ -342,12 +339,12 @@ export default function ScanPage() {
                 onChange={handleFileUpload}
             />
 
-            {/* Header — dark overlay mode */}
+            {/* Header — light mode */}
             <PageHeader
                 title={tScan("scanMedicine")}
                 subtitle={tScan("positionBarcode")}
                 backHref="/"
-                variant="dark"
+                variant="light"
             />
 
             {/* ── Main layout: camera + control card ── */}
@@ -610,142 +607,143 @@ export default function ScanPage() {
                         </div>
                     )}
                 </div>
-
-                {/* ── Floating Glassmorphism Control Card ── */}
+                {/* ── Clean Light Control Card ── */}
                 <aside
                     aria-label="Scan controls and batch verification"
-                    className="flex w-full shrink-0 flex-col justify-center p-4 pb-6 sm:p-5 md:w-[370px] md:border-l md:border-white/[0.08] md:p-6 lg:w-[400px]"
+                    className="flex w-full shrink-0 flex-col justify-start gap-5 border-t border-(--color-border-muted) bg-(--color-surface-page) p-5 sm:p-6 md:w-[360px] md:justify-center md:border-t-0 md:border-l md:shadow-lg lg:w-[400px]"
                 >
-                    <div className="flex w-full flex-col gap-4 rounded-[28px] border border-white/[0.13] bg-white/[0.08] p-5 shadow-2xl backdrop-blur-2xl sm:p-6">
-                        {/* Pending queue */}
-                        <PendingScanQueue pending={pending} isSyncing={isSyncing} />
+                    {/* Pending queue */}
+                    <PendingScanQueue pending={pending} isSyncing={isSyncing} />
 
-                        {/* ── Batch Verification ── */}
-                        <form onSubmit={handleBatchSubmit} className="flex gap-2.5">
-                            <label htmlFor="batch-input" className="sr-only">
-                                Enter batch number
-                            </label>
-                            <input
-                                id="batch-input"
-                                type="text"
-                                value={batchInput}
-                                onChange={(e) => setBatchInput(e.target.value)}
-                                placeholder={tScan("enterBatchNumber")}
-                                className="min-w-0 flex-1 rounded-2xl border border-white/20 bg-white/[0.08] px-4 py-3 text-sm font-medium text-white placeholder-[#A7B3C5] backdrop-blur-sm transition-all focus:border-emerald-400/60 focus:bg-white/[0.12] focus:ring-2 focus:ring-emerald-500/30 focus:outline-none"
-                            />
-                            <button
-                                type="submit"
-                                disabled={isScanning}
-                                className="flex shrink-0 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all hover:from-emerald-400 hover:to-emerald-500 hover:shadow-emerald-400/40 focus:ring-2 focus:ring-emerald-400/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                aria-label={
-                                    isScanning
-                                        ? "Verifying medicine..."
-                                        : isOffline
-                                          ? "Verify button disabled - offline"
-                                          : "Verify medicine batch number"
-                                }
-                                aria-busy={isScanning}
-                            >
-                                <Search size={15} aria-hidden="true" />
-                                {isOffline ? tScan("offlineVerify") : tScan("verify")}
-                            </button>
-                        </form>
-
-                        {/* Helper text */}
-                        <p className="px-1 text-xs leading-relaxed text-[#A7B3C5]">
-                            {tScan("batchNumberHelp")}
-                        </p>
-
-                        {/* Divider */}
-                        <div className="h-px bg-white/[0.09]" />
-
-                        {/* View History */}
-                        <Link
-                            href="/history"
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/[0.13] bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/80 transition-all hover:bg-white/[0.12] hover:text-white focus:ring-2 focus:ring-emerald-500/30 focus:outline-none"
+                    {/* ── Batch Verification ── */}
+                    <form onSubmit={handleBatchSubmit} className="flex gap-2">
+                        <label htmlFor="batch-input" className="sr-only">
+                            Enter batch number
+                        </label>
+                        <input
+                            id="batch-input"
+                            type="text"
+                            value={batchInput}
+                            onChange={(e) => setBatchInput(e.target.value)}
+                            placeholder={tScan("enterBatchNumber")}
+                            className="min-w-0 flex-1 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                        />
+                        <button
+                            type="submit"
+                            disabled={isScanning}
+                            className="flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-600 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                            aria-label={
+                                isScanning
+                                    ? "Verifying medicine..."
+                                    : isOffline
+                                      ? "Verify button disabled - offline"
+                                      : "Verify medicine batch number"
+                            }
+                            aria-busy={isScanning}
                         >
-                            <History size={16} aria-hidden="true" />
-                            {tScan("viewHistory")}
-                        </Link>
+                            <Search size={16} aria-hidden="true" />
+                            {isOffline ? tScan("offlineVerify") : tScan("verify")}
+                        </button>
+                    </form>
 
-                        {/* Divider */}
-                        <div className="h-px bg-white/[0.09]" />
+                    {/* Helper text */}
+                    <p className="-mt-2 text-xs leading-relaxed text-(--color-text-muted)">
+                        {tScan("batchNumberHelp")}
+                    </p>
 
-                        {/* OCR result (if any) */}
-                        {ocrText && (
-                            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4 text-xs">
-                                <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
-                                    <span className="font-bold text-emerald-400">OCR Text</span>
-                                    {ocrConfidence !== null && (
-                                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-mono text-emerald-300">
-                                            {Math.round(ocrConfidence * 100)}% confidence
-                                        </span>
-                                    )}
-                                </div>
-                                {batchInput && (
-                                    <div className="mb-2 flex items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-1.5">
-                                        <span className="text-emerald-400">Batch:</span>
-                                        <span className="font-mono font-bold text-emerald-300">
-                                            {batchInput}
-                                        </span>
-                                    </div>
+                    {/* Divider */}
+                    <div className="h-px bg-(--color-border-muted)" />
+
+                    {/* View History */}
+                    <Link
+                        href="/history"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-emerald-500/30 hover:bg-(--color-surface-hover) focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                    >
+                        <History size={16} aria-hidden="true" />
+                        {tScan("viewHistory")}
+                    </Link>
+
+                    {/* Divider */}
+                    <div className="h-px bg-(--color-border-muted)" />
+
+                    {/* OCR result (if any) */}
+                    {ocrText && (
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs dark:border-emerald-800/40 dark:bg-emerald-900/10">
+                            <div className="mb-2 flex items-center justify-between border-b border-emerald-100 pb-2 dark:border-emerald-800/30">
+                                <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                                    OCR Text
+                                </span>
+                                {ocrConfidence !== null && (
+                                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                        {Math.round(ocrConfidence * 100)}%
+                                    </span>
                                 )}
-                                <pre className="max-h-28 overflow-y-auto font-mono whitespace-pre-wrap text-[#A7B3C5]">
-                                    {ocrText}
-                                </pre>
                             </div>
-                        )}
+                            {batchInput && (
+                                <div className="mb-2 flex items-center gap-2 rounded-lg bg-emerald-100/80 px-3 py-1.5 dark:bg-emerald-900/20">
+                                    <span className="text-emerald-700 dark:text-emerald-400">
+                                        Batch:
+                                    </span>
+                                    <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">
+                                        {batchInput}
+                                    </span>
+                                </div>
+                            )}
+                            <pre className="max-h-28 overflow-y-auto font-mono whitespace-pre-wrap text-(--color-text-muted)">
+                                {ocrText}
+                            </pre>
+                        </div>
+                    )}
 
-                        {/* ── Scan Controls ── */}
-                        <div className="flex flex-col gap-3">
-                            <p className="text-center text-[10px] font-bold tracking-widest text-white/30 uppercase">
-                                Scan Controls
-                            </p>
-                            <div className="grid grid-cols-2 gap-3">
-                                {/* Scan Barcode */}
-                                <button
-                                    onClick={() => {
-                                        setCameraPermissionDenied(false);
-                                        setIsCameraActive((prev) => !prev);
-                                    }}
-                                    disabled={isOffline}
-                                    className={`flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-semibold shadow-lg transition-all focus:ring-2 focus:ring-emerald-500/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                                        isCameraActive
-                                            ? "bg-red-500/80 text-white shadow-red-500/20 hover:bg-red-500"
-                                            : "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:from-emerald-400 hover:to-emerald-500"
-                                    }`}
-                                    aria-label={
-                                        isCameraActive
-                                            ? "Stop barcode scanner camera"
-                                            : "Start barcode scanner camera"
+                    {/* ── Scan Controls ── */}
+                    <div className="flex flex-col gap-3">
+                        <h3 className="text-center text-[11px] font-bold tracking-widest text-(--color-text-muted) uppercase">
+                            Scan Controls
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* Scan Barcode */}
+                            <button
+                                onClick={() => {
+                                    setCameraPermissionDenied(false);
+                                    setIsCameraActive((prev) => !prev);
+                                }}
+                                disabled={isOffline}
+                                className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                                    isCameraActive
+                                        ? "bg-red-500 text-white shadow-red-500/20 hover:bg-red-600 focus:ring-red-500/40"
+                                        : "bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600 focus:ring-emerald-500/40"
+                                }`}
+                                aria-label={
+                                    isCameraActive
+                                        ? "Stop barcode scanner camera"
+                                        : "Start barcode scanner camera"
+                                }
+                                aria-pressed={isCameraActive}
+                            >
+                                <ScanLine size={15} aria-hidden="true" />
+                                {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
+                            </button>
+
+                            {/* Upload Photo */}
+                            <label
+                                htmlFor={isOffline ? undefined : "medicine-upload"}
+                                onClick={(e) => {
+                                    if (isOffline) {
+                                        e.preventDefault();
+                                        toast.error(
+                                            "You are currently offline. Please check your internet connection."
+                                        );
                                     }
-                                    aria-pressed={isCameraActive}
-                                >
-                                    <ScanLine size={15} aria-hidden="true" />
-                                    {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
-                                </button>
-
-                                {/* Upload Photo */}
-                                <label
-                                    htmlFor={isOffline ? undefined : "medicine-upload"}
-                                    onClick={(e) => {
-                                        if (isOffline) {
-                                            e.preventDefault();
-                                            toast.error(
-                                                "You are currently offline. Please check your internet connection."
-                                            );
-                                        }
-                                    }}
-                                    className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/[0.15] bg-white/[0.07] px-3 py-3 text-sm font-semibold text-white/80 shadow-sm transition-all hover:bg-white/[0.13] hover:text-white focus:ring-2 focus:ring-emerald-500/40 focus:outline-none ${
-                                        isOffline ? "cursor-not-allowed opacity-50" : ""
-                                    }`}
-                                    aria-label="Upload medicine photo from device (disabled while offline)"
-                                    aria-disabled={isOffline}
-                                >
-                                    <Layers size={15} aria-hidden="true" />
-                                    {tScan("uploadPhoto")}
-                                </label>
-                            </div>
+                                }}
+                                className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 text-sm font-semibold text-(--color-text-primary) shadow-sm transition-all hover:border-slate-300 hover:bg-(--color-surface-muted) focus:ring-2 focus:ring-emerald-500/20 focus:outline-none ${
+                                    isOffline ? "cursor-not-allowed opacity-50" : ""
+                                }`}
+                                aria-label="Upload medicine photo from device (disabled while offline)"
+                                aria-disabled={isOffline}
+                            >
+                                <Layers size={15} aria-hidden="true" />
+                                {tScan("uploadPhoto")}
+                            </label>
                         </div>
                     </div>
                 </aside>
