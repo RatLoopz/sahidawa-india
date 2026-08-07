@@ -330,7 +330,10 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
+        <div
+            className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip font-sans"
+            style={{ background: "linear-gradient(160deg, #06121F 0%, #0A1726 60%, #081A2A 100%)" }}
+        >
             <input
                 type="file"
                 id="medicine-upload"
@@ -339,17 +342,21 @@ export default function ScanPage() {
                 onChange={handleFileUpload}
             />
 
+            {/* Header — dark overlay mode */}
             <PageHeader
                 title={tScan("scanMedicine")}
                 subtitle={tScan("positionBarcode")}
                 backHref="/"
-                variant="light"
+                variant="dark"
             />
 
+            {/* ── Main layout: camera + control card ── */}
             <div className="relative flex w-full flex-1 flex-col md:flex-row">
-                <div className="relative flex min-h-[50vh] flex-1 flex-col items-center justify-center md:min-h-full">
+                {/* ── Camera / Scanner area ── */}
+                <div className="relative flex min-h-[55vw] flex-1 flex-col items-center justify-center md:min-h-full">
+                    {/* Camera background */}
                     <div
-                        className={`absolute inset-0 overflow-hidden transition-colors duration-500 ${isCameraActive ? "bg-black" : "bg-slate-900"}`}
+                        className={`absolute inset-0 overflow-hidden transition-colors duration-500 ${isCameraActive ? "bg-black" : "bg-[#060F1A]"}`}
                     >
                         {isCameraActive ? (
                             <BarcodeScanner
@@ -376,27 +383,36 @@ export default function ScanPage() {
                             />
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="absolute inset-0 animate-pulse bg-emerald-500/5"></div>
+                                <div className="absolute inset-0 animate-pulse bg-emerald-500/[0.04]" />
                             </div>
                         )}
                     </div>
 
-                    <div className="relative z-10 h-72 w-72 md:h-96 md:w-96">
-                        <div className="absolute top-0 left-0 h-12 w-12 animate-pulse rounded-tl-2xl border-t-4 border-l-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
-                        <div className="absolute top-0 right-0 h-12 w-12 animate-pulse rounded-tr-2xl border-t-4 border-r-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
-                        <div className="absolute bottom-0 left-0 h-12 w-12 animate-pulse rounded-bl-2xl border-b-4 border-l-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
-                        <div className="absolute right-0 bottom-0 h-12 w-12 animate-pulse rounded-br-2xl border-r-4 border-b-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                    {/* Scan frame brackets */}
+                    <div className="relative z-10 h-64 w-64 sm:h-72 sm:w-72 md:h-80 md:w-80 lg:h-96 lg:w-96">
+                        {/* Corner brackets — neon green glow */}
+                        <div className="absolute top-0 left-0 h-10 w-10 animate-pulse rounded-tl-2xl border-t-[3px] border-l-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                        <div className="absolute top-0 right-0 h-10 w-10 animate-pulse rounded-tr-2xl border-t-[3px] border-r-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                        <div className="absolute bottom-0 left-0 h-10 w-10 animate-pulse rounded-bl-2xl border-b-[3px] border-l-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                        <div className="absolute right-0 bottom-0 h-10 w-10 animate-pulse rounded-br-2xl border-r-[3px] border-b-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
 
+                        {/* Animated scan line */}
                         {isScanning && (
-                            <div className="animate-scan absolute right-4 left-4 z-20 h-0.5 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
+                            <div className="animate-scan absolute right-4 left-4 z-20 h-0.5 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.9)]" />
                         )}
 
+                        {/* Idle state — camera icon + CTA */}
                         {!isScanning && !showResult && !isCameraActive && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                                <Camera size={48} className="text-emerald-500/50" />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
+                                <Camera
+                                    size={52}
+                                    className="text-emerald-400/40 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]"
+                                    aria-hidden="true"
+                                />
                                 <button
                                     onClick={() => setIsCameraActive(true)}
-                                    className="rounded-full bg-emerald-500/20 px-6 py-2 text-sm font-bold text-emerald-400 backdrop-blur-sm transition-colors hover:bg-emerald-500/30"
+                                    className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-7 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all hover:from-emerald-400 hover:to-emerald-500 hover:shadow-emerald-400/40 focus:ring-2 focus:ring-emerald-400/50 focus:outline-none"
+                                    aria-label="Tap to start the barcode scanner camera"
                                 >
                                     Tap to start camera
                                 </button>
@@ -406,10 +422,11 @@ export default function ScanPage() {
 
                     {isScanning && <SkeletonLoader />}
 
+                    {/* Camera permission denied modal */}
                     {cameraPermissionDenied && !showResult && (
                         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
                             <section
-                                className="w-full max-w-sm rounded-3xl border border-red-400/30 bg-slate-950/95 p-6 text-center text-white shadow-2xl"
+                                className="w-full max-w-sm rounded-3xl border border-red-400/30 bg-[#0A1726]/95 p-6 text-center text-white shadow-2xl"
                                 role="alert"
                                 aria-live="assertive"
                                 aria-labelledby="camera-permission-title"
@@ -423,7 +440,7 @@ export default function ScanPage() {
                                 </h2>
                                 <p
                                     id="camera-permission-description"
-                                    className="mt-3 text-sm leading-6 text-slate-300"
+                                    className="mt-3 text-sm leading-6 text-[#A7B3C5]"
                                 >
                                     SahiDawa needs camera access to scan medicine barcodes. Please
                                     allow camera permission in your browser settings, then retry the
@@ -431,7 +448,7 @@ export default function ScanPage() {
                                 </p>
                                 <div
                                     id="camera-permission-steps"
-                                    className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-xs leading-5 text-slate-300"
+                                    className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-xs leading-5 text-[#A7B3C5]"
                                 >
                                     <p className="font-semibold text-white">
                                         How to re-enable camera:
@@ -471,6 +488,7 @@ export default function ScanPage() {
                         </div>
                     )}
 
+                    {/* Results overlay */}
                     {showResult && (
                         <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
                             {showLasaConfirmation ? (
@@ -550,7 +568,6 @@ export default function ScanPage() {
                                                         <p className="text-sm font-bold text-red-700 dark:text-red-400">
                                                             {tScan("batch_recalled_title")}
                                                         </p>
-
                                                         <p className="mt-1 text-xs text-red-600 dark:text-red-300">
                                                             {tScan("batch_recalled_body")}
                                                         </p>
@@ -594,128 +611,144 @@ export default function ScanPage() {
                     )}
                 </div>
 
-                {ocrText && (
-                    <div className="mx-auto my-4 w-full max-w-md rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-4 text-xs backdrop-blur-md">
-                        <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
-                            <span className="font-bold text-emerald-400">OCR Extracted Text</span>
-                            {ocrConfidence !== null && (
-                                <span className="rounded bg-emerald-500/20 px-2 py-0.5 font-mono text-emerald-300">
-                                    Confidence: {Math.round(ocrConfidence * 100)}%
-                                </span>
-                            )}
-                        </div>
-                        {batchInput && (
-                            <div className="mb-2 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-1.5">
-                                <span className="text-emerald-400">Batch detected:</span>
-                                <span className="font-mono font-bold text-emerald-300">
-                                    {batchInput}
-                                </span>
+                {/* ── Floating Glassmorphism Control Card ── */}
+                <aside
+                    aria-label="Scan controls and batch verification"
+                    className="flex w-full shrink-0 flex-col justify-center p-4 pb-6 sm:p-5 md:w-[370px] md:border-l md:border-white/[0.08] md:p-6 lg:w-[400px]"
+                >
+                    <div className="flex w-full flex-col gap-4 rounded-[28px] border border-white/[0.13] bg-white/[0.08] p-5 shadow-2xl backdrop-blur-2xl sm:p-6">
+                        {/* Pending queue */}
+                        <PendingScanQueue pending={pending} isSyncing={isSyncing} />
+
+                        {/* ── Batch Verification ── */}
+                        <form onSubmit={handleBatchSubmit} className="flex gap-2.5">
+                            <label htmlFor="batch-input" className="sr-only">
+                                Enter batch number
+                            </label>
+                            <input
+                                id="batch-input"
+                                type="text"
+                                value={batchInput}
+                                onChange={(e) => setBatchInput(e.target.value)}
+                                placeholder={tScan("enterBatchNumber")}
+                                className="min-w-0 flex-1 rounded-2xl border border-white/20 bg-white/[0.08] px-4 py-3 text-sm font-medium text-white placeholder-[#A7B3C5] backdrop-blur-sm transition-all focus:border-emerald-400/60 focus:bg-white/[0.12] focus:ring-2 focus:ring-emerald-500/30 focus:outline-none"
+                            />
+                            <button
+                                type="submit"
+                                disabled={isScanning}
+                                className="flex shrink-0 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all hover:from-emerald-400 hover:to-emerald-500 hover:shadow-emerald-400/40 focus:ring-2 focus:ring-emerald-400/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                aria-label={
+                                    isScanning
+                                        ? "Verifying medicine..."
+                                        : isOffline
+                                          ? "Verify button disabled - offline"
+                                          : "Verify medicine batch number"
+                                }
+                                aria-busy={isScanning}
+                            >
+                                <Search size={15} aria-hidden="true" />
+                                {isOffline ? tScan("offlineVerify") : tScan("verify")}
+                            </button>
+                        </form>
+
+                        {/* Helper text */}
+                        <p className="px-1 text-xs leading-relaxed text-[#A7B3C5]">
+                            {tScan("batchNumberHelp")}
+                        </p>
+
+                        {/* Divider */}
+                        <div className="h-px bg-white/[0.09]" />
+
+                        {/* View History */}
+                        <Link
+                            href="/history"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/[0.13] bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/80 transition-all hover:bg-white/[0.12] hover:text-white focus:ring-2 focus:ring-emerald-500/30 focus:outline-none"
+                        >
+                            <History size={16} aria-hidden="true" />
+                            {tScan("viewHistory")}
+                        </Link>
+
+                        {/* Divider */}
+                        <div className="h-px bg-white/[0.09]" />
+
+                        {/* OCR result (if any) */}
+                        {ocrText && (
+                            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4 text-xs">
+                                <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
+                                    <span className="font-bold text-emerald-400">OCR Text</span>
+                                    {ocrConfidence !== null && (
+                                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-mono text-emerald-300">
+                                            {Math.round(ocrConfidence * 100)}% confidence
+                                        </span>
+                                    )}
+                                </div>
+                                {batchInput && (
+                                    <div className="mb-2 flex items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-1.5">
+                                        <span className="text-emerald-400">Batch:</span>
+                                        <span className="font-mono font-bold text-emerald-300">
+                                            {batchInput}
+                                        </span>
+                                    </div>
+                                )}
+                                <pre className="max-h-28 overflow-y-auto font-mono whitespace-pre-wrap text-[#A7B3C5]">
+                                    {ocrText}
+                                </pre>
                             </div>
                         )}
-                        <pre className="max-h-32 overflow-y-auto font-mono whitespace-pre-wrap text-slate-300">
-                            {ocrText}
-                        </pre>
+
+                        {/* ── Scan Controls ── */}
+                        <div className="flex flex-col gap-3">
+                            <p className="text-center text-[10px] font-bold tracking-widest text-white/30 uppercase">
+                                Scan Controls
+                            </p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {/* Scan Barcode */}
+                                <button
+                                    onClick={() => {
+                                        setCameraPermissionDenied(false);
+                                        setIsCameraActive((prev) => !prev);
+                                    }}
+                                    disabled={isOffline}
+                                    className={`flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-semibold shadow-lg transition-all focus:ring-2 focus:ring-emerald-500/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                                        isCameraActive
+                                            ? "bg-red-500/80 text-white shadow-red-500/20 hover:bg-red-500"
+                                            : "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:from-emerald-400 hover:to-emerald-500"
+                                    }`}
+                                    aria-label={
+                                        isCameraActive
+                                            ? "Stop barcode scanner camera"
+                                            : "Start barcode scanner camera"
+                                    }
+                                    aria-pressed={isCameraActive}
+                                >
+                                    <ScanLine size={15} aria-hidden="true" />
+                                    {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
+                                </button>
+
+                                {/* Upload Photo */}
+                                <label
+                                    htmlFor={isOffline ? undefined : "medicine-upload"}
+                                    onClick={(e) => {
+                                        if (isOffline) {
+                                            e.preventDefault();
+                                            toast.error(
+                                                "You are currently offline. Please check your internet connection."
+                                            );
+                                        }
+                                    }}
+                                    className={`flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/[0.15] bg-white/[0.07] px-3 py-3 text-sm font-semibold text-white/80 shadow-sm transition-all hover:bg-white/[0.13] hover:text-white focus:ring-2 focus:ring-emerald-500/40 focus:outline-none ${
+                                        isOffline ? "cursor-not-allowed opacity-50" : ""
+                                    }`}
+                                    aria-label="Upload medicine photo from device (disabled while offline)"
+                                    aria-disabled={isOffline}
+                                >
+                                    <Layers size={15} aria-hidden="true" />
+                                    {tScan("uploadPhoto")}
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                )}
-            </div>
-
-            {/* Right side / Bottom side controls */}
-            <div className="flex w-full flex-col items-center gap-6 bg-(--color-surface-page) p-6 md:w-96 md:shrink-0 md:border-l md:border-(--color-border-muted) md:p-8 md:shadow-xl lg:w-[400px]">
-                <PendingScanQueue pending={pending} isSyncing={isSyncing} />
-
-                <form
-                    onSubmit={handleBatchSubmit}
-                    className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
-                >
-                    <label htmlFor="batch-input" className="sr-only">
-                        Enter batch number
-                    </label>
-                    <input
-                        id="batch-input"
-                        type="text"
-                        value={batchInput}
-                        onChange={(e) => setBatchInput(e.target.value)}
-                        placeholder={tScan("enterBatchNumber")}
-                        className="flex-1 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-center text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isScanning}
-                        className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={
-                            isScanning
-                                ? "Verifying medicine..."
-                                : isOffline
-                                  ? "Verify button disabled - offline"
-                                  : "Verify medicine batch number"
-                        }
-                        aria-busy={isScanning}
-                    >
-                        <Search size={18} aria-hidden="true" />
-                        {isOffline ? tScan("offlineVerify") : tScan("verify")}
-                    </button>
-                </form>
-
-                <p className="max-w-xs text-center text-sm font-medium text-(--color-text-muted)">
-                    {tScan("batchNumberHelp")}
-                </p>
-
-                <Link
-                    href="/history"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-bold text-(--color-text-primary) shadow-sm transition-colors hover:bg-(--color-surface-hover) focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none dark:hover:bg-white/10"
-                >
-                    <History size={18} />
-                    {tScan("viewHistory")}
-                </Link>
-
-                <div className="mt-4 w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-6 dark:border-white/10 dark:bg-white/5">
-                    <h3 className="mb-4 text-center text-lg font-bold text-(--color-text-primary) dark:text-white">
-                        Scan Controls
-                    </h3>
-
-                    <div className="flex w-full flex-col gap-3 sm:flex-row">
-                        <button
-                            onClick={() => {
-                                setCameraPermissionDenied(false);
-                                setIsCameraActive((prev) => !prev);
-                            }}
-                            disabled={isOffline}
-                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold shadow-md transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                                isCameraActive
-                                    ? "bg-red-500 text-white hover:bg-red-600"
-                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
-                            }`}
-                            aria-label={
-                                isCameraActive
-                                    ? "Stop barcode scanner camera"
-                                    : "Start barcode scanner camera"
-                            }
-                            aria-pressed={isCameraActive}
-                        >
-                            <ScanLine size={18} aria-hidden="true" />
-                            {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
-                        </button>
-                        <label
-                            htmlFor={isOffline ? undefined : "medicine-upload"}
-                            onClick={(e) => {
-                                if (isOffline) {
-                                    e.preventDefault();
-                                    toast.error(
-                                        "You are currently offline. Please check your internet connection."
-                                    );
-                                }
-                            }}
-                            className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 text-sm font-bold text-(--color-text-primary) shadow-sm transition-colors hover:bg-(--color-surface-hover) focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none ${
-                                isOffline ? "cursor-not-allowed opacity-50" : ""
-                            }`}
-                            aria-label="Upload medicine photo from device (disabled while offline)"
-                            aria-disabled={isOffline}
-                        >
-                            <Layers size={18} aria-hidden="true" />
-                            {tScan("uploadPhoto")}
-                        </label>
-                    </div>
-                </div>
+                </aside>
             </div>
         </div>
     );
