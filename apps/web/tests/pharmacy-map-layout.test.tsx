@@ -1,5 +1,6 @@
 import React from "react";
 import { describe, it, expect, jest } from "@jest/globals";
+import { render, screen, within } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import MapHeaderLoadingIndicator from "../app/[locale]/map/MapHeaderLoadingIndicator";
@@ -40,22 +41,58 @@ jest.mock("../app/[locale]/map/PharmacyMap", () => ({
     default: () => <div data-testid="mock-pharmacy-map">Mock map</div>,
 }));
 
-function countOccurrences(markup: string, text: string): number {
-    return markup.split(text).length - 1;
-}
+jest.mock("../hooks/useOfflineStatus", () => ({
+    useOfflineStatus: () => ({ isOffline: false }),
+}));
+
+jest.mock("../lib/api", () => ({
+    fetchVerifiedPharmacies: async () => [],
+    fetchVerifiedPharmaciesInBounds: async () => ({
+        pharmacies: [],
+        syncedAt: "",
+        delta: false,
+        fromNetwork: true,
+    }),
+    fetchNearbyAshaWorkers: async () => [],
+}));
+
+jest.mock("../app/[locale]/map/overpassApi", () => ({
+    fetchPharmacies: async () => [],
+    fetchPharmaciesInBounds: async () => [],
+}));
+
+jest.mock("../app/[locale]/map/usePharmacyCache", () => ({
+    buildNearbyCacheKey: () => "mock-key",
+    buildBoundsCacheKey: () => "mock-key",
+    loadFromCache: async () => null,
+    saveToCache: async () => undefined,
+}));
+
+jest.mock("@/lib/offline/pharmacy-sync", () => ({
+    getCachedPharmacies: async () => [],
+    getLastSyncTimestamp: async () => null,
+}));
 
 describe("PharmacyMapPage responsive layout", () => {
-    it("renders a premium command header with constrained search and elevated filters", () => {
-        const markup = renderToStaticMarkup(<PharmacyMapPage />);
+    it("renders a premium command header with constrained search and elevated filters", async () => {
+        render(<PharmacyMapPage />);
 
-        expect(markup).toContain('data-testid="pharmacy-map-command-bar"');
-        expect(markup).toContain("max-w-4xl");
-        expect(markup).toContain('data-testid="pharmacy-map-search"');
-        expect(markup).toContain("focus-within:ring-4");
-        expect(markup).toContain('data-testid="pharmacy-filter-shell"');
-        expect(markup).toContain("rounded-[1.35rem]");
-        expect(markup).toContain("hover:-translate-y-0.5");
-        expect(markup).toContain("bg-emerald-600");
+        const commandBar = await screen.findByTestId("pharmacy-map-command-bar");
+        expect(commandBar).toBeInTheDocument();
+        expect(commandBar.className).toContain("md:max-w-md");
+
+        const search = screen.getByTestId("pharmacy-map-search");
+        expect(search).toBeInTheDocument();
+        expect(search.className).toContain("rounded-2xl");
+        expect(search.className).toContain("focus-within:ring-4");
+
+        const filterShell = screen.getByTestId("pharmacy-filter-shell");
+        expect(filterShell).toBeInTheDocument();
+
+        const buttons = within(filterShell).getAllByRole("button");
+        expect(buttons.length).toBeGreaterThan(0);
+        expect(buttons.some((btn) => btn.className.includes("hover:-translate-y-0.5"))).toBe(true);
+        expect(buttons.some((btn) => btn.className.includes("bg-emerald-600"))).toBe(true);
     });
 
     it("renders a structured header loading indicator instead of plain fetching text", () => {
@@ -69,22 +106,33 @@ describe("PharmacyMapPage responsive layout", () => {
         expect(markup).not.toContain("Fetching pharmacies");
     });
 
-    it("renders a split desktop shell and reuses the shared panels outside the map pane", () => {
-        const markup = renderToStaticMarkup(<PharmacyMapPage />);
+    it("renders a split desktop shell and reuses the shared panels outside the map pane", async () => {
+        render(<PharmacyMapPage />);
 
-        expect(markup).toContain('data-testid="pharmacy-map-layout"');
-        expect(markup).toContain("flex h-full min-h-0 flex-col");
-        expect(markup).toContain("md:grid");
-        expect(markup).toContain("md:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)]");
-        expect(markup).toContain('data-testid="desktop-pharmacy-sidebar"');
-        expect(markup).toContain('data-testid="mobile-pharmacy-drawer"');
-        expect(markup).toContain('data-testid="pharmacy-map-pane"');
-        expect(markup).toContain('data-testid="mobile-pharmacy-list-toggle"');
-        expect(markup).toContain('aria-label="Toggle pharmacy list"');
-        expect(markup).toContain('aria-label="Find my location"');
-        expect(markup).toContain("md:hidden");
-        expect(countOccurrences(markup, "Nearby Pharmacies")).toBe(2);
-        expect(countOccurrences(markup, "Risk layers")).toBe(2);
-        expect(markup).not.toContain('data-testid="floating-risk-layers-card"');
+        const layout = await screen.findByTestId("pharmacy-map-layout");
+        expect(layout).toBeInTheDocument();
+        expect(layout.className).toContain("flex h-full min-h-0 flex-col");
+        expect(layout.className).toContain("md:grid");
+        expect(layout.className).toContain("md:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)]");
+
+        expect(screen.getByTestId("desktop-pharmacy-sidebar")).toBeInTheDocument();
+        expect(screen.getByTestId("mobile-pharmacy-drawer")).toBeInTheDocument();
+        expect(screen.getByTestId("pharmacy-map-pane")).toBeInTheDocument();
+
+        const toggle = screen.getByTestId("mobile-pharmacy-list-toggle");
+        expect(toggle).toBeInTheDocument();
+        expect(toggle.className).toContain("md:hidden");
+        expect(toggle.getAttribute("aria-label")).toBe("Toggle pharmacy list");
+
+        const locateBtns = screen.getAllByRole("button", { name: "Find my location" });
+        expect(locateBtns.length).toBeGreaterThan(0);
+
+        const nearbys = screen.getAllByText("Nearby Pharmacies");
+        expect(nearbys.length).toBe(2);
+
+        const risks = screen.getAllByText("Risk layers");
+        expect(risks.length).toBe(2);
+
+        expect(screen.queryByTestId("floating-risk-layers-card")).toBeNull();
     });
 });

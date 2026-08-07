@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useId } from "react";
 import { Camera, AlertCircle, VideoOff } from "lucide-react";
+import { usePackagingHint } from "./usePackagingHint";
 
 type ScannerStatus = "initializing" | "scanning" | "permission-denied" | "unavailable" | "error";
 
@@ -97,6 +98,13 @@ export function BarcodeScanner({
     const [retryCount, setRetryCount] = useState(0);
     const [showInactivity, setShowInactivity] = useState(false);
 
+    // Lightweight client-side geometry check (OpenCV.js) — only runs while
+    // actively scanning, so it doesn't fire during errors/loading/permission screens.
+    const looksLikePackaging = usePackagingHint(
+        videoRef,
+        status === "scanning" && !isVerifying && !apiError
+    );
+
     const resetInactivityTimer = useCallback(() => {
         if (inactivityTimerRef.current) {
             clearTimeout(inactivityTimerRef.current);
@@ -114,9 +122,14 @@ export function BarcodeScanner({
 
     // Update refs when props change
     useEffect(() => {
-        isVerifyingRef.current = isVerifying;
-        apiErrorRef.current = apiError;
-    }, [isVerifying, apiError]);
+        if (status === "scanning" && !isVerifying && !apiError && !looksLikePackaging) {
+            resetInactivityTimer();
+        } else {
+            if (inactivityTimerRef.current) {
+                clearTimeout(inactivityTimerRef.current);
+            }
+        }
+    }, [status, isVerifying, apiError, looksLikePackaging, resetInactivityTimer]);
 
     const handleCameraRetry = () => {
         setStatus("initializing");
@@ -156,107 +169,118 @@ export function BarcodeScanner({
         let cancelled = false;
 
         const startScanner = async (): Promise<void> => {
-            const { BrowserMultiFormatReader } = await import("@zxing/browser");
-            const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
-
-            if (cancelled) return;
-
-            const hints = new Map();
-            hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-                BarcodeFormat.CODE_128,
-                BarcodeFormat.QR_CODE,
-                BarcodeFormat.EAN_13,
-                BarcodeFormat.EAN_8,
-                BarcodeFormat.CODE_39,
-                BarcodeFormat.DATA_MATRIX,
-            ]);
-            hints.set(DecodeHintType.TRY_HARDER, true);
-
-            const reader = new BrowserMultiFormatReader(hints, {
-                delayBetweenScanAttempts: 300,
-            });
-
             try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    if (!cancelled) {
-                        setStatus("unavailable");
-                        setErrorMessage("Camera access is not supported by this browser.");
-                    }
-                    return;
-                }
+                const { BrowserMultiFormatReader } = await import("@zxing/browser");
+                const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
 
-                let stream: MediaStream;
+                if (cancelled) return;
+
+                const hints = new Map();
+                hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.QR_CODE,
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.EAN_8,
+                    BarcodeFormat.CODE_39,
+                    BarcodeFormat.DATA_MATRIX,
+                ]);
+                hints.set(DecodeHintType.TRY_HARDER, true);
+
+                const reader = new BrowserMultiFormatReader(hints, {
+                    delayBetweenScanAttempts: 300,
+                });
+
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { ideal: "environment" } },
-                    });
-                } catch {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                }
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        if (!cancelled) {
+                            setStatus("unavailable");
+                            setErrorMessage("Camera access is not supported by this browser.");
+                        }
+                        return;
+                    }
 
-                if (cancelled) {
-                    stopMediaStream(stream);
-                    return;
-                }
+                    let stream: MediaStream;
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: "environment" } },
+                        });
+                    } catch {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    }
 
-                streamRef.current = stream;
-                if (!videoRef.current) return;
+                    if (cancelled) {
+                        stopMediaStream(stream);
+                        return;
+                    }
 
-                const controls = await reader.decodeFromStream(
-                    stream,
-                    videoRef.current,
-                    (result: any, error: any) => {
-                        if (result) {
-                            // Ignore scans if we are verifying or currently showing an error
-                            if (isVerifyingRef.current || apiErrorRef.current) return;
+                    streamRef.current = stream;
+                    if (!videoRef.current) return;
 
-                            const text = result.getText().trim();
-                            if (shouldEmitScan(text)) {
-                                resetInactivityTimer();
-                                playFeedback();
-                                onScan(text);
+                    const controls = await reader.decodeFromStream(
+                        stream,
+                        videoRef.current,
+                        (result: any, error: any) => {
+                            if (result) {
+                                // Ignore scans if we are verifying or currently showing an error
+                                if (isVerifyingRef.current || apiErrorRef.current) return;
+
+                                const text = result.getText().trim();
+                                if (shouldEmitScan(text)) {
+                                    resetInactivityTimer();
+                                    playFeedback();
+                                    onScan(text);
+                                }
+                            }
+
+                            if (error && error.name !== "NotFoundException") {
+                                // Ignore continuous decode errors
                             }
                         }
-
-                        if (error && error.name !== "NotFoundException") {
-                            // Ignore continuous decode errors
-                        }
-                    }
-                );
-
-                if (cancelled) {
-                    controls.stop();
-                    return;
-                }
-
-                controlsRef.current = controls;
-                setStatus("scanning");
-            } catch (err: unknown) {
-                if (cancelled) return;
-                const errorObj = err instanceof Error ? err : new Error(String(err));
-                if (
-                    errorObj.name === "NotAllowedError" ||
-                    errorObj.name === "PermissionDeniedError"
-                ) {
-                    setStatus("permission-denied");
-                    setErrorMessage(
-                        "Camera access was denied. Please allow camera permissions in your browser settings."
                     );
-                    onPermissionDenied?.();
-                } else if (
-                    errorObj.name === "NotFoundError" ||
-                    errorObj.name === "DevicesNotFoundError"
-                ) {
-                    setStatus("unavailable");
-                    setErrorMessage("No suitable camera was found on this device.");
-                } else {
-                    setStatus("error");
-                    setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+
+                    if (cancelled) {
+                        controls.stop();
+                        return;
+                    }
+
+                    controlsRef.current = controls;
+                    setStatus("scanning");
+                } catch (err: unknown) {
+                    if (cancelled) return;
+                    const errorObj = err instanceof Error ? err : new Error(String(err));
+                    if (
+                        errorObj.name === "NotAllowedError" ||
+                        errorObj.name === "PermissionDeniedError"
+                    ) {
+                        setStatus("permission-denied");
+                        setErrorMessage(
+                            "Camera access was denied. Please allow camera permissions in your browser settings."
+                        );
+                        onPermissionDenied?.();
+                    } else if (
+                        errorObj.name === "NotFoundError" ||
+                        errorObj.name === "DevicesNotFoundError"
+                    ) {
+                        setStatus("unavailable");
+                        setErrorMessage("No suitable camera was found on this device.");
+                    } else {
+                        setStatus("error");
+                        setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+                    }
                 }
+            } catch (importErr: unknown) {
+                if (cancelled) return;
+                setStatus("error");
+                setErrorMessage("Failed to load scanner dependencies: " + String(importErr));
             }
         };
 
-        startScanner();
+        startScanner().catch((err) => {
+            if (!cancelled) {
+                setStatus("error");
+                setErrorMessage("Critical failure starting scanner: " + String(err));
+            }
+        });
 
         return () => {
             cancelled = true;
@@ -464,47 +488,72 @@ export function BarcodeScanner({
                     )}
 
                     {status === "scanning" && (
-                        <div className="absolute right-3 bottom-3 z-30 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
-                            <Camera size={14} className="text-emerald-400" />
-                            <span className="text-xs font-medium text-emerald-400">Scanning</span>
+                        <>
+                            <div className="absolute top-3 left-1/2 z-30 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
+                                <span
+                                    className={`text-xs font-medium ${
+                                        looksLikePackaging ? "text-emerald-400" : "text-slate-300"
+                                    }`}
+                                >
+                                    {looksLikePackaging
+                                        ? "Packaging detected — hold steady"
+                                        : "Center the packaging in frame"}
+                                </span>
+                            </div>
+                            <div className="absolute right-3 bottom-3 z-30 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
+                                <Camera size={14} className="text-emerald-400" />
+                                <span className="text-xs font-medium text-emerald-400">
+                                    Scanning
+                                </span>
+                            </div>
+                            <div className="pointer-events-none absolute top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 text-center">
+                                <div className="h-64 w-64 rounded-xl border-2 border-dashed border-emerald-500/50"></div>
+                                <p className="mt-4 rounded bg-black/40 px-2 py-1 text-xs font-bold text-white/80 drop-shadow-md">
+                                    Looking for Barcode...
+                                    <br />
+                                    (No barcode? Use Upload Photo)
+                                </p>
+                            </div>
+                        </>
+                    )}
+
+                    {/* 5. INACTIVITY OVERLAY */}
+                    {showInactivity && status === "scanning" && !apiError && !isVerifying && (
+                        <div
+                            className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-slate-900/95 p-6 text-center backdrop-blur-sm"
+                            role="alert"
+                            aria-live="polite"
+                        >
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
+                                <AlertCircle size={32} className="text-amber-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-white">
+                                Having trouble scanning?
+                            </h3>
+                            <p className="max-w-xs text-sm text-slate-400">
+                                We haven't detected a barcode in a while. Make sure there is enough
+                                light and the barcode is in focus.
+                            </p>
+                            <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
+                                <button
+                                    onClick={() => resetInactivityTimer()}
+                                    className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
+                                >
+                                    Keep Scanning
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const input = document.getElementById("medicine-upload");
+                                        input?.click();
+                                    }}
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-700"
+                                >
+                                    📷 Upload Photo Instead
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>
-            )}
-
-            {/* 5. INACTIVITY OVERLAY */}
-            {showInactivity && status === "scanning" && !apiError && !isVerifying && (
-                <div
-                    className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-slate-900/95 p-6 text-center backdrop-blur-sm"
-                    role="alert"
-                    aria-live="polite"
-                >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
-                        <AlertCircle size={32} className="text-amber-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white">Having trouble scanning?</h3>
-                    <p className="max-w-xs text-sm text-slate-400">
-                        We haven't detected a barcode in a while. Make sure there is enough light
-                        and the barcode is in focus.
-                    </p>
-                    <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
-                        <button
-                            onClick={() => resetInactivityTimer()}
-                            className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
-                        >
-                            Keep Scanning
-                        </button>
-                        <button
-                            onClick={() => {
-                                const input = document.getElementById("medicine-upload");
-                                input?.click();
-                            }}
-                            className="w-full rounded-xl border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-700"
-                        >
-                            📷 Upload Photo Instead
-                        </button>
-                    </div>
-                </div>
             )}
         </div>
     );

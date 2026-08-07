@@ -319,6 +319,15 @@
         "description": "اس وقت آپ کا انٹرنیٹ کنکشن دستیاب نہیں ہے۔",
         "subtitle": "آف لائن ہونے کے دوران کچھ خصوصیات دستیاب نہیں ہوتیں۔ انٹرنیٹ سے منسلک ہونے کی کوشش کریں یا پہلے سے محفوظ مواد دیکھیں۔",
         "tryAgain": "دوبارہ کوشش کریں",
+
+        "syncFailedTitle": "قطار میں موجود اقدامات مسترد کر دیے گئے",
+
+        "syncFailedDescription": "سرور نے کچھ قطار میں موجود اقدامات مسترد کر دیے۔ دوبارہ جڑنے کے بعد دوبارہ کوشش کریں یا انہیں ہٹا دیں۔",
+
+        "syncRetry": "سب دوبارہ کوشش کریں",
+
+        "syncDiscard": "ہٹائیں",
+
         "goHome": "ہوم پیج پر جائیں",
         "footer": "کنکشن بحال ہونے پر SahiDawa خود بخود تبدیلیاں مطابقت پذیر کر دے گی۔",
         "cachedContent": "آپ پہلے سے لوڈ کردہ مواد تک رسائی حاصل کر سکتے ہیں",
@@ -1277,6 +1286,15 @@
         "channelRequired": "Kam az kam aik rabta channel (SMS ya WhatsApp) faal hona zaroori hai.",
         "optOutConfirm": "Kya aap waqai opt out kar ke tamam SMS aur WhatsApp alerts band karna chahte hain?",
         "loadingPreferences": "Aap ki tarjeehat load ho rahi hain...",
+        "otpSentTitle": "اپنا فون نمبر تصدیق کریں",
+        "otpSentDesc": "ہم نے آپ کے فون پر 6 ہندسوں کا کوڈ بھیجا ہے۔ یہ نمبر آپ کا ہے اس کی تصدیق کے لیے نیچے اسے درج کریں۔",
+        "otpLabel": "تصدیقی کوڈ",
+        "otpPlaceholder": "6 ہندسوں کا کوڈ",
+        "otpSentMessage": "ہم نے آپ کے فون پر تصدیقی کوڈ بھیجا ہے۔ مکمل کرنے کے لیے اسے درج کریں۔",
+        "verifyButton": "تصدیق کریں",
+        "verifying": "تصدیق ہو رہی ہے...",
+        "verifySuccess": "آپ کا نمبر تصدیق ہو گیا۔ الرٹس حاصل کرنے کے لیے آپ تیار ہیں۔",
+        "otpInvalid": "براہ کرم وہ 6 ہندسوں کا کوڈ درج کریں جو ہم نے بھیجا تھا۔",
         "languageOptionEn": "English",
         "languageOptionHi": "हिन्दी",
         "languageOptionTa": "தமிழ்",
@@ -1648,6 +1666,10 @@
         "clear_confirm_button": "تمام صاف کریں۔",
         "sync_success": "تاریخ کلاؤڈ کے ساتھ مطابقت پذیر ہے۔",
         "sync_error": "کلاؤڈ مطابقت پذیری ابھی دستیاب نہیں ہے۔",
+        "sync_status_synced": "ہم آہنگ ہو گیا",
+        "sync_status_offline": "آف لائن (ہم آہنگی زیر التوا)",
+        "sync_status_syncing": "ہم آہنگ ہو رہا ہے...",
+        "sync_status_error": "ہم آہنگی کی خرابی",
         "stat_total": "کل",
         "stat_verified": "تصدیق شدہ",
         "stat_suspicious": "مشکوک",
@@ -1658,6 +1680,8 @@
         "no_search_results": "کوئی دوا آپ کی تلاش سے مماثل نہیں ہے۔",
         "item_status_label": "حیثیت:",
         "item_delete_button": "حذف کریں۔",
+        "sync_auth_title": "اپنی تاریخ سنک کرنے کے لیے سائن ان کریں",
+        "sync_auth_action": "سائن ان",
         "item_copy_success": "دوا کا نام نقل کیا گیا!"
     },
     "MyReports": {

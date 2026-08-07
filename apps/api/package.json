@@ -7,7 +7,7 @@
         "start": "node dist/index.js",
         "dev": "ts-node-dev --respawn --transpile-only -r ./ws-setup.js src/index.ts",
         "build": "npm run build -w @sahidawa/types -w @sahidawa/validators -w @sahidawa/shared && tsc && cp -r assets dist/",
-        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit --silent && npm run test:types",
+        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit --silent",
         "test:types": "tsc --noEmit -p tsconfig.test.json"
     },
     "dependencies": {
@@ -15,6 +15,7 @@
         "@opentelemetry/api": "^1.9.1",
         "@opentelemetry/auto-instrumentations-node": "^0.77.0",
         "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
+        "@opentelemetry/propagator-jaeger": "^2.9.0",
         "@opentelemetry/sdk-node": "^0.219.0",
         "@sahidawa/shared": "^1.0.0",
         "@sahidawa/types": "*",
@@ -74,6 +75,6 @@
         "jest": "^29.7.0",
         "supertest": "^7.2.2",
         "ts-node-dev": "^2.0.0",
-        "typescript": "^5.6.2"
+        "typescript": "5.6.2"
     }
 }

@@ -79,7 +79,9 @@ export const pharmacyRepository = {
     async findAllApprovedForFallback() {
         const { data, error } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .select(
+                "name, address, location, phone_number, is_verified, district, state, status, operating_hours, timezone"
+            )
             .eq("status", "approved")
             .limit(3000);
         if (error) throw error;
@@ -94,7 +96,14 @@ export const pharmacyRepository = {
         limit: number;
         offset: number;
     }) {
-        return supabase.rpc("get_pharmacies_in_bounds", params);
+        return supabase.rpc("get_pharmacies_in_bounds", {
+            bound_south: params.south,
+            bound_west: params.west,
+            bound_north: params.north,
+            bound_east: params.east,
+            query_limit: params.limit,
+            query_offset: params.offset,
+        });
     },
 
     async rpcGetPharmaciesInBoundsDelta(params: {
@@ -104,11 +113,17 @@ export const pharmacyRepository = {
         east: number;
         since: string;
     }) {
-        return supabase.rpc("get_pharmacies_in_bounds_delta", params);
+        return supabase.rpc("get_pharmacies_in_bounds_delta", {
+            bound_south: params.south,
+            bound_west: params.west,
+            bound_north: params.north,
+            bound_east: params.east,
+            since: params.since,
+        });
     },
 
     async findInBoundsFallback(since?: string) {
-        let query = supabase.from("pharmacies").select("*").limit(3000);
+        let query = supabase.from("pharmacies").select("*").eq("status", "approved").limit(3000);
         if (since) {
             query = query.gte("updated_at", since);
         }
@@ -121,5 +136,13 @@ export const pharmacyRepository = {
         const { data, error } = await supabase.from("pharmacy_inventory").insert(rows);
         if (error) throw error;
         return data;
+    },
+
+    async rpcGetNearestOpenPharmacies(lat: number, lng: number, maxResults = 10) {
+        return supabase.rpc("get_nearest_open_pharmacies", {
+            query_lat: lat,
+            query_lng: lng,
+            max_results: maxResults,
+        });
     },
 };

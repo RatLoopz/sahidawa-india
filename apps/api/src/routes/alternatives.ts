@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
-import { escapePostgrest } from "../utils/db";
+
 import { barcodeLimiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
 import { redisClient } from "../utils/redis";
@@ -141,25 +141,43 @@ router.get(
             let alternative: GenericAlternative | null = null;
 
             if (medicine) {
-                const { data } = await supabase
+                let { data } = await supabase
                     .from("generic_alternatives")
                     .select("*")
-                    .or(
-                        `brand_medicine_id.eq.${medicine.id},brand_name.ilike."%${escapePostgrest(String(medicine.brand_name))}%"`
-                    )
+                    .eq("brand_medicine_id", medicine.id)
                     .limit(1)
                     .maybeSingle();
+
+                if (!data && medicine.brand_name) {
+                    const result = await supabase
+                        .from("generic_alternatives")
+                        .select("*")
+                        .ilike("brand_name", `%${medicine.brand_name}%`)
+                        .limit(1)
+                        .maybeSingle();
+                    data = result.data;
+                }
+
                 alternative = data;
             } else {
                 // Try lookup directly in generic_alternatives by brand name or generic name matching medicine_id
-                const { data } = await supabase
+                let { data } = await supabase
                     .from("generic_alternatives")
                     .select("*")
-                    .or(
-                        `brand_name.ilike."%${escapePostgrest(String(medicine_id))}%",generic_name.ilike."%${escapePostgrest(medicine_id)}%"`
-                    )
+                    .ilike("brand_name", `%${medicine_id}%`)
                     .limit(1)
                     .maybeSingle();
+
+                if (!data) {
+                    const result = await supabase
+                        .from("generic_alternatives")
+                        .select("*")
+                        .ilike("generic_name", `%${medicine_id}%`)
+                        .limit(1)
+                        .maybeSingle();
+                    data = result.data;
+                }
+
                 alternative = data;
             }
 

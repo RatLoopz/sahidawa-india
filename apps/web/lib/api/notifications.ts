@@ -62,6 +62,14 @@ export async function getSubscriptionStatus(
     return res.json() as Promise<SubscriptionStatusResult>;
 }
 
+/**
+ * Subscribe a number to alerts. When the number already belongs to a subscriber
+ * and the caller has not proved it is theirs, the API keeps the existing
+ * settings and only sends an OTP: the reply then carries
+ * `preferencesApplied: false` and no `subscriber`, and the requested settings
+ * have to be re-sent through `updateSubscription` once verification hands back
+ * a guest token.
+ */
 export async function registerSubscription(
     payload: {
         phone: string;
@@ -71,7 +79,7 @@ export async function registerSubscription(
     },
     accessToken?: string,
     signal?: AbortSignal
-): Promise<{ success: boolean; subscriber: SubscriberData }> {
+): Promise<{ success: boolean; preferencesApplied: boolean; subscriber?: SubscriberData }> {
     const csrfToken = await getCsrfToken();
     const res = await fetchWithRetry(`${API_BASE}/api/v1/notifications/register`, {
         method: "POST",
@@ -90,7 +98,11 @@ export async function registerSubscription(
         throw new Error(await readErrorMessage(res, "Failed to register subscription"));
     }
 
-    return res.json() as Promise<{ success: boolean; subscriber: SubscriberData }>;
+    return res.json() as Promise<{
+        success: boolean;
+        preferencesApplied: boolean;
+        subscriber?: SubscriberData;
+    }>;
 }
 
 /**

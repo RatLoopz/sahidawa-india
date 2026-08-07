@@ -1,4 +1,4 @@
-import { escapePostgrest } from "./utils";
+import { escapePostgrest } from "@sahidawa/shared";
 
 export function buildMedicineNameSearchFilter(query: string): string | null {
     const q = query.trim();

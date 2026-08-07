@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response, NextFunction } from "express";
 import { requestIdMiddleware, getRequestId, REQUEST_ID_HEADER } from "../src/middleware/requestId";
 

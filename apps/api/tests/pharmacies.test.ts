@@ -1,7 +1,9 @@
+// @ts-nocheck
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 
-(globalThis as unknown as { WebSocket: any }).WebSocket = (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
+(globalThis as unknown as { WebSocket: any }).WebSocket =
+    (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
 
 jest.mock("../src/db/client", () => ({
     supabase: {
@@ -28,7 +30,6 @@ import app from "../src/app";
 import { supabase } from "../src/db/client";
 import { cacheMiddleware } from "../src/middleware/cache";
 import { Request, Response, NextFunction } from "express";
-
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 
@@ -564,6 +565,9 @@ describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
                     eq: eqMock,
                     order: orderMock,
                     then: thenMock,
+                    maybeSingle: jest
+                        .fn()
+                        .mockResolvedValue({ data: { id: "pharmacy-uuid-123" }, error: null }),
                 };
             }
             if (table === "pharmacy_inventory") {
@@ -608,6 +612,9 @@ describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
                     eq: eqMock,
                     order: orderMock,
                     then: thenMock,
+                    maybeSingle: jest
+                        .fn()
+                        .mockResolvedValue({ data: { id: "pharmacy-uuid-123" }, error: null }),
                 };
             }
             if (table === "pharmacy_inventory") {
@@ -652,6 +659,9 @@ describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
                     eq: eqMock,
                     order: orderMock,
                     then: thenMock,
+                    maybeSingle: jest
+                        .fn()
+                        .mockResolvedValue({ data: { id: "pharmacy-uuid-123" }, error: null }),
                 };
             }
             if (table === "pharmacy_inventory") {

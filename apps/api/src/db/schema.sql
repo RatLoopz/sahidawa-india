@@ -259,3 +259,18 @@ CREATE TABLE IF NOT EXISTS public.medicine_schedules (
 
 CREATE INDEX IF NOT EXISTS idx_medicine_schedules_user_id ON public.medicine_schedules(user_id);
 CREATE INDEX IF NOT EXISTS idx_medicine_schedules_active ON public.medicine_schedules(is_active) WHERE is_active = TRUE;
+
+-- 12. Users Profile Table (for gamification and dashboard)
+CREATE TABLE IF NOT EXISTS public.users (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name TEXT,
+    role VARCHAR(50) DEFAULT 'user',
+    points INTEGER DEFAULT 0,
+    badges TEXT[] DEFAULT '{}'::text[],
+    avatar_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_points ON public.users(points DESC);
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);

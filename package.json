@@ -18,7 +18,7 @@
         "lint": "npm run lint --workspaces --if-present",
         "lint:circular": "npx madge --circular apps/api/src apps/web packages/shared/src packages/types/src packages/validators/src",
         "test:a11y:voice": "npm run test:a11y:voice -w web",
-        "prepare": "node -e \"if(!process.env.CI) { require('child_process').execSync('npx --yes husky', {stdio: 'inherit'}) }\" || true",
+        "prepare": "husky || true",
         "check:migrations": "node scripts/check-migrations.js",
         "audit:node": "npm audit -w sahidawa-api -w web --audit-level=high",
         "audit:python": "node scripts/audit-python.js",
@@ -35,6 +35,7 @@
     "license": "MIT",
     "packageManager": "npm@11.12.1",
     "dependencies": {
+        "@opentelemetry/propagator-jaeger": "2.10.0",
         "@supabase/supabase-js": "^2.110.0",
         "@zxing/library": "0.21.3",
         "cors": "^2.8.6",
@@ -67,6 +68,7 @@
         "turbo": "^2.10.2"
     },
     "overrides": {
+        "typescript": "5.6.2",
         "@zxing/library": "0.21.3",
         "postcss": "^8.5.15",
         "form-data": "^4.0.6",
@@ -76,7 +78,8 @@
         "sharp": "^0.35.0",
         "node-cron": {
             "uuid": "^9.0.1"
-        }
+        },
+        "@opentelemetry/propagator-jaeger": "2.10.0"
     },
     "lint-staged": {
         "*.{ts,tsx,js,jsx,md,json}": "prettier --write"

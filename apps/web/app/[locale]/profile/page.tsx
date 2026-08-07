@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
 import ABHABadge from "@/components/ABHABadge";
 import { useSession } from "@/src/components/AuthProvider";
 import { clearReadCache } from "@/lib/offline/db";
+import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 
 const ACCESS_TOKEN_KEY = "sb-access-token";
 
@@ -89,6 +91,8 @@ export default function ProfilePage() {
     const { token, isLoading: authLoading } = useSession();
     const [session, setSession] = useState<ProfileSession>({ status: "checking" });
 
+    const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
+
     const accountTitle =
         session.status === "authenticated"
             ? (session.displayName ?? t("signedInUser"))
@@ -132,6 +136,10 @@ export default function ProfilePage() {
     };
     const handleSignOut = () => {
         localStorage.removeItem(ACCESS_TOKEN_KEY);
+        // Clear the cookie-backed session too. Without this, the middleware
+        // keeps seeing a valid session while the app is signed out, which
+        // causes protected flows to bounce between login and the app.
+        void supabase.auth.signOut().catch(() => {});
         // Wipe cached schedules/summary (PHI) so the next person on a shared
         // device can't read them offline. Fire-and-forget — never block sign-out.
         void clearReadCache();

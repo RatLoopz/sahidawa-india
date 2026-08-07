@@ -71,8 +71,10 @@ const getMockUser = (): AuthenticatedUser => {
  */
 const LOCALHOST_IPS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
-const isLocalhostRequest = (req: Request): boolean =>
-    LOCALHOST_IPS.has(req.socket.remoteAddress ?? "");
+const isLocalhostRequest = (req: Request): boolean => {
+    const addr = req.socket?.remoteAddress ?? req.ip ?? "";
+    return LOCALHOST_IPS.has(addr);
+};
 
 /**
  * Returns true only when every condition required to use the local-dev auth
@@ -89,7 +91,7 @@ const canUseAuthBypass = (req: Request): boolean => {
         logger.warn({
             message:
                 "Auth bypass env vars are set but request did not originate from localhost — bypass denied.",
-            ip: req.socket.remoteAddress,
+            ip: req.socket?.remoteAddress,
             forwardedFor: req.ip,
         });
         return false;
@@ -166,7 +168,12 @@ export const createAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in requireAuth (token error)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
@@ -176,7 +183,12 @@ export const createAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in requireAuth (no user)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
@@ -289,7 +301,12 @@ export const createOptionalAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in optionalAuth (token error)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
@@ -301,7 +318,12 @@ export const createOptionalAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in optionalAuth (no user)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });

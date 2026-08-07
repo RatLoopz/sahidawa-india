@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/routing";
 import { AlertTriangle, LogIn, Pill, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -80,7 +81,7 @@ export default function ScheduleDetailPage() {
             });
             setState({ ...state, schedule: updated });
         } catch {
-            // silently fail
+            toast.error("Failed to update schedule. Please try again.");
         }
     };
 
@@ -91,6 +92,7 @@ export default function ScheduleDetailPage() {
             await deleteSchedule(state.kind === "ready" ? state.schedule.id : params.id);
             router.push("/schedule");
         } catch {
+            toast.error("Failed to delete schedule. Please try again.");
             setDeleting(false);
         }
     };

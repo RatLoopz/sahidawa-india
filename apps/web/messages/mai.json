@@ -382,6 +382,15 @@
         "description": "अखन अहाँक इंटरनेट कनेक्शन नहि अछि।",
         "subtitle": "ऑफलाइन रहलापर किछु सुविधा अनुपलब्ध अछि। इंटरनेटसँ जुड़बाक प्रयास करू वा कैश्ड सामग्री देखू।",
         "tryAgain": "फेर प्रयास करू",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "होम पर जाऊ",
         "footer": "कनेक्शन वापस आयलापर SahiDawa स्वचालित रूपसँ सिंक हयत।",
         "cachedContent": "अहाँ पहिने लोड कयल सामग्री देखि सकैत छी",
@@ -1282,6 +1291,15 @@
         "channelRequired": "Kam sa kam ekta sanchar madhyam (SMS wa WhatsApp) saksham hoybak chahi.",
         "optOutConfirm": "Ki ahan nishchit chhi je opt out ka sab SMS aa WhatsApp alert band karay chahait chhi?",
         "loadingPreferences": "Ahank prathamikta load bha rahal achhi...",
+        "otpSentTitle": "अपन फोन नम्बर सत्यापित करू",
+        "otpSentDesc": "हम अहाँक फोन पर 6 अंकक कोड पठौने छी। ई नम्बर अहाँक अछि ओकर पुष्टि करबाक लेल नीचा ओकरा भरू।",
+        "otpLabel": "सत्यापन कोड",
+        "otpPlaceholder": "6 अंकक कोड",
+        "otpSentMessage": "हम अहाँक फोन पर सत्यापन कोड पठौने छी। पूरा करबाक लेल ओकरा भरू।",
+        "verifyButton": "सत्यापित करू",
+        "verifying": "सत्यापित हो रहल अछि...",
+        "verifySuccess": "अहाँक नम्बर सत्यापित भऽ गेल। अलर्ट पाबक लेल अहाँ तयार छी।",
+        "otpInvalid": "कृपया हम पठौने वाला 6 अंकक कोड भरू।",
         "languageOptionEn": "English",
         "languageOptionHi": "हिन्दी",
         "languageOptionTa": "தமிழ்",
@@ -1354,6 +1372,8 @@
         "no_search_results": "अहाँक खोजसँ मेल खायवला कोनो दवाइ नहि भेटल।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "मेटाऊ",
+        "sync_auth_title": "अपन इतिहास सिंक करबाक लेल साइन इन करू",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "दवाइक नाम कॉपी भेल!"
     },
     "MyReports": {

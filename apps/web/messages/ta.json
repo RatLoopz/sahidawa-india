@@ -319,6 +319,15 @@
         "description": "தற்போது உங்களுக்கு இணைய இணைப்பு இல்லை.",
         "subtitle": "ஆஃப்லைனில் இருக்கும்போது சில அம்சங்கள் கிடைக்காது. இணையத்துடன் இணைக்க முயற்சிக்கவும் அல்லது தற்காலிக சேமிப்பில் உள்ள உள்ளடக்கத்தை உலாவவும்.",
         "tryAgain": "மீண்டும் முயற்சி",
+
+        "syncFailedTitle": "வரிசையிலுள்ள செயல்கள் நிராகரிக்கப்பட்டன",
+
+        "syncFailedDescription": "சர்வர் சில வரிசை செயல்களை நிராகரித்தது. மீண்டும் இணைந்த பிறகு மீண்டும் முயற்சிக்கவும் அல்லது அவற்றை அகற்றவும்.",
+
+        "syncRetry": "அனைத்தையும் மீண்டும் முயற்சிக்கவும்",
+
+        "syncDiscard": "அகற்று",
+
         "goHome": "முகப்பிற்குச் செல்",
         "footer": "இணைப்பு மீண்டும் வரும்போது SahiDawa தானாகவே ஒத்திசைக்கும்.",
         "cachedContent": "முன்பு ஏற்றப்பட்ட உள்ளடக்கத்தை நீங்கள் இன்னும் அணுகலாம்",
@@ -1333,6 +1342,15 @@
         "channelRequired": "Kuraindhathu oru thodarbu channel (SMS allathu WhatsApp) iyakkappattirukka vendum.",
         "optOutConfirm": "Neengal vilagi anaithu SMS matrum WhatsApp echarikkaigalai nirutha virumbugireergala?",
         "loadingPreferences": "Ungal viruppangal etrappadugindrana...",
+        "otpSentTitle": "உங்கள் தொலைபேசி எண்ணைச் சரிபார்க்கவும்",
+        "otpSentDesc": "உங்கள் தொலைபேசிக்கு 6 இலக்க குறியீட்டை அனுப்பியுள்ளோம். இந்த எண் உங்களுடையது என்பதை உறுதிப்படுத்த கீழே அதை உள்ளிடவும்.",
+        "otpLabel": "சரிபார்ப்புக் குறியீடு",
+        "otpPlaceholder": "6 இலக்க குறியீடு",
+        "otpSentMessage": "உங்கள் தொலைபேசிக்கு சரிபார்ப்புக் குறியீட்டை அனுப்பியுள்ளோம். முடிக்க அதை உள்ளிடவும்.",
+        "verifyButton": "சரிபார்க்கவும்",
+        "verifying": "சரிபார்க்கப்படுகிறது...",
+        "verifySuccess": "உங்கள் எண் சரிபார்க்கப்பட்டது. எச்சரிக்கைகளைப் பெற நீங்கள் தயார்.",
+        "otpInvalid": "எங்களால் அனுப்பப்பட்ட 6 இலக்க குறியீட்டை உள்ளிடவும்.",
         "languageOptionEn": "English",
         "languageOptionHi": "हिन्दी",
         "languageOptionTa": "தமிழ்",
@@ -1704,6 +1722,10 @@
         "clear_confirm_button": "அனைத்தையும் அழி",
         "sync_success": "வரலாறு மேகக்கணியுடன் ஒத்திசைக்கப்பட்டது.",
         "sync_error": "கிளவுட் ஒத்திசைவு இப்போது கிடைக்கவில்லை.",
+        "sync_status_synced": "ஒத்திசைக்கப்பட்டது",
+        "sync_status_offline": "ஆஃப்லைன் (ஒத்திசைவு நிலுவை)",
+        "sync_status_syncing": "ஒத்திசைக்கப்படுகிறது...",
+        "sync_status_error": "ஒத்திசைவுப் பிழை",
         "stat_total": "மொத்தம்",
         "stat_verified": "சரிபார்க்கப்பட்டது",
         "stat_suspicious": "சந்தேகத்திற்குரியது",
@@ -1714,6 +1736,8 @@
         "no_search_results": "உங்கள் தேடலுக்கு எந்த மருந்தும் பொருந்தவில்லை.",
         "item_status_label": "நிலை:",
         "item_delete_button": "நீக்கு",
+        "sync_auth_title": "உங்கள் வரலாற்றை ஒத்திசைக்க உள்நுழைக",
+        "sync_auth_action": "உள்நுழை",
         "item_copy_success": "மருந்தின் பெயர் நகலெடுக்கப்பட்டது!"
     },
     "MyReports": {

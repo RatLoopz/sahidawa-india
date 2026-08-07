@@ -430,6 +430,15 @@
         "description": "इस समय आपके पास इंटरनेट कनेक्शन नहीं है।",
         "subtitle": "ऑफ़लाइन होने पर कुछ सुविधाएं उपलब्ध नहीं हैं। इंटरनेट से जुड़ने का प्रयास करें या पहले से लोड की गई सामग्री देखें।",
         "tryAgain": "पुनः प्रयास करें",
+
+        "syncFailedTitle": "कतार में लंबित कार्रवाइयां अस्वीकृत हुईं",
+
+        "syncFailedDescription": "सर्वर ने कुछ कतारबद्ध कार्रवाइयां अस्वीकृत कर दीं। दोबारा जुड़ने के बाद पुनः प्रयास करें या उन्हें हटा दें।",
+
+        "syncRetry": "सभी पुनः प्रयास करें",
+
+        "syncDiscard": "हटाएं",
+
         "goHome": "मुख्य पृष्ठ पर जाएं",
         "footer": "कनेक्शन वापस आने पर SahiDawa स्वचालित रूप से सिंक हो जाएगा।",
         "cachedContent": "आप अभी भी पहले से लोड की गई सामग्री देख सकते हैं",
@@ -1341,6 +1350,15 @@
         "channelRequired": "Kam se kam ek sanchar madhyam (SMS ya WhatsApp) saksham hona chahiye.",
         "optOutConfirm": "Kya aap waqai opt out karke sabhi SMS aur WhatsApp alert band karna chahte hain?",
         "loadingPreferences": "Aapki prathamiktaen load ho rahi hain...",
+        "otpSentTitle": "अपना फ़ोन नंबर सत्यापित करें",
+        "otpSentDesc": "हमने आपके फ़ोन पर 6 अंकों का कोड भेजा है। यह नंबर आपका है इसकी पुष्टि के लिए नीचे दर्ज करें।",
+        "otpLabel": "सत्यापन कोड",
+        "otpPlaceholder": "6 अंकों का कोड",
+        "otpSentMessage": "हमने आपके फ़ोन पर सत्यापन कोड भेजा है। पूरा करने के लिए इसे दर्ज करें।",
+        "verifyButton": "सत्यापित करें",
+        "verifying": "सत्यापित हो रहा है...",
+        "verifySuccess": "आपका नंबर सत्यापित हो गया। अलर्ट पाने के लिए आप तैयार हैं।",
+        "otpInvalid": "कृपया वह 6 अंकों का कोड दर्ज करें जो हमने भेजा था।",
         "languageOptionEn": "English",
         "languageOptionHi": "हिन्दी",
         "languageOptionTa": "தமிழ்",
@@ -1413,6 +1431,8 @@
         "no_search_results": "आपकी खोज से मेल खाने वाली कोई दवा नहीं मिली।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "हटाएं",
+        "sync_auth_title": "अपना इतिहास सिंक करने के लिए साइन इन करें",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "दवा का नाम कॉपी हो गया!"
     },
     "MyReports": {

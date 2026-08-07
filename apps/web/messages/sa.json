@@ -316,6 +316,15 @@
         "description": "भवतः समीपे अस्मिन् समये अन्तर्जाल-सम्पर्कः नास्ति।",
         "subtitle": "अन्तर्जालं विना काश्चन सुविधाः अलभ्याः सन्ति। अन्तर्शालेन सह सम्बद्धुं प्रयतध्वम् अथवा सञ्चित-विषयवस्तु (cached content) पश्यन्तु।",
         "tryAgain": "पुनः प्रयतताम्",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "मुख्यपृष्ठं गच्छतु",
         "footer": "सम्पर्के प्रत्यागते सहीदवा स्वयमेव समकालनं करिष्यति।",
         "cachedContent": "भवान् अद्यापि पूर्व-लोद्-कृतं विषयवस्तु प्राप्तुं शक्नोति",
@@ -1277,6 +1286,15 @@
         "channelRequired": "Nyunatinyunam ekam sancharamadhyamam (SMS va WhatsApp) sakshamam bhavitavyam.",
         "optOutConfirm": "Kim bhavan/bhavati nischayena opt out kritva sarvani SMS tatha WhatsApp sachetanani sthagayitum icchati?",
         "loadingPreferences": "Bhavatah/bhavatyah prathamikatah load bhavanti...",
+        "otpSentTitle": "भवतः दूरभाषसङ्ख्या प्रमाणयन्तु",
+        "otpSentDesc": "वयं भवतः दूरभाषे ६ अङ्कानां कोडं प्रेषितवन्तः। इयं सङ्ख्या भवतः एव इति पुष्ट्यर्थम् अधः तत् लिखन्तु।",
+        "otpLabel": "प्रमाणन कोडः",
+        "otpPlaceholder": "६ अङ्कानां कोडः",
+        "otpSentMessage": "वयं भवतः दूरभाषे प्रमाणन कोडं प्रेषितवन्तः। समाप्त्यर्थं तत् लिखन्तु।",
+        "verifyButton": "प्रमाणयन्तु",
+        "verifying": "प्रमाणयते...",
+        "verifySuccess": "भवतः सङ्ख्या प्रमाणिता। सूचना प्राप्तुं भवान् सज्जः।",
+        "otpInvalid": "कृपया अस्माभिः प्रेषितं ६ अङ्कानां कोडं लिखन्तु।",
         "languageOptionEn": "English",
         "languageOptionHi": "हिन्दी",
         "languageOptionTa": "தமிழ்",
@@ -1648,6 +1666,10 @@
         "clear_confirm_button": "सर्वं स्वच्छं कुर्वन्तु",
         "sync_success": "इतिहासः मेघेन सह समन्वयितः।",
         "sync_error": "मेघसमन्वयनम् अधुना अनुपलब्धम्।",
+        "sync_status_synced": "समन्वयितम्",
+        "sync_status_offline": "असम्पर्के (समन्वयः विलम्बितः)",
+        "sync_status_syncing": "समन्वयति...",
+        "sync_status_error": "समन्वयनत्रुटिः",
         "stat_total": "कुल",
         "stat_verified": "सत्यापित",
         "stat_suspicious": "शङ्कितः",
@@ -1658,6 +1680,8 @@
         "no_search_results": "भवतः अन्वेषणेन सह कोऽपि औषधः न मेलति।",
         "item_status_label": "स्थितिः : १.",
         "item_delete_button": "विलोपयतु",
+        "sync_auth_title": "स्वस्य इतिहासं सिंक कर्तुं प्रवेशं कुरु",
+        "sync_auth_action": "प्रवेशं कुरु",
         "item_copy_success": "औषधस्य नाम प्रतिलिपिकृतम् !"
     },
     "MyReports": {

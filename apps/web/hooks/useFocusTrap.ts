@@ -33,12 +33,25 @@ export function useFocusTrap<T extends HTMLElement>(
             return Array.from(ref.current.querySelectorAll(FOCUSABLE_SELECTOR)) as HTMLElement[];
         };
 
+        // Whether we had to add a temporary tabindex to the container so it can
+        // receive focus. Only elements with a tabindex attribute (or that are
+        // natively focusable) can be the target of .focus(); without one,
+        // container.focus() silently does nothing. Track this so we can clean
+        // the attribute back up when the trap is disabled/unmounted.
+        let addedTempTabIndex = false;
+
         // Focus the first focusable element initially
         const focusable = getFocusableElements();
         if (focusable.length > 0) {
             focusable[0].focus();
         } else {
-            // Fallback: focus the container itself (should have tabindex="-1" or similar)
+            // Fallback: focus the container itself. If it doesn't already have a
+            // tabindex (e.g. tabindex="-1" set by the consumer), it isn't a valid
+            // focus target, so temporarily add one just for the trap's lifetime.
+            if (!container.hasAttribute("tabindex")) {
+                container.setAttribute("tabindex", "-1");
+                addedTempTabIndex = true;
+            }
             container.focus();
         }
 
@@ -74,6 +87,13 @@ export function useFocusTrap<T extends HTMLElement>(
 
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
+
+            // Remove the temporary tabindex we added, so the container doesn't
+            // stay in the tab order (or keep an attribute it didn't originally have).
+            if (addedTempTabIndex) {
+                container.removeAttribute("tabindex");
+            }
+
             // Restore focus
             if (
                 previousActiveElement.current &&

@@ -359,6 +359,15 @@
         "description": "এই মুহূৰ্তত আপোনাৰ ইন্টাৰনেট সংযোগ নাই।",
         "subtitle": "অফলাইনত কিছু বৈশিষ্ট্য অনুপলব্ধ। ইন্টাৰনেটৰ সৈতে সংযোগ কৰিবলৈ চেষ্টা কৰক বা কেশ্বড বিষয়বস্তু ব্ৰাউজ কৰক।",
         "tryAgain": "পুনৰ চেষ্টা কৰক",
+
+        "syncFailedTitle": "কিউত থকা কাৰ্যবোৰ প্ৰত্যাখ্যান হ'ল",
+
+        "syncFailedDescription": "সাৰ্ভাৰে কিছুমান কিউত থকা কাম প্ৰত্যাখ্যান কৰিলে। পুনৰ সংযোগ হোৱাৰ পিছত পুনৰ চেষ্টা কৰক অথবা সেইবোৰ বাদ দিয়ক।",
+
+        "syncRetry": "সকলো পুনৰ চেষ্টা কৰক",
+
+        "syncDiscard": "বাদ দিয়ক",
+
         "goHome": "হোমলৈ যাওক",
         "footer": "সংযোগ ঘূৰি অহাৰ পিছত SahiDawa স্বয়ংক্ৰিয়ভাৱে ছিঙ্ক হ'ব।",
         "cachedContent": "আপুনি এতিয়াও আগতে লোড কৰা বিষয়বস্তু চাব পাৰিব",
@@ -1333,6 +1342,15 @@
         "channelRequired": "Ontoto eta jogajog madhyam (SMS ba WhatsApp) sokriyo hobo lagibo.",
         "optOutConfirm": "Apuni nischitne je opt out kori sob SMS aru WhatsApp sotorkobarta bondho koribo bisare?",
         "loadingPreferences": "Apunar pochondosomuh load hoi ase...",
+        "otpSentTitle": "আপোনাৰ ফোন নম্বৰ যাচাই কৰক",
+        "otpSentDesc": "আমি আপোনাৰ ফোনলৈ ৬ সংখ্যাৰ ক'ড পঠিয়াইছো। এই নম্বৰটো আপোনাৰেই বুলি নিশ্চিত কৰিবলৈ তলত সেয়া সোমাওক।",
+        "otpLabel": "যাচাই ক'ড",
+        "otpPlaceholder": "৬ সংখ্যাৰ ক'ড",
+        "otpSentMessage": "আমি আপোনাৰ ফোনলৈ যাচাই ক'ড পঠিয়াইছো। শেষ কৰিবলৈ সেয়া সোমাওক।",
+        "verifyButton": "যাচাই কৰক",
+        "verifying": "যাচাই কৰি আছে...",
+        "verifySuccess": "আপোনাৰ নম্বৰ যাচাই হৈছে। সকিয়নি লাভ কৰিবলৈ আপুনি সাজু।",
+        "otpInvalid": "আমি পঠিওৱা ৬ সংখ্যাৰ ক'ডটো সোমাওক।",
         "languageOptionEn": "English",
         "languageOptionHi": "हिन्दी",
         "languageOptionTa": "தமிழ்",
@@ -1704,6 +1722,10 @@
         "clear_confirm_button": "সকলো পৰিষ্কাৰ কৰক",
         "sync_success": "ক্লাউডৰ সৈতে ইতিহাস ছিংক কৰা হৈছে।",
         "sync_error": "���্লাউড ছিংক এতিয়াই উপলব্ধ নহয়।",
+        "sync_status_synced": "সমকালীন হৈছে",
+        "sync_status_offline": "অফলাইন (সমকালীনকৰণ বাকী)",
+        "sync_status_syncing": "সমকালীন হৈ আছে...",
+        "sync_status_error": "সমকালীনকৰণ ত্ৰুটি",
         "stat_total": "মুঠ",
         "stat_verified": "পৰীক্ষা কৰা হৈছে",
         "stat_suspicious": "সন্দেহজনক",
@@ -1714,6 +1736,8 @@
         "no_search_results": "আপোনাৰ সন্ধানৰ সৈতে কোনো ঔষধৰ মিল নাই।",
         "item_status_label": "অৱস্থা:",
         "item_delete_button": "মচি পেলাওক",
+        "sync_auth_title": "আপোনাৰ ইতিহাস চিংক কৰিবলৈ চাইন ইন কৰক",
+        "sync_auth_action": "চাইন ইন",
         "item_copy_success": "ঔষধৰ নাম কপি কৰা হৈছে!"
     },
     "MyReports": {

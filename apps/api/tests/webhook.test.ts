@@ -7,7 +7,7 @@ import { redisClient } from "../src/utils/redis";
 jest.mock("../src/utils/redis", () => ({
     redisClient: {
         isOpen: true,
-        scan: jest.fn(),
+        scanIterator: jest.fn(),
         del: jest.fn(),
     },
 }));
@@ -30,9 +30,9 @@ describe("Supabase Webhook Multi-Model Cache Invalidation Test Suite", () => {
     });
 
     it("should process asynchronous invalidation payload for pharmacies table and trigger redis cleanup", async () => {
-        (redisClient.scan as jest.Mock)
-            .mockResolvedValueOnce({ cursor: 12, keys: ["pharmacy:xyz_store"] })
-            .mockResolvedValueOnce({ cursor: 0, keys: [] });
+        (redisClient.scanIterator as jest.Mock).mockImplementation(async function* () {
+            yield "pharmacy:xyz_store";
+        });
 
         const response = await request(app)
             .post("/api/webhooks/supabase/pharmacies")
@@ -48,7 +48,10 @@ describe("Supabase Webhook Multi-Model Cache Invalidation Test Suite", () => {
 
         // Allow microtask cycle processing loop delay allocation for async blocks
         await new Promise((resolve) => setImmediate(resolve));
-        expect(redisClient.scan).toHaveBeenCalled();
+        expect(redisClient.scanIterator).toHaveBeenCalledWith({
+            MATCH: "pharmacy:xyz_store*",
+            COUNT: 100,
+        });
         expect(redisClient.del).toHaveBeenCalledWith(["pharmacy:xyz_store"]);
     });
 

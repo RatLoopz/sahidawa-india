@@ -342,6 +342,7 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
 router.get(
     "/",
     interactionIdsLimiter,
+    cacheMiddleware(120, 300),
     redisCache(60, (req) => `interactions:ids:${(req.query.ids as string) ?? ""}`),
     async (req: Request, res: Response) => {
         const parsedIds = parseIdsParam(req.query.ids);
@@ -384,7 +385,7 @@ router.get(
             const interactionByPair = indexInteractions(
                 await loadInteractionsForGenerics(selectedGenerics)
             );
-            const isFallback = dbConfig?.isSupabaseOffline ?? true;
+            const isFallback = dbConfig?.isSupabaseOffline ?? false;
             const interactions = [];
 
             for (let i = 0; i < medicines.length; i++) {
@@ -461,26 +462,52 @@ async function resolveMedicinesToGenerics(
 
     if (!dbFailed && cleanInputs.length > 0) {
         try {
-            // Build a single massive OR query combining all the resolution filters
-            const orQuery = cleanInputs.map(buildMedicineResolutionFilter).join(",");
-            const { data, error } = await supabase
-                .from("medicines")
-                .select("brand_name, generic_name")
-                .or(orQuery);
+            // Query each input individually using parameterized PostgREST
+            // filter methods instead of string interpolation in .or().
+            for (const input of cleanInputs) {
+                const lowerInput = input.toLowerCase();
 
-            if (error) {
-                dbFailed = true;
-                if (
-                    error.message?.includes("fetch failed") ||
-                    error.message?.includes("refused") ||
-                    error.message?.includes("timeout")
-                ) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                let { data, error } = await supabase
+                    .from("medicines")
+                    .select("brand_name, generic_name")
+                    .ilike("brand_name", `%${input}%`)
+                    .limit(5);
+
+                if (error) {
+                    dbFailed = true;
+                    if (
+                        error.message?.includes("fetch failed") ||
+                        error.message?.includes("refused") ||
+                        error.message?.includes("timeout")
+                    ) {
+                        if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    }
+                    break;
                 }
-            } else if (data) {
-                // Match the returned DB rows back to the inputs
-                for (const input of cleanInputs) {
-                    const lowerInput = input.toLowerCase();
+
+                if (!data || data.length === 0) {
+                    const result = await supabase
+                        .from("medicines")
+                        .select("brand_name, generic_name")
+                        .ilike("generic_name", `%${input}%`)
+                        .limit(5);
+                    data = result.data;
+                    error = result.error;
+
+                    if (error) {
+                        dbFailed = true;
+                        if (
+                            error.message?.includes("fetch failed") ||
+                            error.message?.includes("refused") ||
+                            error.message?.includes("timeout")
+                        ) {
+                            if (dbConfig) dbConfig.isSupabaseOffline = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (data && data.length > 0) {
                     const match = data.find(
                         (d) =>
                             d.brand_name?.toLowerCase().includes(lowerInput) ||
@@ -610,7 +637,7 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
         // 2. Fetch all potential interactions in one batched query
         const allInteractions = await loadInteractionsForGenerics(resolvedGenerics);
         const interactionByPair = indexInteractions(allInteractions);
-        const isFallback = dbConfig?.isSupabaseOffline ?? true;
+        const isFallback = dbConfig?.isSupabaseOffline ?? false;
 
         const matchedInteractions: MatchedInteraction[] = [];
 

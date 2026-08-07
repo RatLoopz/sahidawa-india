@@ -181,7 +181,17 @@ describe("Offline Queue Integration", () => {
 describe("logDose offline queue", () => {
     it("queues dose log when offline instead of throwing generic error", async () => {
         globalThis.fetch = fetchMock as any;
+        global.fetch = fetchMock as any;
         fetchMock.mockReset();
+        fetchMock.mockImplementation((url: string) => {
+            if (url.includes("/csrf-token")) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ csrfToken: "mock-csrf-token" }),
+                });
+            }
+            return Promise.reject(new TypeError("Failed to fetch"));
+        });
         Object.defineProperty(window.navigator, "onLine", {
             value: false,
             configurable: true,

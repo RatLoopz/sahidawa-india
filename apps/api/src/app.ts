@@ -12,6 +12,7 @@ import { httpsRedirect } from "./middleware/httpsRedirect";
 import { requestIdMiddleware, getRequestId } from "./middleware/requestId";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
+import { limiter, healthLimiter } from "./middleware/rateLimit";
 
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
@@ -70,11 +71,18 @@ import wishlistRouter from "./routes/wishlist";
 import webhooksRouter from "./routes/webhooks";
 import apiKeysRouter from "./routes/apiKeys";
 import safetyRouter from "./routes/safety";
+import ashaRouter from "./routes/asha";
 import { supabase } from "./db/client";
 import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
 import { sentryEnabled } from "./instrument";
+import { errorMetricsMiddleware } from "./middleware/errorMetrics";
+import { sanitizeQueryMiddleware } from "./middleware/sanitizeQuery";
+import { requestTimeout } from "./middleware/requestTimeout";
+import { aggregateRateLimit } from "./middleware/aggregateRateLimit";
+import { botDetection } from "./middleware/botDetection";
+import { queryMetricsMiddleware } from "./middleware/queryMetrics";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -83,6 +91,135 @@ app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rat
 // Must be the first middleware so every downstream handler and log entry
 // can access the x-request-id via AsyncLocalStorage.
 app.use(requestIdMiddleware);
+
+// ── Error Metrics Tracking ─────────────────────────────────────────────────
+// Tracks error rates by route and status code in Redis for monitoring.
+app.use(errorMetricsMiddleware);
+
+// ── Health Check (lightweight reachability ping) ───────────────────────────
+app.get("/health", healthLimiter, async (_req: Request, res: Response) => {
+    const overallStart = Date.now();
+    try {
+        // Database check with latency measurement
+        const dbStart = Date.now();
+        const { error } = await supabase.from("medicines").select("id").limit(1);
+        const dbLatencyMs = Date.now() - dbStart;
+        const uptime = process.uptime();
+
+        // Redis check with latency measurement
+        let redisLatencyMs: number | null = null;
+        let redisStatus = redisClient.isOpen ? "connected" : "disconnected";
+        if (redisClient.isOpen) {
+            const redisStart = Date.now();
+            try {
+                await redisClient.ping();
+                redisStatus = "connected";
+            } catch {
+                redisStatus = "unhealthy";
+            }
+            redisLatencyMs = Date.now() - redisStart;
+        }
+
+        // ML service — check config first, then do a lightweight reachability ping
+        let mlStatus: string;
+        let mlLatencyMs = 0;
+        const mlUrl = getMlServiceUrl();
+        if (!mlUrl) {
+            mlStatus = "not-configured";
+        } else {
+            const mlStart = Date.now();
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 3000);
+                const mlRes = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
+                clearTimeout(timeout);
+                mlStatus = mlRes.ok ? "healthy" : "unreachable";
+            } catch {
+                mlStatus = "unreachable";
+            }
+            mlLatencyMs = Date.now() - mlStart;
+        }
+
+        // Overall status
+        // ML service is optional — "not-configured" does not degrade overallStatus.
+        const overallStatus =
+            !error && redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
+                ? "healthy"
+                : "degraded";
+
+        const healthData = {
+            status: overallStatus,
+            service: "sahidawa-api",
+            version: process.env.npm_package_version || "unknown",
+            environment: process.env.NODE_ENV || "development",
+            uptime: `${Math.floor(uptime)}s`,
+            // New structured dependencies format
+            dependencies: {
+                database: {
+                    status: error ? "down" : "up",
+                    latencyMs: dbLatencyMs,
+                    ...(error && { error: "Database connection failed" }),
+                },
+                redis: {
+                    status: redisStatus === "connected" ? "up" : redisStatus,
+                    latencyMs: redisLatencyMs,
+                },
+                mlService: {
+                    status: mlStatus === "healthy" ? "up" : mlStatus,
+                    latencyMs: mlLatencyMs,
+                    ...(mlUrl && { url: mlUrl }),
+                },
+            },
+            // Backwards-compatible flat format for existing monitoring
+            database: { status: error ? "unreachable" : "connected" },
+            services: {
+                api: "healthy",
+                redis: redisStatus,
+                mlService: mlStatus,
+            },
+            system: {
+                nodeVersion: process.version,
+                platform: process.platform,
+                memoryUsage: {
+                    rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
+                    heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
+                },
+            },
+            responseTimeMs: Date.now() - overallStart,
+            timestamp: new Date().toISOString(),
+        };
+
+        if (error) {
+            logger.error("Health check database failure", { error });
+            return res.status(503).json(healthData);
+        }
+
+        return res.status(200).json(healthData);
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        logger.error("Health check error", { error: err, errorMessage });
+        return res.status(500).json({
+            status: "error",
+            service: "sahidawa-api",
+            error: "Service health check failed",
+            responseTimeMs: Date.now() - overallStart,
+            timestamp: new Date().toISOString(),
+        });
+    }
+});
+
+// Protect all other routes with the general limiter
+app.use(limiter);
+
+// ── Bot detection (lightweight, runs on every request) ─────────────────────
+app.use(botDetection());
+
+// ── Global aggregate rate limit (safety net across all endpoints) ──────────
+app.use(aggregateRateLimit);
+
+// ── Query Metrics & Slow Query Detection ───────────────────────────────────
+// Logs slow queries (>500ms warn, >2000ms error) for performance monitoring.
+app.use(queryMetricsMiddleware);
 
 // ── Security: Enforce HTTPS in production ──────────────────────────────────
 // Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
@@ -139,13 +276,21 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
     // middleware from the app. The supertest suites don't run the token handshake.
     // Captured once at load (like the previous env gate) so tests that flip
     // NODE_ENV mid-run to exercise prod branches don't suddenly hit CSRF.
-    skipCsrfProtection: () => SKIP_CSRF_VALIDATION,
+    skipCsrfProtection: (req: Request) => {
+        if (SKIP_CSRF_VALIDATION) return true;
+        const path = req.path;
+        const exemptPrefixes = ["/api/webhooks"];
+        const exemptPaths = ["/api/notifications/twilio-webhook"];
+        return exemptPrefixes.some((p) => path.startsWith(p)) || exemptPaths.includes(path);
+    },
 });
 
 // Registered in every environment so CodeQL sees CSRF middleware on every route
 // (resolves Alert 136) and development mirrors production, surfacing CSRF
 // integration issues locally instead of only after deploy.
 app.use(doubleCsrfProtection);
+// Note: csurf() was removed as it was a redundant no-op mock.
+// doubleCsrfProtection from csrf-csrf handles all CSRF protection.
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
@@ -180,6 +325,15 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 
+// ── Request Timeout (30s) ──────────────────────────────────────────────────
+// Prevents clients from holding connections open indefinitely.
+app.use(requestTimeout(30_000));
+
+// ── Query Sanitization ─────────────────────────────────────────────────────
+// Auto-applies escapePostgrest() + escapeIlike() to all string query values
+// as a defense-in-depth measure against PostgREST injection (Issue #3924).
+app.use(sanitizeQueryMiddleware);
+
 app.use(
     morgan((tokens, req: Request, res: Response) => {
         const status = res.statusCode;
@@ -212,92 +366,7 @@ app.get("/", (_req: Request, res: Response) => {
 // Admin Routes — protected: must be authenticated + have admin or moderator role
 app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRoutes);
 
-app.get("/health", async (_req: Request, res: Response) => {
-    const start = Date.now();
-    try {
-        const { error } = await supabase.from("medicines").select("id").limit(1);
-        const uptime = process.uptime();
-
-        // Redis — use PING instead of isOpen to detect half-open TCP connections
-        let redisStatus = "disconnected";
-        try {
-            await redisClient.ping();
-            redisStatus = "connected";
-        } catch {
-            redisStatus = "disconnected";
-        }
-
-        // ML service — check config first, then do a lightweight reachability ping
-        let mlStatus: string;
-        const mlUrl = getMlServiceUrl();
-        if (!mlUrl) {
-            mlStatus = "not-configured";
-        } else {
-            try {
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 3000);
-                const res = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
-                clearTimeout(timeout);
-                mlStatus = res.ok ? "healthy" : "unreachable";
-            } catch {
-                mlStatus = "unreachable";
-            }
-        }
-
-        // Overall status
-        // ML service is optional — "not-configured" does not degrade overallStatus.
-        const overallStatus =
-            redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
-                ? "healthy"
-                : "degraded";
-
-        const healthData = {
-            status: error ? "degraded" : overallStatus,
-            service: "sahidawa-api",
-            version: process.env.npm_package_version || "unknown",
-            environment: process.env.NODE_ENV || "development",
-            uptime: `${Math.floor(uptime)}s`,
-            database: { status: error ? "unreachable" : "connected" },
-            services: {
-                api: "healthy",
-                redis: redisStatus,
-                mlService: mlStatus,
-            },
-            system: {
-                nodeVersion: process.version,
-                platform: process.platform,
-                memoryUsage: {
-                    rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
-                    heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
-                },
-            },
-            responseTime: `${Date.now() - start}ms`,
-            timestamp: new Date().toISOString(),
-        };
-
-        if (error) {
-            logger.error("Health check database failure", { error });
-            return res.status(503).json({
-                ...healthData,
-                database: {
-                    status: "unreachable",
-                    error: "Database connection failed",
-                },
-            });
-        }
-
-        return res.status(200).json(healthData);
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        logger.error("Health check error", { error: err, errorMessage });
-        return res.status(500).json({
-            status: "error",
-            service: "sahidawa-api",
-            error: "Service health check failed",
-            timestamp: new Date().toISOString(),
-        });
-    }
-});
+// Health route relocated to the top of the file to guarantee rate limiter execution before other middleware.
 
 // ── Feature API Modules ────────────────────────────────────────────────────
 app.use("/api/reports", reportsRouter);
@@ -321,6 +390,7 @@ app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/v1/medicines", trackingRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/asha", ashaRouter);
 app.use("/api/keys", apiKeysRouter);
 app.use("/api/medicine/safety", safetyRouter);
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Brain, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
 import { parseAsString, useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
@@ -32,8 +32,21 @@ type InteractionWarning = {
     source?: string;
 };
 
+type SimilarityResult = {
+    similarity_score: number;
+    verdict: "highly_similar" | "different";
+    medicine_a_embedding?: number[];
+    medicine_b_embedding?: number[];
+};
+
+type SimilarityCacheEntry = {
+    expiresAt: number;
+    result: SimilarityResult;
+};
+
 const INTERACTIONS_CACHE_TTL_MS = 30_000;
 const INTERACTIONS_REQUEST_DEBOUNCE_MS = 150;
+const SIMILARITY_CACHE_TTL_MS = 300_000; // 5 minutes
 
 // Compare page supports up to this many medicine slots; URL query params
 // m1..MAX_COMPARE_SLOTS are used to persist/restore the full selection.
@@ -53,6 +66,47 @@ const interactionsCache = new Map<
     { expiresAt: number; interactions: InteractionWarning[] }
 >();
 const interactionsInFlight = new Map<string, Promise<InteractionWarning[]>>();
+
+// Cache for similarity results: key is "medA|medB" (sorted alphabetically)
+const similarityCache = new Map<string, SimilarityCacheEntry>();
+
+async function fetchSimilarity(
+    medicineA: string,
+    medicineB: string
+): Promise<SimilarityResult | null> {
+    // Create a consistent cache key regardless of order
+    const sorted = [medicineA, medicineB].sort();
+    const cacheKey = `${sorted[0]}|${sorted[1]}`;
+
+    const now = Date.now();
+    const cached = similarityCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+        return cached.result;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/compare`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ medicine_a: medicineA, medicine_b: medicineB }),
+        });
+
+        if (!response.ok) {
+            console.error("Similarity API error:", response.status);
+            return null;
+        }
+
+        const result = (await response.json()) as SimilarityResult;
+        similarityCache.set(cacheKey, {
+            expiresAt: Date.now() + SIMILARITY_CACHE_TTL_MS,
+            result,
+        });
+        return result;
+    } catch (error) {
+        console.error("Failed to fetch similarity:", error);
+        return null;
+    }
+}
 
 const severityOrder: Record<InteractionSeverity, number> = {
     "High Risk": 0,
@@ -174,6 +228,8 @@ export default function ComparePage() {
     const [interactions, setInteractions] = useState<InteractionWarning[]>([]);
     const [interactionsLoading, setInteractionsLoading] = useState(false);
     const [interactionsError, setInteractionsError] = useState<string | null>(null);
+    const [similarityResult, setSimilarityResult] = useState<SimilarityResult | null>(null);
+    const [similarityLoading, setSimilarityLoading] = useState(false);
     const [medicineQuery, setMedicineQuery] = useQueryStates(compareMedicineQueryParsers, {
         history: "replace",
         shallow: true,
@@ -281,6 +337,36 @@ export default function ComparePage() {
         return () => window.clearTimeout(timeoutId);
     }, [selectedIds.length, selectedIdsKey]);
 
+    // Fetch AI similarity when first two medicines are selected
+    useEffect(() => {
+        const medicine1 = selectedMedicines[0];
+        const medicine2 = selectedMedicines[1];
+
+        if (!medicine1 || !medicine2) {
+            setSimilarityResult(null);
+            setSimilarityLoading(false);
+            return;
+        }
+
+        const fetchAndSetSimilarity = async () => {
+            setSimilarityLoading(true);
+            try {
+                const result = await fetchSimilarity(
+                    medicine1.brand_name || medicine1.generic_name,
+                    medicine2.brand_name || medicine2.generic_name
+                );
+                setSimilarityResult(result);
+            } catch (err) {
+                console.error("Failed to fetch similarity:", err);
+                setSimilarityResult(null);
+            } finally {
+                setSimilarityLoading(false);
+            }
+        };
+
+        void fetchAndSetSimilarity();
+    }, [selectedMedicines[0]?.id, selectedMedicines[1]?.id]);
+
     const handleCopy = (text: string) => {
         void navigator.clipboard.writeText(text);
         toast.success(tHistory("item_copy_success"));
@@ -361,6 +447,21 @@ export default function ComparePage() {
             case "Safe":
                 return tHome("alerts_empty_title");
         }
+    };
+
+    const BadgeSimilarity = ({ verdict }: { verdict: "highly_similar" | "different" }) => {
+        return (
+            <span
+                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                    verdict === "highly_similar"
+                        ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-900 dark:text-amber-200"
+                        : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
+                }`}
+            >
+                <Brain size={12} />
+                AI
+            </span>
+        );
     };
 
     const medicineSlotLabel = (index: number) => {
@@ -508,6 +609,69 @@ export default function ComparePage() {
                         )}
                     </section>
                 )}
+
+                {/* AI Similarity Section */}
+                {similarityResult && (
+                    <section className="rounded-lg border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+                        <div className="mb-4 flex items-start justify-between">
+                            <div>
+                                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                    AI Similarity Analysis
+                                </h2>
+                                <p className="text-sm text-slate-500">
+                                    Cosine similarity score from ML model
+                                </p>
+                            </div>
+                            <BadgeSimilarity verdict={similarityResult.verdict} />
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between rounded-lg bg-slate-50 p-4 dark:bg-slate-700">
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Similarity Score
+                                </span>
+                                <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                    {(similarityResult.similarity_score * 100).toFixed(1)}%
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-lg bg-slate-50 p-4 dark:bg-slate-700">
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Verdict
+                                </span>
+                                <span
+                                    className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                                        similarityResult.verdict === "highly_similar"
+                                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+                                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+                                    }`}
+                                >
+                                    {similarityResult.verdict === "highly_similar"
+                                        ? "Highly Similar"
+                                        : "Different"}
+                                </span>
+                            </div>
+
+                            {similarityResult.verdict === "highly_similar" && (
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+                                    <strong>Note:</strong> These medicines appear very similar
+                                    according to our AI model. Please verify with a pharmacist or
+                                    healthcare provider.
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {similarityLoading && (
+                    <section className="flex items-center justify-center rounded-lg border border-slate-200 bg-white p-6 py-8 dark:border-slate-700 dark:bg-slate-800">
+                        <Loader2 className="animate-spin text-slate-400" size={24} />
+                        <span className="ml-2 text-slate-500">
+                            Analyzing medicine similarity...
+                        </span>
+                    </section>
+                )}
+
                 <p className="text-center text-sm text-(--color-text-secondary) print:hidden">
                     <Link
                         href="/map"
