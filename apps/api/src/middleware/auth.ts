@@ -151,6 +151,132 @@ async function writeAuthCache(
     }
 }
 
+function rejectUnauthorized(res: Response, message: string): false {
+    res.status(401).json({ error: message });
+    return false;
+}
+
+function applyBypassUser(req: AuthenticatedRequest): boolean {
+    if (!canUseAuthBypass(req)) {
+        return false;
+    }
+    req.user = getMockUser();
+    return true;
+}
+
+async function handleOfflineAuth(
+    req: AuthenticatedRequest,
+    res: Response,
+    required: boolean
+): Promise<boolean> {
+    if (applyBypassUser(req)) {
+        return true;
+    }
+    if (required) {
+        return rejectUnauthorized(res, "Unauthorized: Authentication service is offline");
+    }
+    return true;
+}
+
+async function handleConnectionAuthFailure(
+    req: AuthenticatedRequest,
+    res: Response,
+    cacheKey: string,
+    cacheContext: string,
+    required: boolean,
+    errorMessage: string
+): Promise<boolean> {
+    const cachedUser = await readAuthCache(cacheKey, `${cacheContext} middleware fallback`);
+    if (cachedUser) {
+        req.user = cachedUser;
+        return true;
+    }
+
+    if (dbConfig) dbConfig.setOffline();
+    logger.warn({
+        message: "Supabase auth server returned connection error.",
+        error: errorMessage,
+    });
+
+    if (applyBypassUser(req) || !required) {
+        return true;
+    }
+
+    await clearAuthCache(cacheKey, `${cacheContext} (token error)`);
+    return rejectUnauthorized(res, "Unauthorized: Invalid or expired token");
+}
+
+async function handleGetUserFailure(
+    req: AuthenticatedRequest,
+    res: Response,
+    cacheKey: string,
+    cacheContext: string,
+    required: boolean,
+    error: { message?: string }
+): Promise<boolean> {
+    if (isSupabaseConnectionError(error.message)) {
+        return handleConnectionAuthFailure(
+            req,
+            res,
+            cacheKey,
+            cacheContext,
+            required,
+            error.message ?? ""
+        );
+    }
+
+    await clearAuthCache(cacheKey, `${cacheContext} (token error)`);
+    return rejectUnauthorized(res, "Unauthorized: Invalid or expired token");
+}
+
+async function attachAuthenticatedUser(
+    req: AuthenticatedRequest,
+    res: Response,
+    cacheKey: string,
+    cacheContext: string,
+    user: User | null
+): Promise<boolean> {
+    if (!user) {
+        await clearAuthCache(cacheKey, `${cacheContext} (no user)`);
+        return rejectUnauthorized(res, "Unauthorized: Invalid or expired token");
+    }
+
+    req.user = {
+        id: user.id,
+        email: user.email,
+        role: getUserRole(user),
+        raw: user,
+    };
+
+    await writeAuthCache(cacheKey, req.user, `${cacheContext} middleware`);
+    return true;
+}
+
+function handleAuthException(
+    req: AuthenticatedRequest,
+    res: Response,
+    required: boolean,
+    err: unknown
+): boolean {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    if (isSupabaseConnectionError(errMsg) && dbConfig) {
+        dbConfig.setOffline();
+    }
+
+    logger.warn({
+        message: required
+            ? "Supabase auth server request failed."
+            : "Supabase optional auth server request failed.",
+        error: errMsg,
+    });
+
+    if (applyBypassUser(req) || !required) {
+        return true;
+    }
+
+    return rejectUnauthorized(res, "Unauthorized: Authentication service unavailable");
+}
+
 /**
  * Shared auth path for required and optional middleware.
  * Returns true when the request should continue via next().
@@ -166,20 +292,13 @@ async function authenticateRequest(
 
     if (!token) {
         if (required) {
-            res.status(401).json({ error: "Unauthorized: Missing access token" });
-            return false;
+            return rejectUnauthorized(res, "Unauthorized: Missing access token");
         }
         return true;
     }
 
     if (dbConfig?.isSupabaseOffline) {
-        if (canUseAuthBypass(req)) {
-            req.user = getMockUser();
-        } else if (required) {
-            res.status(401).json({ error: "Unauthorized: Authentication service is offline" });
-            return false;
-        }
-        return true;
+        return handleOfflineAuth(req, res, required);
     }
 
     const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
@@ -188,75 +307,12 @@ async function authenticateRequest(
         const { data, error } = await client.auth.getUser(token);
 
         if (error) {
-            if (isSupabaseConnectionError(error.message)) {
-                const cachedUser = await readAuthCache(
-                    cacheKey,
-                    `${cacheContext} middleware fallback`
-                );
-                if (cachedUser) {
-                    req.user = cachedUser;
-                    return true;
-                }
-
-                if (dbConfig) dbConfig.setOffline();
-                logger.warn({
-                    message: "Supabase auth server returned connection error.",
-                    error: error.message,
-                });
-                if (canUseAuthBypass(req)) {
-                    req.user = getMockUser();
-                    return true;
-                }
-                if (!required) {
-                    return true;
-                }
-                // required + no bypass: same as invalid token path below
-            }
-
-            await clearAuthCache(cacheKey, `${cacheContext} (token error)`);
-            res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
-            return false;
+            return handleGetUserFailure(req, res, cacheKey, cacheContext, required, error);
         }
 
-        if (!data.user) {
-            await clearAuthCache(cacheKey, `${cacheContext} (no user)`);
-            res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
-            return false;
-        }
-
-        req.user = {
-            id: data.user.id,
-            email: data.user.email,
-            role: getUserRole(data.user),
-            raw: data.user,
-        };
-
-        await writeAuthCache(cacheKey, req.user, `${cacheContext} middleware`);
-        return true;
+        return attachAuthenticatedUser(req, res, cacheKey, cacheContext, data.user);
     } catch (err) {
-        const errMsg = err instanceof Error ? err.message : String(err);
-        if (isSupabaseConnectionError(errMsg)) {
-            if (dbConfig) dbConfig.setOffline();
-        }
-
-        logger.warn({
-            message: required
-                ? "Supabase auth server request failed."
-                : "Supabase optional auth server request failed.",
-            error: errMsg,
-        });
-
-        if (canUseAuthBypass(req)) {
-            req.user = getMockUser();
-            return true;
-        }
-        if (required) {
-            res.status(401).json({
-                error: "Unauthorized: Authentication service unavailable",
-            });
-            return false;
-        }
-        return true;
+        return handleAuthException(req, res, required, err);
     }
 }
 
