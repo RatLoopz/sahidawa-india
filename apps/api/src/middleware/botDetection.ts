@@ -77,7 +77,7 @@ export interface BotDetectionOptions {
 }
 
 export function botDetection(options: BotDetectionOptions = {}) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         if (process.env.NODE_ENV === "test") return next();
 
         const ua = req.headers["user-agent"] ?? "";
@@ -119,16 +119,17 @@ export function botDetection(options: BotDetectionOptions = {}) {
             timingStore.set(ip, { deltas: [], lastRequest: now });
         }
 
-        // 3. Fingerprint consistency (synchronous check for accurate scoring)
+        // 3. Fingerprint consistency
         const fp = fingerprint(req);
         const fpKey = `bot:fp:${ip}`;
         if (redisClient.isOpen) {
-            // Use cached fingerprint from prior request for synchronous comparison
-            const prevFp = (req as any)._prevFingerprint as string | undefined;
-            if (prevFp !== undefined) {
-                if (prevFp === fp) {
+            try {
+                const prevFp = await redisClient.get(fpKey);
+                if (prevFp !== null && prevFp === fp) {
                     score.fingerprint += 10; // same fingerprint = slightly bot-like
                 }
+            } catch {
+                // Redis GET failure — fail open, treat as no previous fingerprint
             }
             // Store current fingerprint for next request comparison (fire-and-forget)
             redisClient.setEx(fpKey, 3600, fp).catch(() => {});
