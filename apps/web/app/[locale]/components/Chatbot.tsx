@@ -192,7 +192,7 @@ export default function Chatbot() {
                     msg.id === typingMessage.id ? { id: msg.id, text: finalText, isBot: true } : msg
                 );
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (isAbortError(error)) return;
 
             console.error("Chatbot API Error:", error);

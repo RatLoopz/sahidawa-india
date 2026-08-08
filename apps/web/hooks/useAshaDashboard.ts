@@ -36,8 +36,8 @@ export function useAshaDashboard() {
 
             setStats(statsData);
             setLeaderboard(leaderboardData.leaderboard);
-        } catch (err: any) {
-            setError(err.message || "An error occurred");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "An error occurred");
         } finally {
             setLoading(false);
         }
@@ -66,7 +66,7 @@ export function useAshaDashboard() {
             setLeaderboard(leaderboardData.leaderboard);
 
             return data;
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
             throw err;
         }

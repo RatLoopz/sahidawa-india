@@ -153,7 +153,7 @@ router.get(
                 pharmacies = Array.isArray(rpcData)
                     ? (rpcData as PharmacyRpcResult[]).map(formatNearbyPharmacy)
                     : [];
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.warn({
                     message: "get_nearest_pharmacies RPC failed, falling back to db query",
                     error: err,
@@ -219,7 +219,7 @@ router.get(
                 if (rpcError) throw rpcError;
 
                 ashaWorkers = Array.isArray(rpcData) ? rpcData : [];
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.warn({
                     message: "get_nearest_asha_workers RPC failed, falling back to db query",
                     error: err,
