@@ -7,6 +7,14 @@ import { invalidateCacheByPattern } from "../services/cache.service";
 
 const router = Router();
 
+/** Log IP + header names only — never Authorization values or raw header maps. */
+function unauthorizedWebhookMeta(req: Request) {
+    return {
+        ip: req.ip,
+        headerNames: Object.keys(req.headers).map((name) => name.toLowerCase()),
+    };
+}
+
 /**
  * POST /api/webhooks/supabase/health-schemes
  *
@@ -29,10 +37,10 @@ router.post(
             safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/health-schemes", {
-                ip: req.ip,
-                headers: req.headers,
-            });
+            logger.warn(
+                "Unauthorized webhook attempt on /api/webhooks/supabase/health-schemes",
+                unauthorizedWebhookMeta(req)
+            );
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -90,10 +98,10 @@ router.post(
             safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/medicines", {
-                ip: req.ip,
-                headers: req.headers,
-            });
+            logger.warn(
+                "Unauthorized webhook attempt on /api/webhooks/supabase/medicines",
+                unauthorizedWebhookMeta(req)
+            );
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -242,9 +250,10 @@ router.post(
             safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies", {
-                ip: req.ip,
-            });
+            logger.warn(
+                "Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies",
+                unauthorizedWebhookMeta(req)
+            );
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -274,9 +283,10 @@ router.post(
             safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/reports", {
-                ip: req.ip,
-            });
+            logger.warn(
+                "Unauthorized webhook attempt on /api/webhooks/supabase/reports",
+                unauthorizedWebhookMeta(req)
+            );
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -305,9 +315,10 @@ router.post(
             safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/users", {
-                ip: req.ip,
-            });
+            logger.warn(
+                "Unauthorized webhook attempt on /api/webhooks/supabase/users",
+                unauthorizedWebhookMeta(req)
+            );
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -343,9 +354,10 @@ router.post(
             safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/etl/medicines-updated", {
-                ip: req.ip,
-            });
+            logger.warn(
+                "Unauthorized webhook attempt on /api/webhooks/etl/medicines-updated",
+                unauthorizedWebhookMeta(req)
+            );
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
