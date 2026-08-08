@@ -59,7 +59,7 @@ export default async function middleware(req: NextRequest) {
     // Nonce-based strict CSP
     const csp = [
         "default-src 'self'",
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com`,
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net https://unpkg.com`,
         "worker-src 'self' blob:",
         `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
         `connect-src ${connectSrc}`,
