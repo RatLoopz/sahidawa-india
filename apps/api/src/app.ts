@@ -102,100 +102,140 @@ app.get("/health", healthLimiter, (_req: Request, res: Response) => {
     res.status(200).json({ status: "ok" });
 });
 
+async function probeDatabase(): Promise<{ error: unknown; latencyMs: number }> {
+    const dbStart = Date.now();
+    const { error } = await supabase.from("medicines").select("id").limit(1);
+    return { error, latencyMs: Date.now() - dbStart };
+}
+
+async function probeRedis(): Promise<{ status: string; latencyMs: number | null }> {
+    if (!redisClient.isOpen) {
+        return { status: "disconnected", latencyMs: null };
+    }
+
+    const redisStart = Date.now();
+    try {
+        await redisClient.ping();
+        return { status: "connected", latencyMs: Date.now() - redisStart };
+    } catch {
+        return { status: "unhealthy", latencyMs: Date.now() - redisStart };
+    }
+}
+
+async function probeMlService(): Promise<{
+    status: string;
+    latencyMs: number;
+    url: string | null;
+}> {
+    const mlUrl = getMlServiceUrl();
+    if (!mlUrl) {
+        return { status: "not-configured", latencyMs: 0, url: null };
+    }
+
+    const mlStart = Date.now();
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const mlRes = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
+        clearTimeout(timeout);
+        return {
+            status: mlRes.ok ? "healthy" : "unreachable",
+            latencyMs: Date.now() - mlStart,
+            url: mlUrl,
+        };
+    } catch {
+        return { status: "unreachable", latencyMs: Date.now() - mlStart, url: mlUrl };
+    }
+}
+
+function buildDetailedHealthPayload(input: {
+    dbError: unknown;
+    dbLatencyMs: number;
+    redisStatus: string;
+    redisLatencyMs: number | null;
+    mlStatus: string;
+    mlLatencyMs: number;
+    mlUrl: string | null;
+    responseTimeMs: number;
+}) {
+    const {
+        dbError,
+        dbLatencyMs,
+        redisStatus,
+        redisLatencyMs,
+        mlStatus,
+        mlLatencyMs,
+        mlUrl,
+        responseTimeMs,
+    } = input;
+
+    // ML service is optional — "not-configured" does not degrade overallStatus.
+    const overallStatus =
+        !dbError && redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
+            ? "healthy"
+            : "degraded";
+
+    return {
+        status: overallStatus,
+        service: "sahidawa-api",
+        version: process.env.npm_package_version || "unknown",
+        environment: process.env.NODE_ENV || "development",
+        uptime: `${Math.floor(process.uptime())}s`,
+        dependencies: {
+            database: {
+                status: dbError ? "down" : "up",
+                latencyMs: dbLatencyMs,
+                ...(dbError && { error: "Database connection failed" }),
+            },
+            redis: {
+                status: redisStatus === "connected" ? "up" : redisStatus,
+                latencyMs: redisLatencyMs,
+            },
+            mlService: {
+                status: mlStatus === "healthy" ? "up" : mlStatus,
+                latencyMs: mlLatencyMs,
+                ...(mlUrl && { url: mlUrl }),
+            },
+        },
+        database: { status: dbError ? "unreachable" : "connected" },
+        services: {
+            api: "healthy",
+            redis: redisStatus,
+            mlService: mlStatus,
+        },
+        system: {
+            nodeVersion: process.version,
+            platform: process.platform,
+            memoryUsage: {
+                rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
+                heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
+            },
+        },
+        responseTimeMs,
+        timestamp: new Date().toISOString(),
+    };
+}
+
 async function detailedHealthHandler(_req: Request, res: Response) {
     const overallStart = Date.now();
     try {
-        // Database check with latency measurement
-        const dbStart = Date.now();
-        const { error } = await supabase.from("medicines").select("id").limit(1);
-        const dbLatencyMs = Date.now() - dbStart;
-        const uptime = process.uptime();
+        const database = await probeDatabase();
+        const redis = await probeRedis();
+        const ml = await probeMlService();
 
-        // Redis check with latency measurement
-        let redisLatencyMs: number | null = null;
-        let redisStatus = redisClient.isOpen ? "connected" : "disconnected";
-        if (redisClient.isOpen) {
-            const redisStart = Date.now();
-            try {
-                await redisClient.ping();
-                redisStatus = "connected";
-            } catch {
-                redisStatus = "unhealthy";
-            }
-            redisLatencyMs = Date.now() - redisStart;
-        }
-
-        // ML service — check config first, then do a lightweight reachability ping
-        let mlStatus: string;
-        let mlLatencyMs = 0;
-        const mlUrl = getMlServiceUrl();
-        if (!mlUrl) {
-            mlStatus = "not-configured";
-        } else {
-            const mlStart = Date.now();
-            try {
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 3000);
-                const mlRes = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
-                clearTimeout(timeout);
-                mlStatus = mlRes.ok ? "healthy" : "unreachable";
-            } catch {
-                mlStatus = "unreachable";
-            }
-            mlLatencyMs = Date.now() - mlStart;
-        }
-
-        // Overall status
-        // ML service is optional — "not-configured" does not degrade overallStatus.
-        const overallStatus =
-            !error && redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
-                ? "healthy"
-                : "degraded";
-
-        const healthData = {
-            status: overallStatus,
-            service: "sahidawa-api",
-            version: process.env.npm_package_version || "unknown",
-            environment: process.env.NODE_ENV || "development",
-            uptime: `${Math.floor(uptime)}s`,
-            // New structured dependencies format
-            dependencies: {
-                database: {
-                    status: error ? "down" : "up",
-                    latencyMs: dbLatencyMs,
-                    ...(error && { error: "Database connection failed" }),
-                },
-                redis: {
-                    status: redisStatus === "connected" ? "up" : redisStatus,
-                    latencyMs: redisLatencyMs,
-                },
-                mlService: {
-                    status: mlStatus === "healthy" ? "up" : mlStatus,
-                    latencyMs: mlLatencyMs,
-                    ...(mlUrl && { url: mlUrl }),
-                },
-            },
-            // Backwards-compatible flat format for existing monitoring
-            database: { status: error ? "unreachable" : "connected" },
-            services: {
-                api: "healthy",
-                redis: redisStatus,
-                mlService: mlStatus,
-            },
-            system: {
-                nodeVersion: process.version,
-                platform: process.platform,
-                memoryUsage: {
-                    rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
-                    heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
-                },
-            },
+        const healthData = buildDetailedHealthPayload({
+            dbError: database.error,
+            dbLatencyMs: database.latencyMs,
+            redisStatus: redis.status,
+            redisLatencyMs: redis.latencyMs,
+            mlStatus: ml.status,
+            mlLatencyMs: ml.latencyMs,
+            mlUrl: ml.url,
             responseTimeMs: Date.now() - overallStart,
-            timestamp: new Date().toISOString(),
-        };
+        });
 
-        if (error) {
-            logger.error("Health check database failure", { error });
+        if (database.error) {
+            logger.error("Health check database failure", { error: database.error });
             return res.status(503).json(healthData);
         }
 
