@@ -105,7 +105,7 @@ const nextConfig = {
                         key: "Content-Security-Policy",
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                            "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
                             "worker-src 'self' blob:",
                             "style-src 'self' 'unsafe-inline'",
                             `connect-src ${connectSrc} https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
