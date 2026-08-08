@@ -4,6 +4,7 @@ import { SupabaseClient, User } from "@supabase/supabase-js";
 import { supabase, dbConfig } from "../db/client";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
+import { isSupabaseConnectionError } from "../utils/withDbFallback";
 
 export type AuthRole = "user" | "admin" | "moderator";
 
@@ -103,138 +104,167 @@ const canUseAuthBypass = (req: Request): boolean => {
     return true;
 };
 
+async function clearAuthCache(cacheKey: string, context: string): Promise<void> {
+    try {
+        if (redisClient.isOpen) {
+            await redisClient.del(cacheKey);
+        }
+    } catch (err) {
+        logger.warn({
+            message: `Redis cache del error in ${context}`,
+            error: String(err),
+        });
+    }
+}
+
+async function readAuthCache(cacheKey: string, context: string): Promise<AuthenticatedUser | null> {
+    try {
+        if (redisClient.isOpen) {
+            const cached = await redisClient.get(cacheKey);
+            if (cached) {
+                return JSON.parse(cached) as AuthenticatedUser;
+            }
+        }
+    } catch (err) {
+        logger.warn({
+            message: `Redis cache get error in ${context}`,
+            error: String(err),
+        });
+    }
+    return null;
+}
+
+async function writeAuthCache(
+    cacheKey: string,
+    user: AuthenticatedUser,
+    context: string
+): Promise<void> {
+    try {
+        if (redisClient.isOpen) {
+            await redisClient.setEx(cacheKey, 30, JSON.stringify(user));
+        }
+    } catch (err) {
+        logger.warn({
+            message: `Redis cache set error in ${context}`,
+            error: String(err),
+        });
+    }
+}
+
+/**
+ * Shared auth path for required and optional middleware.
+ * Returns true when the request should continue via next().
+ */
+async function authenticateRequest(
+    req: AuthenticatedRequest,
+    res: Response,
+    client: SupabaseAuthClient,
+    required: boolean
+): Promise<boolean> {
+    const token = extractToken(req);
+    const cacheContext = required ? "requireAuth" : "optionalAuth";
+
+    if (!token) {
+        if (required) {
+            res.status(401).json({ error: "Unauthorized: Missing access token" });
+            return false;
+        }
+        return true;
+    }
+
+    if (dbConfig?.isSupabaseOffline) {
+        if (canUseAuthBypass(req)) {
+            req.user = getMockUser();
+        } else if (required) {
+            res.status(401).json({ error: "Unauthorized: Authentication service is offline" });
+            return false;
+        }
+        return true;
+    }
+
+    const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
+
+    try {
+        const { data, error } = await client.auth.getUser(token);
+
+        if (error) {
+            if (isSupabaseConnectionError(error.message)) {
+                const cachedUser = await readAuthCache(
+                    cacheKey,
+                    `${cacheContext} middleware fallback`
+                );
+                if (cachedUser) {
+                    req.user = cachedUser;
+                    return true;
+                }
+
+                if (dbConfig) dbConfig.setOffline();
+                logger.warn({
+                    message: "Supabase auth server returned connection error.",
+                    error: error.message,
+                });
+                if (canUseAuthBypass(req)) {
+                    req.user = getMockUser();
+                    return true;
+                }
+                if (!required) {
+                    return true;
+                }
+                // required + no bypass: same as invalid token path below
+            }
+
+            await clearAuthCache(cacheKey, `${cacheContext} (token error)`);
+            res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+            return false;
+        }
+
+        if (!data.user) {
+            await clearAuthCache(cacheKey, `${cacheContext} (no user)`);
+            res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+            return false;
+        }
+
+        req.user = {
+            id: data.user.id,
+            email: data.user.email,
+            role: getUserRole(data.user),
+            raw: data.user,
+        };
+
+        await writeAuthCache(cacheKey, req.user, `${cacheContext} middleware`);
+        return true;
+    } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        if (isSupabaseConnectionError(errMsg)) {
+            if (dbConfig) dbConfig.setOffline();
+        }
+
+        logger.warn({
+            message: required
+                ? "Supabase auth server request failed."
+                : "Supabase optional auth server request failed.",
+            error: errMsg,
+        });
+
+        if (canUseAuthBypass(req)) {
+            req.user = getMockUser();
+            return true;
+        }
+        if (required) {
+            res.status(401).json({
+                error: "Unauthorized: Authentication service unavailable",
+            });
+            return false;
+        }
+        return true;
+    }
+}
+
 export const createAuthMiddleware =
     (client: SupabaseAuthClient = supabase) =>
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const token = extractToken(req);
-
-        if (!token) {
-            res.status(401).json({ error: "Unauthorized: Missing access token" });
-            return;
-        }
-
-        if (dbConfig?.isSupabaseOffline) {
-            if (canUseAuthBypass(req)) {
-                req.user = getMockUser();
-                next();
-            } else {
-                res.status(401).json({ error: "Unauthorized: Authentication service is offline" });
-            }
-            return;
-        }
-
-        const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
-
-        try {
-            const { data, error } = await client.auth.getUser(token);
-
-            if (error) {
-                const isConnectionError =
-                    error.message?.includes("fetch failed") ||
-                    error.message?.includes("timeout") ||
-                    error.message?.includes("connect") ||
-                    error.message?.includes("refused");
-
-                if (isConnectionError) {
-                    try {
-                        if (redisClient.isOpen) {
-                            const cached = await redisClient.get(cacheKey);
-                            if (cached) {
-                                req.user = JSON.parse(cached);
-                                next();
-                                return;
-                            }
-                        }
-                    } catch (err) {
-                        logger.warn({
-                            message: "Redis cache get error in auth middleware fallback",
-                            error: String(err),
-                        });
-                    }
-
-                    if (dbConfig) dbConfig.setOffline();
-                    logger.warn({
-                        message: "Supabase auth server returned connection error.",
-                        error: error.message,
-                    });
-                    if (canUseAuthBypass(req)) {
-                        req.user = getMockUser();
-                        next();
-                        return;
-                    }
-                }
-
-                try {
-                    if (redisClient.isOpen) {
-                        await redisClient.del(cacheKey);
-                    }
-                } catch (err) {
-                    logger.warn({
-                        message: "Redis cache del error in requireAuth (token error)",
-                        error: String(err),
-                    });
-                }
-                res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
-                return;
-            }
-
-            if (!data.user) {
-                try {
-                    if (redisClient.isOpen) {
-                        await redisClient.del(cacheKey);
-                    }
-                } catch (err) {
-                    logger.warn({
-                        message: "Redis cache del error in requireAuth (no user)",
-                        error: String(err),
-                    });
-                }
-                res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
-                return;
-            }
-
-            req.user = {
-                id: data.user.id,
-                email: data.user.email,
-                role: getUserRole(data.user),
-                raw: data.user,
-            };
-
-            try {
-                if (redisClient.isOpen) {
-                    await redisClient.setEx(cacheKey, 30, JSON.stringify(req.user));
-                }
-            } catch (err) {
-                logger.warn({
-                    message: "Redis cache set error in auth middleware",
-                    error: String(err),
-                });
-            }
-
+        if (await authenticateRequest(req, res, client, true)) {
             next();
-        } catch (err) {
-            const errMsg = err instanceof Error ? err.message : String(err);
-            if (
-                errMsg.includes("fetch failed") ||
-                errMsg.includes("refused") ||
-                errMsg.includes("timeout")
-            ) {
-                if (dbConfig) dbConfig.setOffline();
-            }
-
-            logger.warn({
-                message: "Supabase auth server request failed.",
-                error: errMsg,
-            });
-
-            if (canUseAuthBypass(req)) {
-                req.user = getMockUser();
-                next();
-            } else {
-                res.status(401).json({
-                    error: "Unauthorized: Authentication service unavailable",
-                });
-            }
         }
     };
 
@@ -243,130 +273,7 @@ export const requireAuth = createAuthMiddleware();
 export const createOptionalAuthMiddleware =
     (client: SupabaseAuthClient = supabase) =>
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const token = extractToken(req);
-
-        if (!token) {
-            return next();
-        }
-
-        if (dbConfig?.isSupabaseOffline) {
-            if (canUseAuthBypass(req)) {
-                req.user = getMockUser();
-            }
-            return next();
-        }
-
-        const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
-
-        try {
-            const { data, error } = await client.auth.getUser(token);
-
-            if (error) {
-                const isConnectionError =
-                    error.message?.includes("fetch failed") ||
-                    error.message?.includes("timeout") ||
-                    error.message?.includes("connect") ||
-                    error.message?.includes("refused");
-
-                if (isConnectionError) {
-                    try {
-                        if (redisClient.isOpen) {
-                            const cached = await redisClient.get(cacheKey);
-                            if (cached) {
-                                req.user = JSON.parse(cached);
-                                next();
-                                return;
-                            }
-                        }
-                    } catch (err) {
-                        logger.warn({
-                            message: "Redis cache get error in optional auth middleware fallback",
-                            error: String(err),
-                        });
-                    }
-
-                    if (dbConfig) dbConfig.setOffline();
-                    logger.warn({
-                        message: "Supabase auth server returned connection error.",
-                        error: error.message,
-                    });
-                    if (canUseAuthBypass(req)) {
-                        req.user = getMockUser();
-                    }
-                    next();
-                    return;
-                }
-
-                try {
-                    if (redisClient.isOpen) {
-                        await redisClient.del(cacheKey);
-                    }
-                } catch (err) {
-                    logger.warn({
-                        message: "Redis cache del error in optionalAuth (token error)",
-                        error: String(err),
-                    });
-                }
-                res.status(401).json({
-                    error: "Unauthorized: Invalid or expired token",
-                });
-                return;
-            }
-
-            if (!data.user) {
-                try {
-                    if (redisClient.isOpen) {
-                        await redisClient.del(cacheKey);
-                    }
-                } catch (err) {
-                    logger.warn({
-                        message: "Redis cache del error in optionalAuth (no user)",
-                        error: String(err),
-                    });
-                }
-                res.status(401).json({
-                    error: "Unauthorized: Invalid or expired token",
-                });
-                return;
-            }
-
-            req.user = {
-                id: data.user.id,
-                email: data.user.email,
-                role: getUserRole(data.user),
-                raw: data.user,
-            };
-
-            try {
-                if (redisClient.isOpen) {
-                    await redisClient.setEx(cacheKey, 30, JSON.stringify(req.user));
-                }
-            } catch (err) {
-                logger.warn({
-                    message: "Redis cache set error in optional auth middleware",
-                    error: String(err),
-                });
-            }
-
-            next();
-        } catch (err) {
-            const errMsg = err instanceof Error ? err.message : String(err);
-            if (
-                errMsg.includes("fetch failed") ||
-                errMsg.includes("refused") ||
-                errMsg.includes("timeout")
-            ) {
-                if (dbConfig) dbConfig.setOffline();
-            }
-
-            logger.warn({
-                message: "Supabase optional auth server request failed.",
-                error: errMsg,
-            });
-
-            if (canUseAuthBypass(req)) {
-                req.user = getMockUser();
-            }
+        if (await authenticateRequest(req, res, client, false)) {
             next();
         }
     };
