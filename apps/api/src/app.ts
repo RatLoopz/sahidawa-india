@@ -52,7 +52,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import adminRoutes from "./routes/admin.routes";
-import { requireAuth, requireRole } from "./middleware/auth";
+import { requireAuth, requireRole, isLocalhostRequest, AuthenticatedRequest } from "./middleware/auth";
 import reportsRouter from "./routes/reports";
 import pharmaciesRouter from "./routes/pharmacies";
 import verifyRouter from "./routes/verify";
@@ -97,7 +97,12 @@ app.use(requestIdMiddleware);
 app.use(errorMetricsMiddleware);
 
 // ── Health Check (lightweight reachability ping) ───────────────────────────
-app.get("/health", healthLimiter, async (_req: Request, res: Response) => {
+// Public probe stays shallow — no env, memory, dependency, or ML URL details.
+app.get("/health", healthLimiter, (_req: Request, res: Response) => {
+    res.status(200).json({ status: "ok" });
+});
+
+async function detailedHealthHandler(_req: Request, res: Response) {
     const overallStart = Date.now();
     try {
         // Database check with latency measurement
@@ -206,7 +211,22 @@ app.get("/health", healthLimiter, async (_req: Request, res: Response) => {
             timestamp: new Date().toISOString(),
         });
     }
-});
+}
+
+function requireDetailedHealthAccess(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): void {
+    if (isLocalhostRequest(req)) {
+        next();
+        return;
+    }
+
+    void requireAuth(req, res, () => {
+        requireRole("admin")(req, res, next);
+    });
+}
 
 // Protect all other routes with the general limiter
 app.use(limiter);
@@ -228,6 +248,9 @@ app.use(httpsRedirect);
 app.use(compression());
 // ── Global Middleware Configuration ───────────────────────────────────────
 app.use(cookieParser());
+
+// Detailed health — localhost or authenticated admin only (no public infra disclosure).
+app.get("/health/details", healthLimiter, requireDetailedHealthAccess, detailedHealthHandler);
 
 // ── CSRF Protection (double-submit cookie pattern) ─────────────────────────
 app.use(cors(createCorsOptions()));
@@ -357,7 +380,12 @@ app.get("/", (_req: Request, res: Response) => {
         version: process.env.npm_package_version || "0.1.0",
         status: "running",
         environment: process.env.NODE_ENV || "development",
-        endpoints: { health: "/health", docs: "/api/docs", csrfToken: "/api/csrf-token" },
+        endpoints: {
+            health: "/health",
+            healthDetails: "/health/details",
+            docs: "/api/docs",
+            csrfToken: "/api/csrf-token",
+        },
         repository: "https://github.com/RatLoopz/sahidawa-india",
         timestamp: new Date().toISOString(),
     });

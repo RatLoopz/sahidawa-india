@@ -71,7 +71,7 @@ const getMockUser = (): AuthenticatedUser => {
  */
 const LOCALHOST_IPS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
-const isLocalhostRequest = (req: Request): boolean => {
+export const isLocalhostRequest = (req: Request): boolean => {
     const addr = req.socket?.remoteAddress ?? req.ip ?? "";
     return LOCALHOST_IPS.has(addr);
 };
