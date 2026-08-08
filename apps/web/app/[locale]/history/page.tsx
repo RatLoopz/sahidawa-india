@@ -28,6 +28,10 @@ export default function HistoryPage() {
     const [showClearConfirmation, setShowClearConfirmation] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "suspicious" | "fake">(
+        "all"
+    );
+    const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
     const [isOnline, setIsOnline] = useState<boolean>(() =>
         typeof window !== "undefined" ? window.navigator.onLine : true
     );
@@ -124,9 +128,14 @@ export default function HistoryPage() {
 
     const handleCancelClear = () => setShowClearConfirmation(false);
 
-    const filteredHistory = history.filter((item) =>
-        item.medicineName.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredHistory = history
+        .filter((item) => item.medicineName.toLowerCase().includes(search.toLowerCase()))
+        .filter((item) =>
+            statusFilter === "all" ? true : item.status?.toLowerCase() === statusFilter
+        )
+        .sort((a, b) =>
+            sortOrder === "newest" ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
+        );
 
     const verifiedCount = history.filter(
         (item) => item.status?.toLowerCase() === "verified"
@@ -283,45 +292,100 @@ export default function HistoryPage() {
                     </div>
                 )}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <button
+                        onClick={() => setStatusFilter("all")}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "all"
+                                ? "border-white/40 bg-white/10"
+                                : "border-white/10 bg-white/5 hover:bg-white/10"
+                        }`}
+                    >
                         <p className="text-sm opacity-70">{t("stat_total")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold">{history.length}</h2>
-                    </div>
-
-                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                    </button>
+                    <button
+                        onClick={() =>
+                            setStatusFilter(statusFilter === "verified" ? "all" : "verified")
+                        }
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "verified"
+                                ? "border-emerald-500/60 bg-emerald-500/20"
+                                : "border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/15"
+                        }`}
+                    >
                         <p className="text-sm text-emerald-300">{t("stat_verified")}</p>
-
                         <h2 className="mt-2 text-3xl font-bold text-emerald-400">
                             {verifiedCount}
                         </h2>
-                    </div>
+                    </button>
 
-                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+                    <button
+                        onClick={() =>
+                            setStatusFilter(statusFilter === "suspicious" ? "all" : "suspicious")
+                        }
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "suspicious"
+                                ? "border-amber-500/60 bg-amber-500/20"
+                                : "border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/15"
+                        }`}
+                    >
                         <p className="text-sm text-amber-300">{t("stat_suspicious")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-amber-400">
                             {suspiciousCount}
                         </h2>
-                    </div>
+                    </button>
 
-                    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                    <button
+                        onClick={() => setStatusFilter(statusFilter === "fake" ? "all" : "fake")}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "fake"
+                                ? "border-red-500/60 bg-red-500/20"
+                                : "border-red-500/20 bg-red-500/10 hover:bg-red-500/15"
+                        }`}
+                    >
                         <p className="text-sm text-red-300">{t("stat_fake")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-red-400">{fakeCount}</h2>
-                    </div>
+                    </button>
                 </div>
 
                 {history.length > 0 && (
-                    <input
-                        id="history-search"
-                        type="text"
-                        placeholder={t("search_placeholder")}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
-                    />
+                    <div className="mb-4 flex flex-wrap gap-3">
+                        <input
+                            id="history-search"
+                            type="text"
+                            placeholder={t("search_placeholder")}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="min-w-[200px] flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) =>
+                                setStatusFilter(
+                                    e.target.value as "all" | "verified" | "suspicious" | "fake"
+                                )
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        >
+                            <option value="all">All</option>
+                            <option value="verified">Verified</option>
+                            <option value="suspicious">Suspicious</option>
+                            <option value="fake">Fake</option>
+                        </select>
+                        <button
+                            onClick={() =>
+                                setSortOrder(sortOrder === "newest" ? "oldest" : "newest")
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
+                        >
+                            {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+                        </button>
+                    </div>
                 )}
+
                 {history.length === 0 ? (
                     <EmptyState
                         icon={<ClipboardList className="h-10 w-10 text-emerald-500" />}
