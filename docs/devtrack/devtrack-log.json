@@ -1,5 +1,22 @@
 [
   {
+    "prNumber": 4227,
+    "title": "feat: add image validation before medicine OCR",
+    "author": "0504Siddhi",
+    "mergedAt": "2026-08-08",
+    "area": "Frontend",
+    "score": 12,
+    "docPath": "docs/devtrack/2026-08/PR-4227-feat-add-image-validation-before-medicine-ocr.md",
+    "linkedIssue": "#4226",
+    "labels": "level:advanced,quality:clean,gssoc:approved,type:feature,type:testing",
+    "filesChanged": [
+      "apps/web/hooks/useMedicineImageUpload.ts",
+      "apps/web/lib/imageValidation.ts",
+      "apps/web/tests/image-validation.test.ts"
+    ],
+    "adr": null
+  },
+  {
     "prNumber": 4187,
     "title": "[BUG] Fix dead code and hook up share alert feature",
     "author": "kumudasrip",
