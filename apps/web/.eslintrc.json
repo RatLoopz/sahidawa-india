@@ -1,5 +1,6 @@
 {
     "extends": ["next/core-web-vitals", "next/typescript"],
+    "ignorePatterns": ["public/**", ".next/**", "node_modules/**"],
     "overrides": [
         {
             "files": ["jest.env.cjs"],

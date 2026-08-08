@@ -12,6 +12,7 @@ import { httpsRedirect } from "./middleware/httpsRedirect";
 import { requestIdMiddleware, getRequestId } from "./middleware/requestId";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
+import { limiter, healthLimiter } from "./middleware/rateLimit";
 
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
@@ -70,6 +71,7 @@ import wishlistRouter from "./routes/wishlist";
 import webhooksRouter from "./routes/webhooks";
 import apiKeysRouter from "./routes/apiKeys";
 import safetyRouter from "./routes/safety";
+import ashaRouter from "./routes/asha";
 import { supabase } from "./db/client";
 import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
@@ -94,170 +96,8 @@ app.use(requestIdMiddleware);
 // Tracks error rates by route and status code in Redis for monitoring.
 app.use(errorMetricsMiddleware);
 
-// ── Bot detection (lightweight, runs on every request) ─────────────────────
-app.use(botDetection());
-
-// ── Global aggregate rate limit (safety net across all endpoints) ──────────
-app.use(aggregateRateLimit);
-
-// ── Query Metrics & Slow Query Detection ───────────────────────────────────
-// Logs slow queries (>500ms warn, >2000ms error) for performance monitoring.
-app.use(queryMetricsMiddleware);
-
-// ── Security: Enforce HTTPS in production ──────────────────────────────────
-// Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
-app.use(httpsRedirect);
-
-app.use(compression());
-// ── Global Middleware Configuration ───────────────────────────────────────
-app.use(cookieParser());
-
-// ── CSRF Protection (double-submit cookie pattern) ─────────────────────────
-app.use(cors(createCorsOptions()));
-// csrf-csrf is recognized by CodeQL as a valid CSRF defense unlike custom header checks.
-const ANON_SESSION_COOKIE = "csrf_anon_id";
-
-// Decided once at startup so it stays stable even if a test mutates NODE_ENV.
-const SKIP_CSRF_VALIDATION = process.env.NODE_ENV === "test";
-
-// Ephemeral fallback secret for local dev when CSRF_SECRET is unset (see getSecret).
-let devCsrfSecret: string | undefined;
-
-const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
-    getSecret: () => {
-        const secret = process.env.CSRF_SECRET;
-        if (secret) return secret;
-        // Production never reaches here: startup exits when CSRF_SECRET is missing
-        // outside dev/test. Now that the middleware runs in development too, mint a
-        // random per-process secret so local dev works without extra setup instead
-        // of 500-ing every request. Generated (not hardcoded) so it is never a
-        // predictable credential; it simply won't survive a restart.
-        if (!devCsrfSecret) {
-            devCsrfSecret = crypto.randomBytes(32).toString("hex");
-            logger.warn(
-                "CSRF_SECRET is not set — using an ephemeral per-process dev secret. Set the CSRF_SECRET environment variable outside local development."
-            );
-        }
-        return devCsrfSecret;
-    },
-    getSessionIdentifier: (req: Request) => {
-        if (req.cookies?.access_token) {
-            return req.cookies.access_token;
-        }
-        return req.cookies?.[ANON_SESSION_COOKIE] || crypto.randomUUID();
-    },
-    cookieName:
-        process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
-    cookieOptions: {
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-    },
-    size: 64,
-    // Let the automated test suites bypass token validation without stripping the
-    // middleware from the app. The supertest suites don't run the token handshake.
-    // Captured once at load (like the previous env gate) so tests that flip
-    // NODE_ENV mid-run to exercise prod branches don't suddenly hit CSRF.
-    skipCsrfProtection: () => SKIP_CSRF_VALIDATION,
-});
-
-// Registered in every environment so CodeQL sees CSRF middleware on every route
-// (resolves Alert 136) and development mirrors production, surfacing CSRF
-// integration issues locally instead of only after deploy.
-//
-// Webhook endpoints are exempt from CSRF validation because external callers
-// (Supabase Database Webhooks, Twilio, ETL pipeline) cannot participate in the
-// CSRF token handshake — they authenticate via their own mechanisms (shared
-// HMAC secret, Twilio signature) which already prevent cross-site forgery.
-const WEBHOOK_EXEMPT_PREFIXES = ["/api/webhooks"];
-const WEBHOOK_EXEMPT_PATHS = ["/api/notifications/twilio-webhook"];
-
-app.use((req, res, next) => {
-    if (
-        WEBHOOK_EXEMPT_PREFIXES.some((p) => req.path.startsWith(p)) ||
-        WEBHOOK_EXEMPT_PATHS.includes(req.path)
-    ) {
-        return next();
-    }
-    return doubleCsrfProtection(req, res, next);
-});
-
-// ── CSRF token endpoint — frontend fetches this once on load ───────────────
-app.get("/api/csrf-token", (req: Request, res: Response) => {
-    if (!req.cookies?.[ANON_SESSION_COOKIE] && !req.cookies?.access_token) {
-        const anonId = crypto.randomUUID();
-
-        // FIX: Mutate req.cookies so generateToken binds to this exact ID
-        if (!req.cookies) req.cookies = {};
-        req.cookies[ANON_SESSION_COOKIE] = anonId;
-
-        res.cookie(ANON_SESSION_COOKIE, anonId, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "production",
-            path: "/",
-        });
-    }
-    res.json({ csrfToken: generateToken(req, res) });
-});
-
-app.use(
-    helmet({
-        contentSecurityPolicy: {
-            directives: {
-                connectSrc: ["'self'", process.env.SUPABASE_URL || ""],
-            },
-        },
-    })
-);
-
-// Security: restrict CORS to known origins and allow credentials for secure cookies
-
-app.use(express.json({ limit: "1mb" }));
-
-// ── Request Timeout (30s) ──────────────────────────────────────────────────
-// Prevents clients from holding connections open indefinitely.
-app.use(requestTimeout(30_000));
-
-// ── Query Sanitization ─────────────────────────────────────────────────────
-// Auto-applies escapePostgrest() + escapeIlike() to all string query values
-// as a defense-in-depth measure against PostgREST injection (Issue #3924).
-app.use(sanitizeQueryMiddleware);
-
-app.use(
-    morgan((tokens, req: Request, res: Response) => {
-        const status = res.statusCode;
-        const level = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
-        const requestId = getRequestId() ?? (req as Request & { requestId?: string }).requestId;
-        logger.log({
-            level,
-            message: `${tokens.method(req, res)} ${tokens.url(req, res)} ${status} - ${tokens["response-time"](req, res)} ms`,
-            ...(requestId && { requestId }),
-        });
-        return undefined;
-    })
-);
-
-// ── Core Routes ────────────────────────────────────────────────────────────
-app.get("/", (_req: Request, res: Response) => {
-    logger.info("Root route accessed");
-    res.status(200).json({
-        name: "SahiDawa API",
-        description: "India's Open-Source Citizen Medicine Verifier & Rural Health Bridge",
-        version: process.env.npm_package_version || "0.1.0",
-        status: "running",
-        environment: process.env.NODE_ENV || "development",
-        endpoints: { health: "/health", docs: "/api/docs", csrfToken: "/api/csrf-token" },
-        repository: "https://github.com/RatLoopz/sahidawa-india",
-        timestamp: new Date().toISOString(),
-    });
-});
-
-// Admin Routes — protected: must be authenticated + have admin or moderator role
-app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRoutes);
-
-app.get("/health", async (_req: Request, res: Response) => {
+// ── Health Check (lightweight reachability ping) ───────────────────────────
+app.get("/health", healthLimiter, async (_req: Request, res: Response) => {
     const overallStart = Date.now();
     try {
         // Database check with latency measurement
@@ -368,6 +208,166 @@ app.get("/health", async (_req: Request, res: Response) => {
     }
 });
 
+// Protect all other routes with the general limiter
+app.use(limiter);
+
+// ── Bot detection (lightweight, runs on every request) ─────────────────────
+app.use(botDetection());
+
+// ── Global aggregate rate limit (safety net across all endpoints) ──────────
+app.use(aggregateRateLimit);
+
+// ── Query Metrics & Slow Query Detection ───────────────────────────────────
+// Logs slow queries (>500ms warn, >2000ms error) for performance monitoring.
+app.use(queryMetricsMiddleware);
+
+// ── Security: Enforce HTTPS in production ──────────────────────────────────
+// Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
+app.use(httpsRedirect);
+
+app.use(compression());
+// ── Global Middleware Configuration ───────────────────────────────────────
+app.use(cookieParser());
+
+// ── CSRF Protection (double-submit cookie pattern) ─────────────────────────
+app.use(cors(createCorsOptions()));
+// csrf-csrf is recognized by CodeQL as a valid CSRF defense unlike custom header checks.
+const ANON_SESSION_COOKIE = "csrf_anon_id";
+
+// Decided once at startup so it stays stable even if a test mutates NODE_ENV.
+const SKIP_CSRF_VALIDATION = process.env.NODE_ENV === "test";
+
+// Ephemeral fallback secret for local dev when CSRF_SECRET is unset (see getSecret).
+let devCsrfSecret: string | undefined;
+
+const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
+    getSecret: () => {
+        const secret = process.env.CSRF_SECRET;
+        if (secret) return secret;
+        // Production never reaches here: startup exits when CSRF_SECRET is missing
+        // outside dev/test. Now that the middleware runs in development too, mint a
+        // random per-process secret so local dev works without extra setup instead
+        // of 500-ing every request. Generated (not hardcoded) so it is never a
+        // predictable credential; it simply won't survive a restart.
+        if (!devCsrfSecret) {
+            devCsrfSecret = crypto.randomBytes(32).toString("hex");
+            logger.warn(
+                "CSRF_SECRET is not set — using an ephemeral per-process dev secret. Set the CSRF_SECRET environment variable outside local development."
+            );
+        }
+        return devCsrfSecret;
+    },
+    getSessionIdentifier: (req: Request) => {
+        if (req.cookies?.access_token) {
+            return req.cookies.access_token;
+        }
+        return req.cookies?.[ANON_SESSION_COOKIE] || crypto.randomUUID();
+    },
+    cookieName:
+        process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
+    cookieOptions: {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+    },
+    size: 64,
+    // Let the automated test suites bypass token validation without stripping the
+    // middleware from the app. The supertest suites don't run the token handshake.
+    // Captured once at load (like the previous env gate) so tests that flip
+    // NODE_ENV mid-run to exercise prod branches don't suddenly hit CSRF.
+    skipCsrfProtection: (req: Request) => {
+        if (SKIP_CSRF_VALIDATION) return true;
+        const path = req.path;
+        const exemptPrefixes = ["/api/webhooks"];
+        const exemptPaths = ["/api/notifications/twilio-webhook"];
+        return exemptPrefixes.some((p) => path.startsWith(p)) || exemptPaths.includes(path);
+    },
+});
+
+// Registered in every environment so CodeQL sees CSRF middleware on every route
+// (resolves Alert 136) and development mirrors production, surfacing CSRF
+// integration issues locally instead of only after deploy.
+app.use(doubleCsrfProtection);
+// Note: csurf() was removed as it was a redundant no-op mock.
+// doubleCsrfProtection from csrf-csrf handles all CSRF protection.
+
+// ── CSRF token endpoint — frontend fetches this once on load ───────────────
+app.get("/api/csrf-token", (req: Request, res: Response) => {
+    if (!req.cookies?.[ANON_SESSION_COOKIE] && !req.cookies?.access_token) {
+        const anonId = crypto.randomUUID();
+
+        // FIX: Mutate req.cookies so generateToken binds to this exact ID
+        if (!req.cookies) req.cookies = {};
+        req.cookies[ANON_SESSION_COOKIE] = anonId;
+
+        res.cookie(ANON_SESSION_COOKIE, anonId, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+        });
+    }
+    res.json({ csrfToken: generateToken(req, res) });
+});
+
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                connectSrc: ["'self'", process.env.SUPABASE_URL || ""],
+            },
+        },
+    })
+);
+
+// Security: restrict CORS to known origins and allow credentials for secure cookies
+
+app.use(express.json({ limit: "1mb" }));
+
+// ── Request Timeout (30s) ──────────────────────────────────────────────────
+// Prevents clients from holding connections open indefinitely.
+app.use(requestTimeout(30_000));
+
+// ── Query Sanitization ─────────────────────────────────────────────────────
+// Auto-applies escapePostgrest() + escapeIlike() to all string query values
+// as a defense-in-depth measure against PostgREST injection (Issue #3924).
+app.use(sanitizeQueryMiddleware);
+
+app.use(
+    morgan((tokens, req: Request, res: Response) => {
+        const status = res.statusCode;
+        const level = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
+        const requestId = getRequestId() ?? (req as Request & { requestId?: string }).requestId;
+        logger.log({
+            level,
+            message: `${tokens.method(req, res)} ${tokens.url(req, res)} ${status} - ${tokens["response-time"](req, res)} ms`,
+            ...(requestId && { requestId }),
+        });
+        return undefined;
+    })
+);
+
+// ── Core Routes ────────────────────────────────────────────────────────────
+app.get("/", (_req: Request, res: Response) => {
+    logger.info("Root route accessed");
+    res.status(200).json({
+        name: "SahiDawa API",
+        description: "India's Open-Source Citizen Medicine Verifier & Rural Health Bridge",
+        version: process.env.npm_package_version || "0.1.0",
+        status: "running",
+        environment: process.env.NODE_ENV || "development",
+        endpoints: { health: "/health", docs: "/api/docs", csrfToken: "/api/csrf-token" },
+        repository: "https://github.com/RatLoopz/sahidawa-india",
+        timestamp: new Date().toISOString(),
+    });
+});
+
+// Admin Routes — protected: must be authenticated + have admin or moderator role
+app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRoutes);
+
+// Health route relocated to the top of the file to guarantee rate limiter execution before other middleware.
+
 // ── Feature API Modules ────────────────────────────────────────────────────
 app.use("/api/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
@@ -390,6 +390,7 @@ app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/v1/medicines", trackingRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/asha", ashaRouter);
 app.use("/api/keys", apiKeysRouter);
 app.use("/api/medicine/safety", safetyRouter);
 

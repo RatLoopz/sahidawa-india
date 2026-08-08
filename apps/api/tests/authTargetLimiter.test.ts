@@ -1,6 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect, jest } from "@jest/globals";
 import { Request } from "express";
-import { authTargetKeyGenerator } from "../src/middleware/rateLimit";
+
+const { authTargetKeyGenerator } = jest.requireActual("../src/middleware/rateLimit") as any;
 
 /**
  * Unit tests for the authTargetLimiter key generator.

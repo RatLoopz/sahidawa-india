@@ -16,7 +16,7 @@ export { API_BASE, getCsrfToken, refreshCsrfToken };
 const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000); // 60s TTL
 const verifyBrandCache = createSWRCache<VerifyResult>(300_000); // 5min TTL
 
-async function fetchWithCsrf<T>(
+export async function fetchWithCsrf<T>(
     url: string,
     options: Omit<import("./apiWithRetry").FetchOptions, "headers"> & {
         headers?: Record<string, string>;
@@ -483,6 +483,10 @@ export async function checkLasaConflicts(
                 setCachedLasa(cacheKey, data);
                 return data;
             })
+            .catch((err) => {
+                console.error("[API] Request failed:", err);
+                throw err;
+            })
             .finally(() => {
                 inFlightRequests.delete(cacheKey);
             });
@@ -493,7 +497,7 @@ export async function checkLasaConflicts(
         // Stale-While-Revalidate: return cached data instantly
         // and let the in-flight revalidation promise run in the background.
         // Catch errors silently to prevent unhandled promise rejections.
-        promise.catch(() => {});
+        promise.catch(() => console.warn("LASA revalidation promise rejected"));
         return cached;
     }
 

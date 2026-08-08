@@ -60,7 +60,6 @@ jest.mock("../app/[locale]/map/PharmacyMap", () => ({
             <button
                 type="button"
                 onClick={() => {
-                    console.log("Mock map moved clicked, onMapMoveEnd present?", !!onMapMoveEnd);
                     onMapMoveEnd?.(
                         {
                             south: 28.5,

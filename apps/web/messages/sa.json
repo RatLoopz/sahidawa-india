@@ -316,6 +316,15 @@
         "description": "भवतः समीपे अस्मिन् समये अन्तर्जाल-सम्पर्कः नास्ति।",
         "subtitle": "अन्तर्जालं विना काश्चन सुविधाः अलभ्याः सन्ति। अन्तर्शालेन सह सम्बद्धुं प्रयतध्वम् अथवा सञ्चित-विषयवस्तु (cached content) पश्यन्तु।",
         "tryAgain": "पुनः प्रयतताम्",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "मुख्यपृष्ठं गच्छतु",
         "footer": "सम्पर्के प्रत्यागते सहीदवा स्वयमेव समकालनं करिष्यति।",
         "cachedContent": "भवान् अद्यापि पूर्व-लोद्-कृतं विषयवस्तु प्राप्तुं शक्नोति",
@@ -1671,6 +1680,8 @@
         "no_search_results": "भवतः अन्वेषणेन सह कोऽपि औषधः न मेलति।",
         "item_status_label": "स्थितिः : १.",
         "item_delete_button": "विलोपयतु",
+        "sync_auth_title": "स्वस्य इतिहासं सिंक कर्तुं प्रवेशं कुरु",
+        "sync_auth_action": "प्रवेशं कुरु",
         "item_copy_success": "औषधस्य नाम प्रतिलिपिकृतम् !"
     },
     "MyReports": {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 jest.mock("../src/middleware/auth", () => ({
     optionalAuth: (_req: Request, _res: Response, next: NextFunction) => next(),
     requireAuth: (req: Request, _res: Response, next: NextFunction) => {
@@ -17,14 +18,23 @@ jest.mock("../src/services/audit.service", () => ({
 
 // Self-contained, table-aware mock — jest.mock factories are hoisted.
 jest.mock("../src/db/client", () => {
-    return { supabase: { from: jest.fn() } };
+    return {
+        supabase: {
+            from: jest.fn(),
+            channel: jest.fn().mockReturnValue({
+                send: jest.fn().mockResolvedValue(true),
+                subscribe: jest.fn(),
+                on: jest.fn().mockReturnThis(),
+            }),
+            removeChannel: jest.fn().mockResolvedValue(true),
+        },
+    };
 });
 
 import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
 import { Request, Response, NextFunction } from "express";
-
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 

@@ -406,6 +406,10 @@
         "description": "You don't have an internet connection right now.",
         "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
         "tryAgain": "Try Again",
+        "syncFailedTitle": "Queued actions were rejected",
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+        "syncRetry": "Retry all",
+        "syncDiscard": "Discard",
         "goHome": "Go to Home",
         "footer": "SahiDawa will automatically sync when your connection returns.",
         "cachedContent": "You can still access previously loaded content",
@@ -1420,6 +1424,8 @@
         "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
+        "sync_auth_title": "Sign in to sync your history",
+        "sync_auth_action": "Sign in",
         "item_copy_success": "Medicine name copied!"
     },
     "MyReports": {

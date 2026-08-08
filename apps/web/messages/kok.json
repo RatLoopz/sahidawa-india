@@ -359,6 +359,15 @@
         "description": "सध्या तुमकां इंटरनेट कनेक्शन ना.",
         "subtitle": "ऑफलाइन आसताना काही वैशिश्ट्यां उपलब्ध आसनात. इंटरनेट कडेन जोडपाचो प्रयत्न करात वा सेव्ह केल्ली माहिती पळयात.",
         "tryAgain": "परतून प्रयत्न करात",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "मुखेल पानाचेर वचात",
         "footer": "कनेक्शन परत आयल्यार सहीदवा आपोआप माहिती सिंक करतलो.",
         "cachedContent": "तुमी आधी पळयल्ली माहिती अजूनय पळोवंक शकतात",
@@ -1216,6 +1225,8 @@
         "empty_description": "तुमचीं सत्यापीत केल्लीं वखदां हांगा दिसतलीं.",
         "item_status_label": "स्थिती: १.",
         "item_delete_button": "काडून उडोवप",
+        "sync_auth_title": "तुमचो इतिहास सिंक करपाक सायन इन करात",
+        "sync_auth_action": "सायन इन",
         "item_copy_success": "वखदाचें नांव नकल केलें!",
         "sync_status_synced": "सिंक केलें",
         "sync_status_offline": "ऑफलायन (सिंक प्रलंबित)",

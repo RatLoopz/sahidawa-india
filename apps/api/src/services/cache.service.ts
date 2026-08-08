@@ -225,7 +225,12 @@ export async function incrementMissCount(): Promise<number> {
 /**
  * Invalidates cache entries for specified drug IDs (resolves to batch numbers and deletes).
  * Supabase query is capped at 1000 rows as a safety limit.
- * Redis DEL commands are chunked at 100 keys each to avoid blocking the event loop.
+ * Uses SCAN with pattern matching to delete both batch-only and composite keys.
+ *
+ * IMPORTANT: This uses pattern-based deletion (drug:batch:<batch>*) instead of exact
+ * key deletion to ensure composite keys (drug:batch:<batch>|<barcode>|<brand>) are also
+ * invalidated. This fixes the bug where counterfeit/recall alerts would leave stale
+ * composite cache keys, causing the verification endpoint to serve pre-alert data.
  * Returns the list of deleted cache keys for audit logging.
  */
 export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> {
@@ -246,22 +251,25 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> 
         }
 
         if (data && data.length > 0) {
-            const keysToDelete = data
+            const batchNumbers = data
                 .map((row: any) => row.batch_number)
-                .filter(Boolean)
-                .map((batch: string) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`);
+                .filter(Boolean) as string[];
 
-            if (keysToDelete.length > 0) {
-                // Chunk DEL to avoid blocking the Redis event loop
-                for (let i = 0; i < keysToDelete.length; i += CACHE_INVALIDATION_CHUNK_SIZE) {
-                    const chunk = keysToDelete.slice(i, i + CACHE_INVALIDATION_CHUNK_SIZE);
-                    await redisClient.del(chunk);
-                }
-                logger.info(
-                    `Invalidated cache keys: ${keysToDelete.join(", ").replace(/[\r\n]/g, "")}`
-                );
-                return keysToDelete;
+            const allDeletedKeys: string[] = [];
+
+            // Use pattern-based invalidation to delete both batch-only and composite keys
+            for (const batch of batchNumbers) {
+                const pattern = `${KEY_PREFIXES.DRUG_CACHE}${batch}*`;
+                const deletedKeys = await invalidateCacheByPattern(pattern);
+                allDeletedKeys.push(...deletedKeys);
             }
+
+            if (allDeletedKeys.length > 0) {
+                logger.info(
+                    `Invalidated cache keys: ${allDeletedKeys.join(", ").replace(/[\r\n]/g, "")}`
+                );
+            }
+            return allDeletedKeys;
         }
         return [];
     } catch (err) {
@@ -316,7 +324,7 @@ let lastDiscordAlertTime = 0;
 const DISCORD_ALERT_DEBOUNCE_MS = 15 * 60 * 1000; // 15 minutes
 
 async function sendCacheAlertDiscord(): Promise<void> {
-    const WEBHOOK_URL = process.env.PG_CRON_MONITOR_WEBHOOK_URL;
+    const WEBHOOK_URL = process.env.DISCORD_APP_ALERTS_WEBHOOK_URL || process.env.PG_CRON_MONITOR_WEBHOOK_URL;
     if (!WEBHOOK_URL) return;
 
     const now = Date.now();
@@ -373,7 +381,9 @@ export async function getCacheStats(): Promise<{
     };
 
     if (!redisClient.isOpen) {
-        sendCacheAlertDiscord().catch(() => {});
+        sendCacheAlertDiscord().catch((err) =>
+            logger.warn("Discord alert failed (Redis closed)", err)
+        );
         return defaultStats;
     }
     try {
@@ -393,8 +403,8 @@ export async function getCacheStats(): Promise<{
         if (snapshotResult.status === "fulfilled" && snapshotResult.value) {
             try {
                 snapshot = JSON.parse(snapshotResult.value);
-            } catch (e) {
-                // Ignore parse errors
+            } catch (_e) {
+                // Ignore parse errors - snapshot will remain null
             }
         }
 
@@ -407,7 +417,9 @@ export async function getCacheStats(): Promise<{
             results[6].status === "rejected";
 
         if (allFailed) {
-            sendCacheAlertDiscord().catch(() => {});
+            sendCacheAlertDiscord().catch((err) =>
+                logger.warn("Discord alert failed (all stats rejected)", err)
+            );
             return snapshot || defaultStats;
         }
 
@@ -471,7 +483,9 @@ export async function getCacheStats(): Promise<{
         return finalStats;
     } catch (err) {
         logger.error("Error fetching cache stats", err);
-        sendCacheAlertDiscord().catch(() => {});
+        sendCacheAlertDiscord().catch((err) =>
+            logger.warn("Discord alert failed (fetch error)", err)
+        );
         return defaultStats;
     }
 }

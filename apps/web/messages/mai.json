@@ -382,6 +382,15 @@
         "description": "अखन अहाँक इंटरनेट कनेक्शन नहि अछि।",
         "subtitle": "ऑफलाइन रहलापर किछु सुविधा अनुपलब्ध अछि। इंटरनेटसँ जुड़बाक प्रयास करू वा कैश्ड सामग्री देखू।",
         "tryAgain": "फेर प्रयास करू",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "होम पर जाऊ",
         "footer": "कनेक्शन वापस आयलापर SahiDawa स्वचालित रूपसँ सिंक हयत।",
         "cachedContent": "अहाँ पहिने लोड कयल सामग्री देखि सकैत छी",
@@ -1363,6 +1372,8 @@
         "no_search_results": "अहाँक खोजसँ मेल खायवला कोनो दवाइ नहि भेटल।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "मेटाऊ",
+        "sync_auth_title": "अपन इतिहास सिंक करबाक लेल साइन इन करू",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "दवाइक नाम कॉपी भेल!"
     },
     "MyReports": {

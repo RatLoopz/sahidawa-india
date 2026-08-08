@@ -35,6 +35,13 @@ const router = Router();
 const MAX_RESULTS = 200;
 const BATCH_SIZE = 500;
 
+// Schema for nearest-open pharmacy query
+const nearestOpenSchema = z.object({
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(10),
+});
+
 const validateInventoryUploadSize = (req: Request, res: Response, next: NextFunction) => {
     const contentLengthHeader = req.headers["content-length"];
     const contentLength = Array.isArray(contentLengthHeader)
@@ -866,10 +873,6 @@ router.get(
             }
 
             const data = await pharmacyService.getInBounds(result.data);
-            res.setHeader(
-                "Cache-Control",
-                "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
-            );
             res.json(data);
         } catch (err) {
             next(err);
@@ -888,21 +891,105 @@ router.post(
                 return;
             }
 
-            const { fileContent } = req.body;
-            if (!fileContent || typeof fileContent !== "string") {
+            const { fileContent: rawFileContent } = req.body;
+            if (!rawFileContent || typeof rawFileContent !== "string") {
                 res.status(400).json({ error: "No valid file data content provided." });
                 return;
             }
 
-            const result = await pharmacyService.bulkUploadByUser(req.user.id, fileContent);
-            res.status(200).json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+            // Strip UTF-8 BOM if present
+            const fileContent = rawFileContent.replace(/^\uFEFF/, "");
+
+            const pharmacyId = req.body.pharmacyId || req.query.pharmacyId;
+
+            let query = supabase.from("pharmacies").select("id").eq("created_by", req.user.id);
+
+            if (pharmacyId) {
+                query = query.eq("id", pharmacyId);
+            } else {
+                query = query.order("created_at", { ascending: false });
+            }
+
+            const { data: pharmacies, error: pharmError } = await query;
+
+            if (pharmError || !pharmacies || pharmacies.length === 0) {
+                res.status(404).json({
+                    error: "No registered pharmacy found for this authorized user.",
+                });
                 return;
             }
-            logger.error(`Exception in bulk operations handler: ${err.message}`);
-            next(err);
+
+            const pharmacy = pharmacies[0];
+
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            res.flushHeaders();
+
+            let clientDisconnected = false;
+            req.on("close", () => {
+                clientDisconnected = true;
+            });
+
+            // Incremental parsing using the reusable helper (pharmacyId is already known)
+            const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
+                fileContent,
+                pharmacy.id,
+                (stats) => {
+                    if (!clientDisconnected) {
+                        res.write(
+                            `data: ${JSON.stringify({
+                                processed: stats.successfulInserts,
+                                total: stats.totalRows,
+                                errors: stats.failedRows,
+                            })}\n\n`
+                        );
+                    }
+                }
+            );
+
+            if (error) {
+                if (!clientDisconnected) {
+                    res.write(`data: ${JSON.stringify({ error })}\n\n`);
+                    res.end();
+                }
+                return;
+            }
+            if (totalRows === 0) {
+                if (!clientDisconnected) {
+                    res.write(
+                        `data: ${JSON.stringify({
+                            error: "The file appears empty or is missing rows.",
+                        })}\n\n`
+                    );
+                    res.end();
+                }
+                return;
+            }
+
+            if (!clientDisconnected) {
+                res.write(
+                    `data: ${JSON.stringify({
+                        done: true,
+                        totalRows,
+                        successCount: successfulInserts,
+                        failedCount: failedRows.length,
+                        errors: failedRows,
+                    })}\n\n`
+                );
+                res.end();
+            }
+        } catch (err: any) {
+            const message = err instanceof Error ? err.message : "Unknown error";
+            logger.error(`Exception in bulk operations handler: ${message}`);
+            if (!res.headersSent) {
+                res.status(500).json({ error: message });
+            } else {
+                res.write(
+                    `data: ${JSON.stringify({ error: "Server error during processing." })}\n\n`
+                );
+                res.end();
+            }
         }
     }
 );
@@ -1002,5 +1089,154 @@ router.post(
         }
     }
 );
+
+/**
+ * @openapi
+ * /api/pharmacies/nearest-open:
+ *   get:
+ *     summary: Find nearest open pharmacies using PostGIS KNN
+ *     description: >
+ *       Returns the K nearest pharmacies to a given location using PostGIS's
+ *       K-Nearest Neighbor (KNN) search with the <-> operator. Results are
+ *       filtered by operating hours to only show pharmacies that are currently open.
+ *       Uses the GiST spatial index for efficient queries.
+ *     tags:
+ *       - Pharmacies
+ *     parameters:
+ *       - in: query
+ *         name: lat
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: -90
+ *           maximum: 90
+ *         description: Latitude of the search location
+ *         example: 28.5672
+ *       - in: query
+ *         name: lng
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: -180
+ *           maximum: 180
+ *         description: Longitude of the search location
+ *         example: 77.2088
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Maximum number of results to return
+ *     responses:
+ *       200:
+ *         description: List of nearest open pharmacies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pharmacies:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       name:
+ *                         type: string
+ *                         example: "HealthFirst Pharmacy"
+ *                       address:
+ *                         type: string
+ *                         example: "123 Main Street, Karol Bagh"
+ *                       lat:
+ *                         type: number
+ *                         example: 28.6518
+ *                       lng:
+ *                         type: number
+ *                         example: 77.2219
+ *                       distance:
+ *                         type: string
+ *                         description: Distance in kilometers
+ *                         example: "2.3 km"
+ *                       phone_number:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "+91-11-23555555"
+ *                       is_verified:
+ *                         type: boolean
+ *                         example: true
+ *                       district:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "Central Delhi"
+ *                       state:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "Delhi"
+ *                       operating_hours:
+ *                         type: object
+ *                         description: Operating hours JSON object
+ *                 count:
+ *                   type: integer
+ *                   description: Number of pharmacies returned
+ *       400:
+ *         description: Invalid coordinates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 details:
+ *                   type: object
+ */
+router.get("/nearest-open", limiter, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = nearestOpenSchema.safeParse(req.query);
+
+        if (!result.success) {
+            res.status(400).json({
+                error: "Invalid coordinates or parameters",
+                details: result.error.flatten().fieldErrors,
+            });
+            return;
+        }
+
+        const { lat, lng, limit } = result.data;
+
+        const { data, error } = await pharmacyService.getNearestOpen(lat, lng, limit);
+
+        if (error) {
+            handleFetchError(error, res);
+            return;
+        }
+
+        const pharmacies = (data || []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            lat: p.lat,
+            lng: p.lng,
+            distance: `${p.distance} km`,
+            phone_number: p.phone_number,
+            is_verified: p.is_verified,
+            district: p.district,
+            state: p.state,
+            operating_hours: p.operating_hours,
+        }));
+
+        res.json({
+            pharmacies,
+            count: pharmacies.length,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 export default router;

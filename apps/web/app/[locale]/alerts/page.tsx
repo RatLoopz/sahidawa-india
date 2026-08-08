@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import {
@@ -99,34 +99,6 @@ export default function FullAlertsLogPage() {
 
     const toggleExpand = (id: string) => {
         setExpandedAlertId((prev) => (prev === id ? null : id));
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleShareAlert = (e: React.MouseEvent, alert: Alert) => {
-        e.stopPropagation();
-        const brand =
-            alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
-        const shareText = `⚠️ SahiDawa CDSCO Drug Safety Alert:\n\nBrand: ${brand}\nBatch: ${alert.batch_number || "N/A"}\n\nPlease check safety logs.`;
-
-        const writeToClipboard = () => {
-            navigator.clipboard
-                .writeText(shareText)
-                .then(() => {
-                    toast.success("Alert details copied to clipboard!");
-                })
-                .catch((err) => {
-                    console.error("Clipboard copy failed:", err);
-                    toast.error("Failed to copy alert details to clipboard.");
-                });
-        };
-
-        if (navigator.share) {
-            navigator.share({ title: `Safety Alert: ${brand}`, text: shareText }).catch(() => {
-                writeToClipboard();
-            });
-        } else {
-            writeToClipboard();
-        }
     };
 
     const handleExportCSV = () => {
@@ -340,15 +312,15 @@ export default function FullAlertsLogPage() {
                             error
                                 ? "We couldn't load alerts right now"
                                 : brandSearch.trim() || regionSearch.trim()
-                                  ? "No alerts match your filters"
-                                  : "No active health alerts"
+                                    ? "No alerts match your filters"
+                                    : "No active health alerts"
                         }
                         description={
                             error
                                 ? "The safety registry is temporarily unavailable. Try refreshing to sync the latest reports."
                                 : brandSearch.trim() || regionSearch.trim()
-                                  ? "Try clearing one of your filters or refreshing the feed to see the latest safety updates."
-                                  : "The safety registry is clear right now. No active drug recalls, counterfeit warnings, or banned formulations match your search."
+                                    ? "Try clearing one of your filters or refreshing the feed to see the latest safety updates."
+                                    : "The safety registry is clear right now. No active drug recalls, counterfeit warnings, or banned formulations match your search."
                         }
                         actionLabel="Refresh alerts"
                         onAction={() => refetch()}

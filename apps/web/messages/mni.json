@@ -359,6 +359,15 @@
         "description": "ꯍꯧꯖꯤꯛꯃꯛꯇꯗꯥ ꯅꯍꯥꯛꯀꯤ ꯏꯟꯇꯔꯅꯦꯠ ꯀꯅꯦꯛꯁꯟ ꯂꯩꯇꯦ꯫",
         "subtitle": "ꯑꯣꯐꯂꯥꯏꯟ ꯑꯣꯏꯔꯤꯉꯩꯗꯥ ꯐꯤꯆꯔ ꯈꯔꯥ ꯁꯤꯖꯤꯟꯅꯕꯥ ꯌꯥꯗ꯭ꯔꯦ꯫ ꯏꯟꯇꯔꯅꯦꯠꯇꯥ ꯁꯝꯅꯅꯕꯥ ꯍꯣꯠꯅꯕꯤꯌꯨ ꯅꯠꯇ꯭ꯔꯒꯥ ꯀꯦꯁ (cached) ꯇꯧꯔꯕꯥ ꯄꯣꯠꯂꯝꯁꯤꯡ ꯌꯦꯡꯕꯤꯌꯨ꯫",
         "tryAgain": "ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯍꯣꯠꯅꯕꯥ",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "ꯍꯣꯃꯗꯥ ꯆꯠꯄꯥ",
         "footer": "ꯅꯍꯥꯛꯀꯤ ꯀꯅꯦꯛꯁꯟ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯐꯪꯂꯀꯄꯥ ꯃꯇꯃꯗꯥ ꯁꯍꯤꯗꯋꯥꯅꯥ ꯃꯁꯥꯃꯛ ꯁꯤꯡꯛ (sync) ꯇꯧꯒꯅꯤ꯫",
         "cachedContent": "ꯅꯍꯥꯛꯅꯥ ꯃꯃꯥꯡꯗꯥ ꯍꯥꯡꯗꯣꯛꯈꯤꯕꯥ ꯄꯣꯠꯂꯝꯁꯤꯡ ꯍꯧꯖꯤꯛꯁꯨ ꯌꯦꯡꯕꯥ ꯌꯥꯒꯅꯤ",
@@ -1339,6 +1348,8 @@
         "no_search_results": "ꯅꯍꯥꯛꯅꯥ ꯊꯤꯕꯒꯥ ꯃꯥꯟꯅꯕꯥ ꯃꯦꯗꯤꯁꯤꯟ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤꏏ",
         "item_status_label": "ꯐꯤꯚꯝ (Status): ",
         "item_delete_button": "ꯃꯨꯠꯊꯠꯄꯥ",
+        "sync_auth_title": "ꯅꯍꯥꯛꯀꯤ ꯄꯨꯋꯥꯔꯤ ꯁꯤꯟꯛ ꯇꯧꯅꯕ ꯁꯥꯏꯟ ꯏꯟ ꯇꯧ",
+        "sync_auth_action": "ꯁꯥꯏꯟ ꯏꯟ",
         "item_copy_success": "ꯍꯤꯗꯥꯛꯀꯤ ꯃꯤꯡ ꯀꯣꯄꯤ ꯇꯧꯈ꯭ꯔꯦ!"
     },
     "MyReports": {

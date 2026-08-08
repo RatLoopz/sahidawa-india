@@ -42,7 +42,8 @@ export function createSWRCache<T>(ttlMs: number = 60_000): SWRCache<T> {
                         inFlight.delete(key);
                         return data;
                     })
-                    .catch(() => {
+                    .catch((err) => {
+                        console.warn("[CacheUtils] Stale revalidation failed:", err);
                         inFlight.delete(key);
                         return cached.data;
                     });
@@ -64,6 +65,7 @@ export function createSWRCache<T>(ttlMs: number = 60_000): SWRCache<T> {
                 return data;
             })
             .catch((err) => {
+                console.error("[CacheUtils] Fetch failed:", err);
                 inFlight.delete(key);
                 throw err;
             });

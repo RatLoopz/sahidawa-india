@@ -11,13 +11,14 @@ import {
     EyeOff,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { FaGithub } from "react-icons/fa6";
+import { stripLocalePrefix, toLocalePath } from "@/lib/authReturn";
 export default function LoginPage() {
     const router = useRouter();
     const locale = useLocale();
@@ -54,6 +55,41 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
+    // Restore the intended destination after re-authentication (set by the
+    // middleware or admin pages when an expired session interrupts a flow).
+    const [queryParsed, setQueryParsed] = useState(false);
+    const [returnTo, setReturnTo] = useState<string | null>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        setReturnTo(params.get("returnTo"));
+        setQueryParsed(true);
+    }, []);
+
+    const targetPath = useMemo(
+        () => (returnTo ? stripLocalePrefix(returnTo, locale) : "/reports/me"),
+        [returnTo, locale]
+    );
+
+    // If a session already exists (e.g. a stale cookie was refreshed, or OAuth
+    // restored one), skip the form and resume the intended journey. This
+    // prevents the repeated login redirect loop for already-signed-in users.
+    useEffect(() => {
+        if (!queryParsed || isMissingEnvVars || !supabase) return;
+        let cancelled = false;
+        supabase.auth
+            .getSession()
+            .then(({ data }) => {
+                if (!cancelled && data.session) {
+                    router.push(targetPath);
+                }
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, [queryParsed, isMissingEnvVars, supabase, router, targetPath]);
+
     const getAuthErrorMessage = (message: string) => {
         return message === "Failed to fetch" ? t("errors.generic") : message;
     };
@@ -83,7 +119,7 @@ export default function LoginPage() {
             }
 
             if (data?.session?.access_token) {
-                router.push("/reports/me");
+                router.push(targetPath);
             }
         } catch {
             setError(t("errors.generic"));
@@ -106,7 +142,7 @@ export default function LoginPage() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${window.location.origin}/${locale}/reports/me`,
+                    redirectTo: `${window.location.origin}${toLocalePath(targetPath, locale)}`,
                 },
             });
 
@@ -133,7 +169,7 @@ export default function LoginPage() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "github",
                 options: {
-                    redirectTo: `${window.location.origin}/${locale}/reports/me`,
+                    redirectTo: `${window.location.origin}${toLocalePath(targetPath, locale)}`,
                 },
             });
 

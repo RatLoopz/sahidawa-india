@@ -1,52 +1,53 @@
 [
   {
-    "prNumber": 3889,
-    "title": "fix(alerts): retry expiry notifications after delivery failures",
-    "author": "Shreya-nipunge",
-    "mergedAt": "2026-07-28",
-    "area": "Backend",
-    "score": 6,
-    "docPath": "docs/devtrack/2026-07/PR-3889-fix-alerts-retry-expiry-notifications-after-delive.md",
-    "linkedIssue": "#3883",
-    "labels": "level:advanced,quality:clean,gssoc:approved,type:bug",
-    "filesChanged": [
-      "apps/api/src/cron/alert-broadcaster.ts",
-      "apps/api/tests/alertBroadcaster.test.ts"
-    ],
-    "adr": null
-    "prNumber": 3894,
-    "title": "feat(web): implement offline-first scan history sync and connection s…",
-    "author": "jamunatg2006-sys",
-    "mergedAt": "2026-07-28",
-    "area": "i18n",
-    "score": 23,
-    "docPath": "docs/devtrack/2026-07/PR-3894-feat-web-implement-offline-first-scan-history-sync.md",
-    "linkedIssue": "#3892",
-    "labels": "level:intermediate,gssoc:approved,type:feature",
-    "filesChanged": [
-      "apps/web/app/[locale]/history/page.tsx",
-      "apps/web/messages/en.json",
-      "apps/web/messages/hi.json",
-      "apps/web/messages/kok.json",
-      "apps/web/messages/mai.json",
-      "apps/web/messages/mni.json",
-      "apps/web/messages/sd.json"
-    ],
-    "adr": "docs/devtrack/adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md"
-    "prNumber": 3888,
-    "title": "fix(scan): keep unprocessed offline media pending",
-    "author": "Shreya-nipunge",
-    "mergedAt": "2026-07-28",
-    "area": "Backend",
-    "score": 9,
-    "docPath": "docs/devtrack/2026-07/PR-3888-fix-scan-keep-unprocessed-offline-media-pending.md",
-    "linkedIssue": "#3882",
+    "prNumber": 4187,
+    "title": "[BUG] Fix dead code and hook up share alert feature",
+    "author": "kumudasrip",
+    "mergedAt": "2026-08-06",
+    "area": "Frontend",
+    "score": 5,
+    "docPath": "docs/devtrack/2026-08/PR-4187-bug-fix-dead-code-and-hook-up-share-alert-feature.md",
+    "linkedIssue": "#4066",
     "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
     "filesChanged": [
-      "apps/api/src/routes/scan.ts",
-      "apps/api/tests/scans.sync.test.ts"
+      "apps/web/app/[locale]/alerts/page.tsx",
+      "apps/web/components/alerts/AlertItem.tsx"
     ],
     "adr": null
+  },
+  {
+    "prNumber": 4122,
+    "title": "fix(scan): add request-scoped temp file cleanup to /submit endpoint",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-08-06",
+    "area": "Backend",
+    "score": 9,
+    "docPath": "docs/devtrack/2026-08/PR-4122-fix-scan-add-request-scoped-temp-file-cleanup-to-s.md",
+    "linkedIssue": "#4112",
+    "labels": "level:advanced,quality:exceptional,gssoc:approved,type:bug,type:testing,type:refactor",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "apps/api/tests/scanSubmitCleanup.test.ts"
+    ],
+    "adr": null
+  },
+  {
+    "prNumber": 4067,
+    "title": "fix: remove leaked console.log in usePackagingHint.ts",
+    "author": "kumudasrip",
+    "mergedAt": "2026-08-04",
+    "area": "Frontend",
+    "score": 10,
+    "docPath": "docs/devtrack/2026-08/PR-4067-fix-remove-leaked-console-log-in-usepackaginghint-.md",
+    "linkedIssue": "#4064",
+    "labels": "gssoc:approved,type:bug",
+    "filesChanged": [
+      "apps/web/components/scanner/usePackagingHint.ts",
+      "apps/web/hooks/useVoiceNavigation.ts"
+    ],
+    "adr": null
+  },
+  {
     "prNumber": 3890,
     "title": "fix(scan): use queued endpoint during offline sync",
     "author": "Shreya-nipunge",

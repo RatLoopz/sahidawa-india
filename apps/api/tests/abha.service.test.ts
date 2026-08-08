@@ -1,5 +1,5 @@
 import { generateKeyPairSync } from "node:crypto";
-import { generateOTP, verifyOTP } from "../src/services/abha.service";
+import { generateOTP, verifyOTP, resetAbdmPublicKeyCache } from "../src/services/abha.service";
 
 jest.mock("../src/utils/logger", () => ({
     __esModule: true,
@@ -34,6 +34,7 @@ describe("ABHA service ABDM sandbox integration", () => {
 
     beforeEach(() => {
         fetchMock.mockReset();
+        resetAbdmPublicKeyCache();
         process.env = {
             ...originalEnv,
             ABDM_SANDBOX_BASE_URL: "https://abha-sandbox.test/abha/api",

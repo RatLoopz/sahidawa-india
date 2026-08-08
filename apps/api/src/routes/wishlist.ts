@@ -229,21 +229,48 @@ router.get(
             return;
         }
 
+        let page = parseInt(req.query.page as string, 10);
+        let limit = parseInt(req.query.limit as string, 10);
+
+        if (isNaN(page) || page <= 0) {
+            page = 1;
+        }
+        if (isNaN(limit) || limit <= 0) {
+            limit = 20;
+        }
+        if (limit > 100) {
+            limit = 100;
+        }
+
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
         try {
-            const { data: wishlistItems, error: fetchError } = await supabase
+            const {
+                data: wishlistItems,
+                error: fetchError,
+                count,
+            } = await supabase
                 .from("wishlists")
-                .select("id, product_id, created_at")
+                .select("id, product_id, created_at", { count: "exact" })
                 .eq("user_id", req.user.id)
-                .order("created_at", { ascending: false });
+                .order("created_at", { ascending: false })
+                .range(from, to);
 
             if (fetchError) {
                 next(fetchError);
                 return;
             }
 
+            const totalCount = count || 0;
+            const totalPages = Math.ceil(totalCount / limit);
+
             res.json({
                 success: true,
-                count: (wishlistItems || []).length,
+                page,
+                limit,
+                count: totalCount,
+                totalPages,
                 items: wishlistItems || [],
             });
         } catch (err) {

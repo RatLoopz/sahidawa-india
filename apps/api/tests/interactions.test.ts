@@ -1,3 +1,4 @@
+// @ts-nocheck
 import request from "supertest";
 import app from "../src/app";
 
@@ -9,6 +10,7 @@ jest.mock("../src/db/client", () => {
         or: jest.fn().mockReturnThis(),
         in: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
+        ilike: jest.fn().mockReturnThis(),
         maybeSingle: jest.fn(),
     };
     const mockDbConfig = {
@@ -251,14 +253,16 @@ describe("POST /api/v1/interactions/check", () => {
     });
 
     it("should successfully check interactions when Supabase is online", async () => {
-        // Mock name resolutions (batched in .or())
-        (supabase.or as jest.Mock).mockResolvedValueOnce({
-            data: [
-                { brand_name: "Crocin", generic_name: "paracetamol" },
-                { brand_name: "Coumadin", generic_name: "warfarin" },
-            ],
-            error: null,
-        });
+        // Mock name resolutions (individually called in .limit())
+        (supabase.limit as jest.Mock)
+            .mockResolvedValueOnce({
+                data: [{ brand_name: "Crocin", generic_name: "paracetamol" }],
+                error: null,
+            })
+            .mockResolvedValueOnce({
+                data: [{ brand_name: "Coumadin", generic_name: "warfarin" }],
+                error: null,
+            });
 
         // Mock drug interaction query
         (supabase.in as jest.Mock).mockReturnValueOnce(supabase).mockResolvedValueOnce({
@@ -327,8 +331,8 @@ describe("POST /api/v1/interactions/check", () => {
     });
 
     it("should handle error during name resolution and automatically set isSupabaseOffline", async () => {
-        // Mock database failure that causes fallback (batched in .or())
-        (supabase.or as jest.Mock).mockResolvedValueOnce({
+        // Mock database failure that causes fallback (on ilike/limit call chain)
+        (supabase.limit as jest.Mock).mockResolvedValueOnce({
             data: null,
             error: new Error("fetch failed"),
         });

@@ -122,7 +122,7 @@ class BatchVerifyRequest(BaseModel):
 
 
 class BatchVerifyResponse(BaseModel):
-    status: Literal["valid", "recalled", "expired", "not_found"]
+    status: Literal["valid", "recalled", "expired", "not_found", "unverifiable"]
     brand_name: Optional[str] = None
     generic_name: Optional[str] = None
     manufacturer: Optional[str] = None
@@ -131,6 +131,73 @@ class BatchVerifyResponse(BaseModel):
     cdsco_approval_status: Optional[str] = None
     is_counterfeit_alert: Optional[bool] = None
     source: str = "database"
+
+
+def classify_expiry(raw_expiry) -> Literal["ok", "expired", "unverifiable"]:
+    """Classify a medicine expiry value without failing open to valid.
+
+    Missing, blank, NaT/NaN, or unparseable values are unverifiable.
+    """
+    if raw_expiry is None or pd.isna(raw_expiry):
+        return "unverifiable"
+
+    if isinstance(raw_expiry, str) and not raw_expiry.strip():
+        return "unverifiable"
+
+    try:
+        parsed = pd.to_datetime(raw_expiry, errors="raise", utc=True)
+    except (ValueError, TypeError, OverflowError):
+        return "unverifiable"
+
+    if pd.isna(parsed):
+        return "unverifiable"
+
+    expiry = parsed.date()
+    if expiry < date.today():
+        return "expired"
+    return "ok"
+
+
+class CompareMedicinesRequest(BaseModel):
+    medicine_a: str
+    medicine_b: str
+
+
+class CompareMedicinesResponse(BaseModel):
+    medicine_a: str
+    medicine_b: str
+    similarity_score: float
+    verdict: str
+
+
+@router.post("/compare", response_model=CompareMedicinesResponse)
+def compare_medicines(payload: CompareMedicinesRequest) -> CompareMedicinesResponse:
+    if not payload.medicine_a.strip() or not payload.medicine_b.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Both medicine names are required",
+        )
+
+    from services.embedding import embed_query
+    from services.similarity import cosine_similarity
+
+    emb_a = embed_query(payload.medicine_a)
+    emb_b = embed_query(payload.medicine_b)
+
+    if emb_a is None or emb_b is None:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to generate embeddings for one or both medicines",
+        )
+
+    score = cosine_similarity(emb_a, emb_b)
+
+    return CompareMedicinesResponse(
+        medicine_a=payload.medicine_a,
+        medicine_b=payload.medicine_b,
+        similarity_score=score,
+        verdict="highly_similar" if score >= 0.92 else "different",
+    )
 
 
 @router.post("/batch", response_model=BatchVerifyResponse)
@@ -169,19 +236,16 @@ async def verify_batch(request: BatchVerifyRequest):
         row["cdsco_approval_status"]
     ).lower() == "banned"
 
-    # Check expiry
-    is_expired = False
-    try:
-        expiry = pd.to_datetime(row["expiry_date"]).date()
-        is_expired = expiry < date.today()
-    except Exception:
-        pass
+    # Check expiry — never treat parse failure as valid
+    expiry_result = classify_expiry(row["expiry_date"])
 
     # Determine final status
     if is_counterfeit or is_banned:
         status = "recalled"
-    elif is_expired:
+    elif expiry_result == "expired":
         status = "expired"
+    elif expiry_result == "unverifiable":
+        status = "unverifiable"
     else:
         status = "valid"
 

@@ -1,39 +1,46 @@
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 
-const mockRpc = jest.fn();
-const mockFrom = jest.fn();
+jest.mock("../src/db/client", () => {
+    const mockClient = {
+        rpc: jest.fn(),
+        from: jest.fn(),
+    };
+    return { supabase: mockClient };
+});
+
+jest.mock("../src/utils/redis", () => {
+    const rc = {
+        isOpen: true,
+        get: jest.fn(),
+        set: jest.fn(),
+    };
+    return { redisClient: rc };
+});
+
+jest.mock("../src/services/openfda.service", () => ({
+    fetchOpenFdaContext: jest.fn(),
+}));
+
+jest.mock("../src/services/llm.service", () => ({
+    generateSafetyProfile: jest.fn(),
+}));
+
+import { supabase } from "../src/db/client";
+import { redisClient } from "../src/utils/redis";
+import { fetchOpenFdaContext } from "../src/services/openfda.service";
+import { generateSafetyProfile } from "../src/services/llm.service";
+
+const mockRpc = supabase.rpc as jest.Mock;
+const mockFrom = supabase.from as jest.Mock;
+const mockRedisClient = redisClient as any;
+const mockFetchOpenFdaContext = fetchOpenFdaContext as jest.Mock;
+const mockGenerateSafetyProfile = generateSafetyProfile as jest.Mock;
+
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockMaybeSingle = jest.fn();
 const mockUpsert = jest.fn();
-
-jest.mock("../src/db/client", () => ({
-    supabase: {
-        rpc: mockRpc,
-        from: mockFrom,
-    },
-}));
-
-const mockRedisClient = {
-    isOpen: true,
-    get: jest.fn(),
-    set: jest.fn(),
-};
-
-jest.mock("../src/utils/redis", () => ({
-    redisClient: mockRedisClient,
-}));
-
-const mockFetchOpenFdaContext = jest.fn();
-jest.mock("../src/services/openfda.service", () => ({
-    fetchOpenFdaContext: mockFetchOpenFdaContext,
-}));
-
-const mockGenerateSafetyProfile = jest.fn();
-jest.mock("../src/services/llm.service", () => ({
-    generateSafetyProfile: mockGenerateSafetyProfile,
-}));
 
 jest.mock("../src/middleware/rateLimit", () => ({
     scanQueryLimiter: (_req: unknown, _res: unknown, next: () => void) => next(),

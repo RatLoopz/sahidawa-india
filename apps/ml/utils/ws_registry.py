@@ -21,7 +21,7 @@ from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
-API_KEY_REVOKED_CHANNEL = "api_key_revoked_channel"
+API_REVOCATION_CHANNEL = "api_revocation_channel"
 # RFC 6455 policy-violation close code — the same code the handshake uses to
 # reject an invalid ticket, so a revoked client sees a consistent signal.
 WS_POLICY_VIOLATION_CODE = 1008
@@ -104,8 +104,8 @@ async def listen_for_revocations(redis) -> None:
     """
     pubsub = redis.pubsub()
     try:
-        await pubsub.subscribe(API_KEY_REVOKED_CHANNEL)
-        logger.info("Listening on '%s' for API-key revocations.", API_KEY_REVOKED_CHANNEL)
+        await pubsub.subscribe(API_REVOCATION_CHANNEL)
+        logger.info("Listening on '%s' for API-key revocations.", API_REVOCATION_CHANNEL)
 
         async for message in pubsub.listen():
             if message.get("type") != "message":
@@ -126,7 +126,7 @@ async def listen_for_revocations(redis) -> None:
         logger.exception("API-key revocation listener stopped unexpectedly.")
     finally:
         try:
-            await pubsub.unsubscribe(API_KEY_REVOKED_CHANNEL)
+            await pubsub.unsubscribe(API_REVOCATION_CHANNEL)
         except Exception:
             pass
         # redis-py renamed PubSub.close() to aclose(); support whichever exists.

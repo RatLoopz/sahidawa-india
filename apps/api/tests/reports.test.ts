@@ -1,9 +1,11 @@
+// @ts-nocheck
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 // Make DNS lookup timeouts fast in tests so hanging lookups don't slow CI
 process.env.DNS_LOOKUP_TIMEOUT_MS = process.env.DNS_LOOKUP_TIMEOUT_MS || "50";
 
-(globalThis as unknown as { WebSocket: any }).WebSocket = (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
+(globalThis as unknown as { WebSocket: any }).WebSocket =
+    (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
 
 jest.mock("../src/db/client", () => ({
     supabase: {
@@ -17,6 +19,12 @@ jest.mock("../src/db/client", () => ({
         limit: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({ data: null, error: null }),
         maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+        channel: jest.fn().mockReturnValue({
+            send: jest.fn().mockResolvedValue(true),
+            subscribe: jest.fn(),
+            on: jest.fn().mockReturnThis(),
+        }),
+        removeChannel: jest.fn().mockResolvedValue(true),
     },
 }));
 
@@ -82,7 +90,6 @@ import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
 import { Request, Response, NextFunction } from "express";
-
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 

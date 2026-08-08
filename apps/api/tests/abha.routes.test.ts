@@ -1,22 +1,10 @@
+// @ts-nocheck
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
-(globalThis as unknown as { WebSocket: any }).WebSocket = (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
+(globalThis as unknown as { WebSocket: any }).WebSocket =
+    (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
 
 const mockPkceSessions = new Map<string, { codeVerifier: string; userId: string }>();
-const mockStoreAbhaPkceSession = jest.fn(
-    async (state: string, session: { codeVerifier: string; userId: string }) => {
-        mockPkceSessions.set(state, session);
-    }
-);
-const mockConsumeAbhaPkceSession = jest.fn(async (state: string) => {
-    const session = mockPkceSessions.get(state) ?? null;
-    mockPkceSessions.delete(state);
-    return session;
-});
-const mockExchangeAuthCode = jest.fn().mockResolvedValue({ success: true });
-const mockGetAuthorizationUrl = jest.fn(
-    async (_codeChallenge: string, state: string) => `https://abdm.test/authorize?state=${state}`
-);
 
 jest.mock("../src/db/client", () => ({
     supabase: {
@@ -47,20 +35,40 @@ jest.mock("../src/services/abha.service", () => ({
         codeVerifier: "test-code-verifier",
         codeChallenge: "test-code-challenge",
     }),
-    getAuthorizationUrl: mockGetAuthorizationUrl,
-    exchangeAuthCode: mockExchangeAuthCode,
+    getAuthorizationUrl: jest.fn(
+        async (_codeChallenge: string, state: string) =>
+            `https://abdm.test/authorize?state=${state}`
+    ),
+    exchangeAuthCode: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 jest.mock("../src/services/abhaPkceSession.service", () => ({
-    storeAbhaPkceSession: mockStoreAbhaPkceSession,
-    consumeAbhaPkceSession: mockConsumeAbhaPkceSession,
+    storeAbhaPkceSession: jest.fn(
+        async (state: string, session: { codeVerifier: string; userId: string }) => {
+            mockPkceSessions.set(state, session);
+        }
+    ),
+    consumeAbhaPkceSession: jest.fn(async (state: string) => {
+        const session = mockPkceSessions.get(state) ?? null;
+        mockPkceSessions.delete(state);
+        return session;
+    }),
 }));
 
 import request from "supertest";
 import express from "express";
 import abhaRouter from "../src/routes/abha";
 import { Request, Response, NextFunction } from "express";
+import { getAuthorizationUrl, exchangeAuthCode } from "../src/services/abha.service";
+import {
+    storeAbhaPkceSession,
+    consumeAbhaPkceSession,
+} from "../src/services/abhaPkceSession.service";
 
+const mockStoreAbhaPkceSession = storeAbhaPkceSession as jest.Mock;
+const mockConsumeAbhaPkceSession = consumeAbhaPkceSession as jest.Mock;
+const mockExchangeAuthCode = exchangeAuthCode as jest.Mock;
+const mockGetAuthorizationUrl = getAuthorizationUrl as jest.Mock;
 
 const app = express();
 app.use(express.json());

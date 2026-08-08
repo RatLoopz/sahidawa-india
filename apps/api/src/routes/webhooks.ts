@@ -107,9 +107,12 @@ router.post(
 
             const payload = req.body;
             const record = payload.record || payload.old_record || {};
+            const oldRecord = payload.old_record || {};
             const batchNumber = record.batch_number;
             const brandName = record.brand_name;
             const genericName = record.generic_name;
+            const oldBrandName = oldRecord.brand_name;
+            const oldGenericName = oldRecord.generic_name;
 
             const keysToDelete: string[] = [];
 
@@ -128,7 +131,28 @@ router.post(
                 keysToDelete.push(`medicine:voice:${normalizedGeneric}`);
             }
 
-            // 3. Perform deletion if keys exist
+            // 3. Invalidate verify-brand cache for the old and new brand names and the
+            //    old and new generic names (renames leave old-name keys behind).
+            for (const name of [brandName, oldBrandName]) {
+                if (name) {
+                    keysToDelete.push(`brand_cache:${name.trim().toLowerCase()}`);
+                }
+            }
+            for (const name of [genericName, oldGenericName]) {
+                if (name) {
+                    keysToDelete.push(`brand_cache:${name.trim().toLowerCase()}`);
+                }
+            }
+
+            // Transitions in either field that feeds the computed `verified` verdict
+            // (is_cdsco_verified && !is_counterfeit_alert) can stale verify-brand cache
+            // entries keyed by any user-supplied substring (e.g. "dolo"), which exact-name
+            // deletion above cannot enumerate — sweep the whole namespace on that rare event.
+            if (verificationStatusChanged(oldRecord, record)) {
+                await invalidateCacheByPattern("brand_cache:*");
+            }
+
+            // 4. Perform deletion if keys exist
             const uniqueKeys = Array.from(new Set(keysToDelete));
             if (uniqueKeys.length > 0) {
                 await redisClient.del(uniqueKeys);
@@ -150,6 +174,24 @@ router.post(
         }
     }
 );
+
+/**
+ * Whether the computed `verified` verdict could have changed between the old and
+ * new medicine records. The verdict derives from both `is_cdsco_verified` and
+ * `is_counterfeit_alert`, so a transition in either field can flip it for any
+ * user-supplied substring cache key that exact-name deletion cannot enumerate.
+ */
+function verificationStatusChanged(
+    oldRecord: Record<string, unknown>,
+    record: Record<string, unknown>
+): boolean {
+    const flipped = (before: unknown, after: unknown): boolean =>
+        before !== undefined && after !== undefined && Boolean(before) !== Boolean(after);
+    return (
+        flipped(oldRecord.is_counterfeit_alert, record.is_counterfeit_alert) ||
+        flipped(oldRecord.is_cdsco_verified, record.is_cdsco_verified)
+    );
+}
 
 /**
  * Helper to execute cache invalidation out-of-band/non-blocking

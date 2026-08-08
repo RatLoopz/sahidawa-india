@@ -1,7 +1,11 @@
 import { supabase } from "../db/client";
 import type { LasaMatch, LasaMatchType } from "@sahidawa/types";
-import natural from "natural";
 import logger from "../utils/logger";
+
+const DoubleMetaphone = require("natural/lib/natural/phonetics/double_metaphone");
+const { LevenshteinDistance } = require("natural/lib/natural/distance/levenshtein_distance");
+
+const doubleMetaphone = new DoubleMetaphone();
 
 // ── In-process TTL cache ────────────────────────────────────────────────────
 //
@@ -62,53 +66,71 @@ function setCached(key: string, value: LasaMatch[]): void {
 // connection pressure or network latency). Cached separately from match
 // results since the underlying medicine name list changes far less often.
 const VOCAB_TTL_MS = 30 * 60 * 1000;
-let vocabCache: { names: string[]; expiresAt: number } | null = null;
 
-async function getVocabulary(): Promise<string[]> {
+interface VocabItem {
+    name: string;
+    lower: string;
+    primary: string;
+    alt: string;
+}
+
+let vocabCache: { items: VocabItem[]; expiresAt: number } | null = null;
+
+async function getVocabulary(): Promise<VocabItem[]> {
     if (vocabCache && Date.now() < vocabCache.expiresAt) {
-        return vocabCache.names;
+        return vocabCache.items;
     }
     const { data, error } = await supabase.from("medicines").select("brand_name, generic_name");
 
     if (error || !data) {
-        // If we can't even load the vocabulary, fail safe with an empty list
-        // rather than throwing — the caller already knows the primary RPC failed.
-        return vocabCache?.names ?? [];
+        return vocabCache?.items ?? [];
     }
 
     const names = new Set<string>();
     for (const row of data as { brand_name: string | null; generic_name: string | null }[]) {
-        if (row.brand_name) names.add(row.brand_name);
-        if (row.generic_name) names.add(row.generic_name);
+        if (row.brand_name) names.add(row.brand_name.trim());
+        if (row.generic_name) names.add(row.generic_name.trim());
     }
 
-    vocabCache = { names: [...names], expiresAt: Date.now() + VOCAB_TTL_MS };
-    return vocabCache.names;
+    const items: VocabItem[] = [];
+    for (const name of names) {
+        const [primary, alt] = doubleMetaphone.process(name);
+        items.push({
+            name,
+            lower: name.toLowerCase(),
+            primary: primary || "",
+            alt: alt || "",
+        });
+    }
+
+    vocabCache = { items, expiresAt: Date.now() + VOCAB_TTL_MS };
+    return vocabCache.items;
 }
 
 const LEVENSHTEIN_THRESHOLD = 2;
 
-function phoneticFallback(targetName: string, vocabulary: string[]): LasaMatch[] {
+function phoneticFallback(targetName: string, vocabulary: VocabItem[]): LasaMatch[] {
     const targetLower = targetName.toLowerCase();
-    const [targetPrimary, targetAlt] = (natural.DoubleMetaphone as any).process(targetName);
+    const [targetPrimary, targetAlt] = doubleMetaphone.process(targetName);
 
     const matches: LasaMatch[] = [];
 
     for (const candidate of vocabulary) {
-        if (candidate.toLowerCase() === targetLower) continue;
+        if (candidate.lower === targetLower) continue;
 
-        const distance = natural.LevenshteinDistance(targetLower, candidate.toLowerCase());
-        const [candPrimary, candAlt] = (natural.DoubleMetaphone as any).process(candidate);
+        const distance = LevenshteinDistance(targetLower, candidate.lower);
         const soundsAlike =
-            candPrimary === targetPrimary || candPrimary === targetAlt || candAlt === targetPrimary;
+            candidate.primary === targetPrimary ||
+            candidate.primary === targetAlt ||
+            candidate.alt === targetPrimary;
 
         if (soundsAlike) {
-            matches.push({ name: candidate, type: "sound-alike", score: 1.0 });
+            matches.push({ name: candidate.name, type: "sound-alike", score: 1.0 });
         } else if (distance <= LEVENSHTEIN_THRESHOLD) {
             // Closer edit distance → higher score, capped at 0.85 to rank
             // below true phonetic matches, matching the primary RPC's scoring.
             const score = Math.max(0.5, 0.85 - distance * 0.15);
-            matches.push({ name: candidate, type: "look-alike", score });
+            matches.push({ name: candidate.name, type: "look-alike", score });
         }
     }
 

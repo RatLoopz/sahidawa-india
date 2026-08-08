@@ -119,6 +119,7 @@ export function RequestVerificationModal({
                     <button
                         onClick={onClose}
                         className="rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        aria-label="Close modal"
                     >
                         <X size={20} />
                     </button>

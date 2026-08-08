@@ -23,7 +23,7 @@ import {
     Database,
 } from "lucide-react";
 import { useSession } from "@/src/components/AuthProvider";
-import { canMutateAdminData, getAdminRoleFromSession } from "@/lib/adminAuth";
+import { canMutateAdminData, getAdminRoleFromUser } from "@/lib/adminAuth";
 
 type VerificationStatus = "pending" | "approved" | "rejected";
 
@@ -109,7 +109,7 @@ export default function ApprovalQueuePage() {
 
     useEffect(() => {
         if (authLoading) return;
-        const role = getAdminRoleFromSession(session);
+        const role = getAdminRoleFromUser(session?.user);
         setCanMutate(canMutateAdminData(role));
     }, [authLoading, session]);
 
@@ -227,6 +227,7 @@ export default function ApprovalQueuePage() {
                         className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                         title="Refresh queue"
                         id="refresh-verifications-btn"
+                        aria-label="Refresh queue"
                     >
                         <RefreshCw className="h-4 w-4" />
                     </button>

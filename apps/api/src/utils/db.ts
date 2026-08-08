@@ -13,15 +13,7 @@ export function escapeIlike(word: string): string {
  * meaning in PostgREST filter syntax.
  */
 export function escapePostgrest(val: string): string {
-    return val
-        .replace(/\\/g, "\\\\")
-        .replace(/"/g, '""')
-        .replace(/%/g, "\\%")
-        .replace(/_/g, "\\_")
-        .replace(/,/g, "\\,")
-        .replace(/\(/g, "\\(")
-        .replace(/\)/g, "\\)")
-        .replace(/\./g, "\\.");
+    return val.replace(/\\/g, "\\\\").replace(/"/g, '""').replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 export function buildOrConditions(fields: string[], words: string[]): string {

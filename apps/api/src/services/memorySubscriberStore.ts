@@ -123,6 +123,10 @@ class PersistedMemorySubscriberStore {
     }
 
     private startReconciliation(): void {
+        // Do not start the reconciliation interval in test environments —
+        // it creates an open handle that causes Jest timeout failures.
+        if (process.env.NODE_ENV === "test") return;
+
         setInterval(async () => {
             if (this.isReconciling) return;
             if (!dbConfig?.isSupabaseOffline && this.store.size > 0) {

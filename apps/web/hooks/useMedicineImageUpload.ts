@@ -48,15 +48,6 @@ export function useMedicineImageUpload({
     const ocrCancelledRef = useRef(false);
     const preprocessWorkerRef = useRef<Worker | null>(null);
 
-    useEffect(() => {
-        const worker = new Worker("/workers/imageEnhancer.worker.js");
-        preprocessWorkerRef.current = worker;
-        return () => {
-            worker.terminate();
-            preprocessWorkerRef.current = null;
-        };
-    }, []);
-
     const reset = () => {
         setUploadedImage(null);
         setOcrText(null);
@@ -86,8 +77,8 @@ export function useMedicineImageUpload({
         if (file.size > COMPRESSION_THRESHOLD) {
             try {
                 processedFile = (await imageCompression(file, {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 2,
+                    maxWidthOrHeight: 2400,
                     useWebWorker: true,
                 })) as File; // using 'as File' since typescript might infer Blob from compression
             } catch {
@@ -192,7 +183,24 @@ export function useMedicineImageUpload({
             setOcrStatus("extracting-text");
 
             if (!ocrWorkerRef.current) {
-                ocrWorkerRef.current = await Tesseract.createWorker("eng");
+                const initPromise = Tesseract.createWorker("eng");
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("OCR initialization timed out")), 60000)
+                );
+
+                try {
+                    const worker = await Promise.race([initPromise, timeoutPromise]);
+                    await worker.setParameters({
+                        tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
+                    });
+                    ocrWorkerRef.current = worker;
+                } catch (err) {
+                    throw new Error(
+                        err instanceof Error && err.message === "OCR initialization timed out"
+                            ? "OCR timed out"
+                            : "OCR Initialization failed"
+                    );
+                }
             }
 
             if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
@@ -200,7 +208,7 @@ export function useMedicineImageUpload({
 
             let timeoutId: ReturnType<typeof setTimeout> | undefined;
             const timeoutPromise = new Promise<never>((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 30000);
+                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 60000);
             });
 
             const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
@@ -336,10 +344,12 @@ export function useMedicineImageUpload({
             }
 
             const errorMsg = err instanceof Error ? err.message : String(err);
-            if (errorMsg === "OCR timed out") {
-                toast.error("OCR timed out. Please try again with a clearer image.");
+            if (errorMsg === "OCR timed out" || errorMsg === "OCR initialization timed out") {
+                toast.error(
+                    "OCR timed out. Please check your internet connection or try a clearer image."
+                );
                 setVerifyError(
-                    "The scan took too long. Please ensure the image is clear and try again."
+                    "The scan took too long. This may be due to a slow internet connection or a complex image. Please check your connection and try again."
                 );
                 void saveScanHistory({
                     id: crypto.randomUUID(),

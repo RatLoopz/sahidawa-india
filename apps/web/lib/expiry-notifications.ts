@@ -67,7 +67,7 @@ export async function syncMedicinesToIndexedDB(medicines: ExpiryMedicine[]) {
 
         await tx.done;
     } catch (err) {
-        console.error("Failed to sync medicines to IndexedDB:", err);
+        console.warn("Failed to sync medicines to IndexedDB:", err);
     }
 }
 
@@ -91,11 +91,11 @@ export async function registerPeriodicExpiryCheck() {
                 await registration.periodicSync.register("check-expiry", {
                     minInterval: 24 * 60 * 60 * 1000,
                 });
-                console.log("[Expiry Notifications] Registered periodic sync tag: check-expiry");
+                console.info("[Expiry Notifications] Registered periodic sync tag: check-expiry");
             }
         }
     } catch (err) {
-        console.error("Failed to register periodic sync:", err);
+        console.warn("Failed to register periodic sync:", err);
     }
 }
 
@@ -123,7 +123,7 @@ export async function requestNotificationPermission(): Promise<string> {
         }
         return permission;
     } catch (err) {
-        console.error("Error requesting notification permission:", err);
+        console.warn("Error requesting notification permission:", err);
         return Notification.permission;
     }
 }
@@ -167,7 +167,7 @@ export async function showImmediateNotification(title: string, body: string, tag
             new Notification(title, { body, tag, icon: "/icons/icon-192.png" });
         }
     } catch (err) {
-        console.error("Failed to show immediate notification:", err);
+        console.warn("Failed to show immediate notification:", err);
     }
 }
 
@@ -224,7 +224,7 @@ export async function checkAndTriggerLocalNotifications(medicines: ExpiryMedicin
 
         await tx.done;
     } catch (err) {
-        console.error("Error triggering in-app local notifications:", err);
+        console.warn("Error triggering in-app local notifications:", err);
     }
 }
 
@@ -244,7 +244,7 @@ export async function cancelNotificationsForMedicine(id: string) {
         }
         await tx.done;
     } catch (e) {
-        console.error("Failed to update notification flags in DB:", e);
+        console.warn("Failed to update notification flags in DB:", e);
     }
 
     try {
@@ -257,7 +257,7 @@ export async function cancelNotificationsForMedicine(id: string) {
             }
         }
     } catch (e) {
-        console.error("Failed to update shown notifications map:", e);
+        console.warn("Failed to update shown notifications map:", e);
     }
 
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -272,7 +272,7 @@ export async function cancelNotificationsForMedicine(id: string) {
                     }
                 });
             } catch (e) {
-                console.error("Failed to fetch/close notifications from SW registration:", e);
+                console.warn("Failed to fetch/close notifications from SW registration:", e);
             }
         }
     }
