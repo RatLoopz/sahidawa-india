@@ -12,12 +12,13 @@ describe("BarcodeScanner accessibility", () => {
             <BarcodeScanner onScan={() => undefined} onRetry={() => undefined} />
         );
 
-        expect(markup).toContain('role="region"');
+        expect(markup).toContain("<section");
         expect(markup).toContain("Barcode scanner camera");
         expect(markup).toContain('aria-label="Live camera preview for barcode scanning"');
         expect(markup).toContain("aria-labelledby=");
         expect(markup).toContain("aria-describedby=");
         expect(markup).toContain("Starting camera...");
+        expect(markup).not.toContain('role="region"');
     });
 
     it("exposes keyboard-operable retry controls on verification failure", () => {

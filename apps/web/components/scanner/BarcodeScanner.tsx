@@ -24,6 +24,40 @@ function stopMediaStream(stream: MediaStream | null): void {
 
 const SCANNER_INACTIVITY_TIMEOUT = 45000;
 
+type StatusMessageIds = {
+    initializing: string;
+    permissionDenied: string;
+    unavailable: string;
+    scannerError: string;
+    scanningHint: string;
+};
+
+function resolveStatusDescriptionId(
+    apiError: string | null | undefined,
+    isVerifying: boolean | undefined,
+    status: ScannerStatus,
+    ids: StatusMessageIds
+): string | undefined {
+    if (apiError || isVerifying) {
+        return undefined;
+    }
+
+    switch (status) {
+        case "initializing":
+            return ids.initializing;
+        case "permission-denied":
+            return ids.permissionDenied;
+        case "unavailable":
+            return ids.unavailable;
+        case "error":
+            return ids.scannerError;
+        case "scanning":
+            return ids.scanningHint;
+        default:
+            return undefined;
+    }
+}
+
 function playFeedback(): void {
     // 1. Haptic Feedback
     try {
@@ -122,20 +156,13 @@ export function BarcodeScanner({
     const scanningHintId = useId();
     const scannerRegionLabelId = useId();
 
-    const statusDescriptionId =
-        apiError || isVerifying
-            ? undefined
-            : status === "initializing"
-              ? initializingMessageId
-              : status === "permission-denied"
-                ? permissionDeniedMessageId
-                : status === "unavailable"
-                  ? unavailableMessageId
-                  : status === "error"
-                    ? scannerErrorMessageId
-                    : status === "scanning"
-                      ? scanningHintId
-                      : undefined;
+    const statusDescriptionId = resolveStatusDescriptionId(apiError, isVerifying, status, {
+        initializing: initializingMessageId,
+        permissionDenied: permissionDeniedMessageId,
+        unavailable: unavailableMessageId,
+        scannerError: scannerErrorMessageId,
+        scanningHint: scanningHintId,
+    });
 
     // Update refs when props change
     useEffect(() => {
@@ -319,9 +346,8 @@ export function BarcodeScanner({
     }, [retryCount, shouldEmitScan, onScan, resetInactivityTimer]); // isVerifying and apiError are purposefully removed here!
 
     return (
-        <div
+        <section
             className="relative h-full w-full overflow-hidden rounded-2xl bg-black"
-            role="region"
             aria-labelledby={scannerRegionLabelId}
             aria-describedby={statusDescriptionId}
         >
@@ -605,6 +631,6 @@ export function BarcodeScanner({
                     )}
                 </>
             )}
-        </div>
+        </section>
     );
 }
