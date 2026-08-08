@@ -1,5 +1,24 @@
 [
   {
+    "prNumber": 4222,
+    "title": "fix(web): remove unsafe-eval from production CSP",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-08-08",
+    "area": "Frontend",
+    "score": 25,
+    "docPath": "docs/devtrack/2026-08/PR-4222-fix-web-remove-unsafe-eval-from-production-csp.md",
+    "linkedIssue": "#4219",
+    "labels": "level:critical,quality:exceptional,gssoc:approved,type:testing,type:security,type:refactor",
+    "filesChanged": [
+      "apps/web/components/scanner/usePackagingHint.ts",
+      "apps/web/lib/vision/detectPackaging.ts",
+      "apps/web/lib/vision/loadOpenCv.ts",
+      "apps/web/next.config.mjs",
+      "apps/web/proxy.ts",
+      "apps/web/public/opencv/sandbox.html",
+      "apps/web/tests/e2e/csp-unsafe-eval.spec.ts"
+    ],
+    "adr": "docs/devtrack/adr/ADR-061-fix-web-remove-unsafe-eval-from-production-csp.md"
     "prNumber": 4227,
     "title": "feat: add image validation before medicine OCR",
     "author": "0504Siddhi",

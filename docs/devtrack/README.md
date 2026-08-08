@@ -8,6 +8,7 @@ All PR summaries are now stored in a centralized JSON log.
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#4222](https://github.com/RatLoopz/sahidawa-india/pull/4222) | 2026-08-08 | Frontend | 25 | @Shreya-nipunge | [View Doc](./2026-08/PR-4222-fix-web-remove-unsafe-eval-from-production-csp.md) / [ADR](./adr/ADR-061-fix-web-remove-unsafe-eval-from-production-csp.md) |
 | [#4227](https://github.com/RatLoopz/sahidawa-india/pull/4227) | 2026-08-08 | Frontend | 12 | @0504Siddhi | [View Doc](./2026-08/PR-4227-feat-add-image-validation-before-medicine-ocr.md) |
 | [#4187](https://github.com/RatLoopz/sahidawa-india/pull/4187) | 2026-08-06 | Frontend | 5 | @kumudasrip | [View Doc](./2026-08/PR-4187-bug-fix-dead-code-and-hook-up-share-alert-feature.md) |
 | [#4122](https://github.com/RatLoopz/sahidawa-india/pull/4122) | 2026-08-06 | Backend | 9 | @Shreya-nipunge | [View Doc](./2026-08/PR-4122-fix-scan-add-request-scoped-temp-file-cleanup-to-s.md) |
