@@ -15,7 +15,14 @@
                 "NEXT_PUBLIC_SUPABASE_URL",
                 "NEXT_PUBLIC_SUPABASE_ANON_KEY",
                 "NEXT_PUBLIC_API_URL",
-                "NEXT_PUBLIC_SITE_URL"
+                "NEXT_PUBLIC_SITE_URL",
+                "API_SECRET_KEY",
+                "INTERNAL_API_URL",
+                "GROQ_API_KEY",
+                "NODE_ENV",
+                "BYPASS_RATE_LIMIT",
+                "UPSTASH_REDIS_REST_URL",
+                "UPSTASH_REDIS_REST_TOKEN"
             ]
         },
         "test": {
