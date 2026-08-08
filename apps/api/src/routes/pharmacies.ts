@@ -367,9 +367,10 @@ router.post(
 
             const pharmacy = await pharmacyService.registerPharmacy(parsed.data, req.user.id);
             res.status(201).json({ pharmacy });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
                 return;
             }
             next(err);
@@ -601,12 +602,13 @@ router.get(
 
             const result = await pharmacyService.searchByMedicine(rawQuery);
             res.json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
                 return;
             }
-            logger.error("Pharmacy medicine search failed", { error: err.message });
+            logger.error("Pharmacy medicine search failed", { error: err instanceof Error ? err.message : String(err) });
             res.status(500).json({ error: "Database query failed" });
         }
     }
@@ -979,7 +981,7 @@ router.post(
                 );
                 res.end();
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Unknown error";
             logger.error(`Exception in bulk operations handler: ${message}`);
             if (!res.headersSent) {
@@ -1018,9 +1020,10 @@ router.put(
                 req.body
             );
             res.status(200).json({ pharmacy });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
                 return;
             }
             next(err);
@@ -1045,9 +1048,10 @@ router.delete(
             const pharmacyId = String(req.params.id);
             await pharmacyService.deletePharmacy(pharmacyId, req.user!.id, req.user!.role);
             res.status(200).json({ message: "Pharmacy deleted successfully" });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
                 return;
             }
             next(err);
@@ -1079,12 +1083,13 @@ router.post(
                 fileContent
             );
             res.status(200).json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
                 return;
             }
-            logger.error(`Exception in specific pharmacy upload handler: ${err.message}`);
+            logger.error(`Exception in specific pharmacy upload handler: ${err instanceof Error ? err.message : String(err)}`);
             next(err);
         }
     }

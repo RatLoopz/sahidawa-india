@@ -256,7 +256,7 @@ ctx.onmessage = async (event: MessageEvent) => {
             );
             ctx.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         ctx.postMessage({
             id,
             error: error instanceof Error ? error.message : "Image enhancement worker failed.",
