@@ -105,10 +105,14 @@ const nextConfig = {
                         key: "Content-Security-Policy",
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com",
-                            "worker-src 'self' blob:",
+                            // 'unsafe-eval' is required for WebAssembly (Tesseract OCR WASM engine).
+                            // 'strict-dynamic' propagates trust to dynamically created scripts.
+                            "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                            // blob: is required so Tesseract's CDN worker script can spawn a Blob Worker.
+                            "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com",
                             "style-src 'self' 'unsafe-inline'",
-                            `connect-src ${connectSrc} https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
+                            // wss: is required for Supabase Realtime WebSocket connections.
+                            `connect-src ${connectSrc} wss: https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
                             "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
                             "font-src 'self'",
                             "object-src 'none'",
