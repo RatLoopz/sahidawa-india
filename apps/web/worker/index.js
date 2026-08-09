@@ -160,6 +160,18 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
+    // --- Cache Tesseract/OCR CDN assets for fast, offline accessibility ---
+    if (
+        url.hostname.includes("jsdelivr.net") ||
+        url.hostname.includes("unpkg.com") ||
+        url.hostname.includes("projectnaptha.com")
+    ) {
+        event.respondWith(
+            cacheFirstWithExpiry(request, STATIC_CACHE_NAME, 30 * 24 * 60 * 60 * 1000)
+        );
+        return;
+    }
+
     // --- Skip cross-origin requests (analytics, CDN assets, etc.) ---
     if (url.origin !== self.location.origin) return;
 

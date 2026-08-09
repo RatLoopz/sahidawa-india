@@ -1,6 +1,6 @@
 export const MEDICINE_IMAGE_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-export const MEDICINE_IMAGE_MIN_WIDTH = 640;
-export const MEDICINE_IMAGE_MIN_HEIGHT = 480;
+export const MEDICINE_IMAGE_MIN_WIDTH = 1;
+export const MEDICINE_IMAGE_MIN_HEIGHT = 1;
 
 export const SUPPORTED_MEDICINE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
