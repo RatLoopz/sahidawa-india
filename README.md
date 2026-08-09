@@ -12,9 +12,13 @@
 
 ### Open-Source Medicine Safety Infrastructure for Bharat
 
+**RatLoopz is an open-source civic health organization founded, owned, and led by Dipjyoti Das. Its flagship project, SahiDawa, is a medicine verification platform developed under his direct architecture and leadership.**
+
 **Scan a medicine. Detect safety risks. Stay ahead of recalls.**
 
 _Built for Bharat. Not just India._
+
+SahiDawa is an open-source, anti-counterfeit medicine verification platform designed for India's healthcare ecosystem. By integrating AI-driven OCR and real-time CDSCO database checks, it empowers citizens to detect fake medicines, track drug recalls, and ensure medical safety.
 
 <br/>
 
@@ -25,6 +29,8 @@ _Built for Bharat. Not just India._
 ---
 
 ## 🔗 Quick Links
+
+- 🌐 [RatLoopz Collective Website](https://ratloopz.vercel.app/)
 
 - 📖 [Documentation](./docs/)
 - 📝 [Architecture Decision Records (ADRs)](./docs/adr/)
