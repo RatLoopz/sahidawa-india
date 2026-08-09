@@ -394,7 +394,11 @@ export function ChildVaccinationTracker() {
                 reader.onerror = () => reject(new Error("Failed to read file"));
                 reader.readAsDataURL(file);
             });
-            worker = await Tesseract.createWorker("eng");
+            worker = await Tesseract.createWorker("eng", 1, {
+                workerPath: "/tesseract/worker.min.js",
+                langPath: "/tesseract",
+                corePath: "/tesseract/tesseract-core.wasm.js",
+            });
             const { data } = await worker.recognize(dataUrl);
             const text = data.text;
 
