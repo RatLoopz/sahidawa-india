@@ -24,6 +24,40 @@ function stopMediaStream(stream: MediaStream | null): void {
 
 const SCANNER_INACTIVITY_TIMEOUT = 45000;
 
+type StatusMessageIds = {
+    initializing: string;
+    permissionDenied: string;
+    unavailable: string;
+    scannerError: string;
+    scanningHint: string;
+};
+
+function resolveStatusDescriptionId(
+    apiError: string | null | undefined,
+    isVerifying: boolean | undefined,
+    status: ScannerStatus,
+    ids: StatusMessageIds
+): string | undefined {
+    if (apiError || isVerifying) {
+        return undefined;
+    }
+
+    switch (status) {
+        case "initializing":
+            return ids.initializing;
+        case "permission-denied":
+            return ids.permissionDenied;
+        case "unavailable":
+            return ids.unavailable;
+        case "error":
+            return ids.scannerError;
+        case "scanning":
+            return ids.scanningHint;
+        default:
+            return undefined;
+    }
+}
+
 function playFeedback(): void {
     // 1. Haptic Feedback
     try {
@@ -119,6 +153,16 @@ export function BarcodeScanner({
     const permissionDeniedMessageId = useId();
     const unavailableMessageId = useId();
     const scannerErrorMessageId = useId();
+    const scanningHintId = useId();
+    const scannerRegionLabelId = useId();
+
+    const statusDescriptionId = resolveStatusDescriptionId(apiError, isVerifying, status, {
+        initializing: initializingMessageId,
+        permissionDenied: permissionDeniedMessageId,
+        unavailable: unavailableMessageId,
+        scannerError: scannerErrorMessageId,
+        scanningHint: scanningHintId,
+    });
 
     // Update refs when props change
     useEffect(() => {
@@ -302,7 +346,14 @@ export function BarcodeScanner({
     }, [retryCount, shouldEmitScan, onScan, resetInactivityTimer]); // isVerifying and apiError are purposefully removed here!
 
     return (
-        <div className="relative h-full w-full overflow-hidden rounded-2xl bg-black">
+        <section
+            className="relative h-full w-full overflow-hidden rounded-2xl bg-black"
+            aria-labelledby={scannerRegionLabelId}
+            aria-describedby={statusDescriptionId}
+        >
+            <h2 id={scannerRegionLabelId} className="sr-only">
+                Barcode scanner camera
+            </h2>
             {/* 1. THE BASE CAMERA LAYER (Always rendered) */}
             <video
                 ref={videoRef}
@@ -310,6 +361,7 @@ export function BarcodeScanner({
                 autoPlay
                 playsInline
                 muted
+                aria-label="Live camera preview for barcode scanning"
             />
 
             {/* 2. THE ERROR OVERLAY */}
@@ -322,6 +374,7 @@ export function BarcodeScanner({
                     <p className="max-w-xs text-sm text-slate-400">{apiError}</p>
                     {onRetry && (
                         <button
+                            type="button"
                             onClick={onRetry} // Now we ONLY clear the error. The camera underneath is already ready!
                             className="mt-4 rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
                         >
@@ -399,6 +452,7 @@ export function BarcodeScanner({
                             </div>
 
                             <button
+                                type="button"
                                 onClick={handleCameraRetry}
                                 className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
                             >
@@ -409,6 +463,7 @@ export function BarcodeScanner({
                             <p className="text-xs text-slate-500">Or use these alternatives:</p>
                             <div className="flex w-full max-w-xs gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -418,6 +473,7 @@ export function BarcodeScanner({
                                     📷 Upload Photo
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onRetry}
                                     className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
                                 >
@@ -441,6 +497,7 @@ export function BarcodeScanner({
                             <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
                             <div className="flex w-full max-w-xs gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -450,6 +507,7 @@ export function BarcodeScanner({
                                     📷 Upload Photo
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onRetry}
                                     className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
                                 >
@@ -472,6 +530,7 @@ export function BarcodeScanner({
                             <h3 className="text-lg font-bold text-white">Scanner Error</h3>
                             <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
                             <button
+                                type="button"
                                 onClick={handleCameraRetry}
                                 className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-600"
                             >
@@ -479,6 +538,7 @@ export function BarcodeScanner({
                             </button>
                             <div className="flex w-full max-w-xs gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -488,6 +548,7 @@ export function BarcodeScanner({
                                     📷 Upload Photo
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onRetry}
                                     className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
                                 >
@@ -501,6 +562,9 @@ export function BarcodeScanner({
                         <>
                             <div className="absolute top-3 left-1/2 z-30 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
                                 <span
+                                    id={scanningHintId}
+                                    role="status"
+                                    aria-live="polite"
                                     className={`text-xs font-medium ${
                                         looksLikePackaging ? "text-emerald-400" : "text-slate-300"
                                     }`}
@@ -546,12 +610,14 @@ export function BarcodeScanner({
                             </p>
                             <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => resetInactivityTimer()}
                                     className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
                                 >
                                     Keep Scanning
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -565,6 +631,6 @@ export function BarcodeScanner({
                     )}
                 </>
             )}
-        </div>
+        </section>
     );
 }
