@@ -93,7 +93,28 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
-            <head></head>
+            <head>
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "Organization",
+                            name: "RatLoopz",
+                            alternateName: "SahiDawa",
+                            url: "https://github.com/RatLoopz",
+                            founder: {
+                                "@type": "Person",
+                                name: "Dipjyoti Das",
+                                sameAs: [
+                                    "https://www.linkedin.com/in/dipjyotidas",
+                                    "https://github.com/dipexplorer",
+                                ],
+                            },
+                        }),
+                    }}
+                />
+            </head>
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>

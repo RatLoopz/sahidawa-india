@@ -6,7 +6,7 @@ import { RequestVerificationModal } from "../components/RequestVerificationModal
 const mockGetSession = jest.fn();
 const mockInsert = jest.fn();
 
-jest.mock("@/hooks/useFocusTrap", () => ({
+jest.mock("../hooks/useFocusTrap", () => ({
     useFocusTrap: jest.fn(),
 }));
 
