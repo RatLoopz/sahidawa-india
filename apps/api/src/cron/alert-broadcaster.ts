@@ -360,7 +360,8 @@ export async function broadcastDrugAlerts(): Promise<void> {
         const { data: alerts, error: alertsError } = await supabase
             .from("drug_alerts")
             .select("*")
-            .eq("broadcasted", false);
+            .eq("broadcasted", false)
+            .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`);
 
         if (alertsError) {
             logger.error({

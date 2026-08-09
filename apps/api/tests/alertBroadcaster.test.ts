@@ -117,6 +117,7 @@ function createSubscriberQueryMock(capturedEqArgs: string[]) {
 function createAlertTable(alerts: Record<string, unknown>[]) {
     const chain: Record<string, unknown> = {
         eq: jest.fn(() => chain),
+        or: jest.fn(() => chain),
         then: (resolve: (value: unknown) => void) => resolve({ data: alerts, error: null }),
     };
 
@@ -448,17 +449,19 @@ describe("broadcastDrugAlerts", () => {
             if (table === "drug_alerts") {
                 return {
                     select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockResolvedValue({
-                            data: [
-                                {
-                                    id: "drug-alert-1",
-                                    district: "Delhi",
-                                    reported_brand_name: "Paracetamol",
-                                    batch_number: "B1",
-                                    broadcasted: false,
-                                },
-                            ],
-                            error: null,
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Delhi",
+                                        reported_brand_name: "Paracetamol",
+                                        batch_number: "B1",
+                                        broadcasted: false,
+                                    },
+                                ],
+                                error: null,
+                            }),
                         }),
                     }),
                     update: markSpy,
@@ -494,17 +497,19 @@ describe("broadcastDrugAlerts", () => {
             if (table === "drug_alerts") {
                 return {
                     select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockResolvedValue({
-                            data: [
-                                {
-                                    id: "drug-alert-1",
-                                    district: "Mumbai",
-                                    reported_brand_name: "Ibuprofen",
-                                    batch_number: "B2",
-                                    broadcasted: false,
-                                },
-                            ],
-                            error: null,
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Mumbai",
+                                        reported_brand_name: "Ibuprofen",
+                                        batch_number: "B2",
+                                        broadcasted: false,
+                                    },
+                                ],
+                                error: null,
+                            }),
                         }),
                     }),
                     update: markSpy,
@@ -530,6 +535,146 @@ describe("broadcastDrugAlerts", () => {
 
         expect(smsService.send).toHaveBeenCalledTimes(1);
         expect(markSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not broadcast a drug alert that is currently snoozed", async () => {
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: jest.fn(),
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).not.toHaveBeenCalled();
+    });
+
+    it("broadcasts a drug alert whose snooze period has expired", async () => {
+        const markSpy = jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Delhi",
+                                        reported_brand_name: "Paracetamol",
+                                        batch_number: "B1",
+                                        broadcasted: false,
+                                        snoozed_until: "2026-01-01T00:00:00.000Z",
+                                    },
+                                ],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: markSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).toHaveBeenCalledWith({ broadcasted: true });
+    });
+
+    it("broadcasts a drug alert with null snoozed_until", async () => {
+        const markSpy = jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Delhi",
+                                        reported_brand_name: "Paracetamol",
+                                        batch_number: "B1",
+                                        broadcasted: false,
+                                        snoozed_until: null,
+                                    },
+                                ],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: markSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).toHaveBeenCalledWith({ broadcasted: true });
     });
 });
 
