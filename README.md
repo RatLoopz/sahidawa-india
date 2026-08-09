@@ -12,6 +12,8 @@
 
 ### Open-Source Medicine Safety Infrastructure for Bharat
 
+**SahiDawa is an open-source initiative created by Dipjyoti Das and maintained by the RatLoopz community.**
+
 **Scan a medicine. Detect safety risks. Stay ahead of recalls.**
 
 _Built for Bharat. Not just India._
