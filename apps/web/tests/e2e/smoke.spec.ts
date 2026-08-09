@@ -12,7 +12,7 @@ test.describe("Smoke Tests", () => {
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
         // Verify page has content beyond just body
-        const content = page.locator("body > *").first();
+        const content = page.locator("main, #__next, .min-h-screen").first();
         await expect(content).toBeVisible({ timeout: 30000 });
     });
 
@@ -23,7 +23,7 @@ test.describe("Smoke Tests", () => {
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
         // Verify page has content beyond just body
-        const content = page.locator("body > *").first();
+        const content = page.locator("main, #__next, .min-h-screen").first();
         await expect(content).toBeVisible({ timeout: 30000 });
     });
 
@@ -34,7 +34,7 @@ test.describe("Smoke Tests", () => {
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
         // Verify page has content beyond just body
-        const content = page.locator("body > *").first();
+        const content = page.locator("main, #__next, .min-h-screen").first();
         await expect(content).toBeVisible({ timeout: 30000 });
     });
 
@@ -45,7 +45,7 @@ test.describe("Smoke Tests", () => {
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
         // Verify page has content beyond just body
-        const content = page.locator("body > *").first();
+        const content = page.locator("main, #__next, .min-h-screen").first();
         await expect(content).toBeVisible({ timeout: 30000 });
     });
 
@@ -56,7 +56,7 @@ test.describe("Smoke Tests", () => {
         await expect(page.locator("body")).toBeVisible({ timeout: 30000 });
 
         // Verify page has content beyond just body
-        const content = page.locator("body > *").first();
+        const content = page.locator("main, #__next, .min-h-screen").first();
         await expect(content).toBeVisible({ timeout: 30000 });
     });
 });

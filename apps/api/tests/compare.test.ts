@@ -17,12 +17,18 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedRedis = redisClient as jest.Mocked<typeof redisClient>;
 
 // Using a mock auth middleware via environmental setup or mocking would be ideal,
-// but if `requireAuth` is used, we must mock it or bypass it. 
+// but if `requireAuth` is used, we must mock it or bypass it.
 jest.mock("../src/middleware/auth", () => ({
     requireAuth: (req: any, res: any, next: any) => {
         req.user = { id: "test-user-id", role: "user" };
         next();
-    }
+    },
+    requireRole: (role: string) => (req: any, res: any, next: any) => {
+        next();
+    },
+    optionalAuth: (req: any, res: any, next: any) => {
+        next();
+    },
 }));
 
 describe("POST /api/compare", () => {
@@ -61,9 +67,7 @@ describe("POST /api/compare", () => {
         mockedRedis.get.mockResolvedValueOnce(null); // miss for pair 1
         mockedAxios.post.mockResolvedValueOnce({ data: { similarity: 0.1 } });
 
-        await request(app)
-            .post("/api/compare")
-            .send({ medicine_a: "a||b", medicine_b: "c" });
+        await request(app).post("/api/compare").send({ medicine_a: "a||b", medicine_b: "c" });
 
         // Capture the cache key used in the Redis SET command
         const cacheKey1 = (mockedRedis.set as jest.Mock).mock.calls[0][0];
@@ -72,9 +76,7 @@ describe("POST /api/compare", () => {
         mockedRedis.get.mockResolvedValueOnce(null); // cache miss for pair 2
         mockedAxios.post.mockResolvedValueOnce({ data: { similarity: 0.9 } });
 
-        await request(app)
-            .post("/api/compare")
-            .send({ medicine_a: "a", medicine_b: "b||c" });
+        await request(app).post("/api/compare").send({ medicine_a: "a", medicine_b: "b||c" });
 
         const cacheKey2 = (mockedRedis.set as jest.Mock).mock.calls[1][0];
 

@@ -270,7 +270,7 @@ export async function fetchPmjayEligibility(
             }));
         } catch (err: unknown) {
             logger.error("Error evaluating eligibility: ", err);
-            const errName = err instanceof Error ? err.name : null;
+            const errName = err instanceof Error ? err.name : (err as any)?.name || null;
             if (
                 err instanceof PmjayAuthError ||
                 errName === "PmjayAuthError" ||
