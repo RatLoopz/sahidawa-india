@@ -12,7 +12,7 @@
 
 ### Open-Source Medicine Safety Infrastructure for Bharat
 
-**RatLoopz is an open-source developer collective founded and led by Dipjyoti Das. Its flagship medical project, SahiDawa, is a medicine verification platform developed under his direct architecture and leadership.**
+**RatLoopz is an open-source developer collective created and led by Dipjyoti Das. Its flagship medical project, SahiDawa, is a medicine verification platform developed under his direct architecture and leadership.**
 
 **Scan a medicine. Detect safety risks. Stay ahead of recalls.**
 
