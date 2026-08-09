@@ -207,6 +207,15 @@ const updatePhoneSchema = z
     })
     .strict();
 
+export function escapeXml(text: string): string {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+}
+
 const twilioWebhookSchema = z.object({
     From: z
         .string()
@@ -1258,7 +1267,7 @@ router.post(
             res.setHeader("Content-Type", "text/xml");
             res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Message>${replyMessage}</Message>
+    <Message>${escapeXml(replyMessage)}</Message>
 </Response>`);
         } catch (err) {
             logger.error({ message: "Error in Twilio webhook", error: err });
