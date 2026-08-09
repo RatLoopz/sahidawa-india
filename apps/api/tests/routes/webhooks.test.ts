@@ -3,6 +3,7 @@ import express from "express";
 import webhooksRouter from "../../src/routes/webhooks";
 import { redisClient } from "../../src/utils/redis";
 import { invalidateCacheByPattern } from "../../src/services/cache.service";
+import logger from "../../src/utils/logger";
 
 // Mock the redis client
 jest.mock("../../src/utils/redis", () => ({
@@ -63,6 +64,34 @@ describe("Webhooks Routes", () => {
 
             expect(res.status).toBe(401);
             expect(res.body).toEqual({ error: "Unauthorized" });
+        });
+
+        it("logs only IP and header names on unauthorized attempts", async () => {
+            const res = await request(app)
+                .post("/api/webhooks/supabase/medicines")
+                .set("Authorization", "Bearer wrong-secret")
+                .set("X-Custom-Probe", "should-not-be-logged-as-value")
+                .send({});
+
+            expect(res.status).toBe(401);
+            expect(logger.warn).toHaveBeenCalled();
+
+            const warnCalls = (logger.warn as jest.Mock).mock.calls;
+            const unauthorizedCall = warnCalls.find(
+                ([message]) =>
+                    typeof message === "string" && message.includes("Unauthorized webhook attempt")
+            );
+            expect(unauthorizedCall).toBeDefined();
+
+            const meta = unauthorizedCall![1] as Record<string, unknown>;
+            expect(meta).toHaveProperty("ip");
+            expect(meta).toHaveProperty("headerNames");
+            expect(meta).not.toHaveProperty("headers");
+            expect(JSON.stringify(meta)).not.toContain("wrong-secret");
+            expect(JSON.stringify(meta)).not.toContain("should-not-be-logged-as-value");
+            expect(meta.headerNames).toEqual(
+                expect.arrayContaining(["authorization", "x-custom-probe"])
+            );
         });
     });
 
