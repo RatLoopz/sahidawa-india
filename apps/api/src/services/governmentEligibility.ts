@@ -302,7 +302,9 @@ export async function fetchPmjayEligibility(
                 });
                 continue;
             }
-            throw new PmjayNetworkError(`Network request failed: ${err.message || String(err)}`);
+            throw new PmjayNetworkError(
+                `Network request failed: ${err instanceof Error ? err.message : String(err)}`
+            );
         }
     }
 

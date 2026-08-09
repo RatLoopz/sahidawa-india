@@ -100,6 +100,7 @@ describe("POST /api/upload", () => {
         process.env.CLOUDINARY_API_KEY = API_KEY;
         process.env.CLOUDINARY_API_SECRET = API_SECRET;
         process.env.TRUST_PROXY_HEADERS = "true";
+        process.env.TRUSTED_PROXY_HOPS = "2";
 
         fetchMock = jest.fn().mockResolvedValue({
             ok: true,
@@ -116,6 +117,7 @@ describe("POST /api/upload", () => {
         delete process.env.CLOUDINARY_API_KEY;
         delete process.env.CLOUDINARY_API_SECRET;
         delete process.env.TRUST_PROXY_HEADERS;
+        delete process.env.TRUSTED_PROXY_HOPS;
         jest.restoreAllMocks();
     });
 

@@ -236,7 +236,7 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
 
                 res.status(500).json({
                     error: "Internal server error during eligibility check",
-                    details: err.message || String(err),
+                    details: err instanceof Error ? err.message : String(err),
                 });
                 return;
             }

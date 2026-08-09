@@ -295,6 +295,11 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
             });
             cache
                 .put(request, cloned)
+                .then(() => {
+                    if (cacheName === TILES_CACHE_NAME) {
+                        limitCacheSize(TILES_CACHE_NAME, 200);
+                    }
+                })
                 .catch(() => console.warn("[SW] Failed to cache asset in cacheFirstWithExpiry"));
         }
         return networkResponse;
@@ -309,6 +314,24 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
         }
 
         return new Response("Offline", { status: 503 });
+    }
+}
+
+/**
+ * Limit cache size by deleting the oldest entries in FIFO order.
+ */
+async function limitCacheSize(cacheName, maxItems) {
+    try {
+        const cache = await caches.open(cacheName);
+        const keys = await cache.keys();
+        if (keys.length > maxItems) {
+            const numberToDelete = keys.length - maxItems;
+            for (let i = 0; i < numberToDelete; i++) {
+                await cache.delete(keys[i]);
+            }
+        }
+    } catch (e) {
+        console.warn(`[SW] Failed to limit cache size for ${cacheName}`, e);
     }
 }
 

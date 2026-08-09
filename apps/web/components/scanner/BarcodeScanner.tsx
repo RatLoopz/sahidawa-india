@@ -581,7 +581,7 @@ export function BarcodeScanner({
                                 </span>
                             </div>
                             <div className="pointer-events-none absolute top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 text-center">
-                                <div className="h-64 w-64 rounded-xl border-2 border-dashed border-emerald-500/50"></div>
+                                <div className="h-48 w-80 rounded-xl border-2 border-dashed border-emerald-500/50"></div>
                                 <p className="mt-4 rounded bg-black/40 px-2 py-1 text-xs font-bold text-white/80 drop-shadow-md">
                                     Looking for Barcode...
                                     <br />
