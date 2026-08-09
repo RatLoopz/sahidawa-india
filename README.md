@@ -18,6 +18,8 @@
 
 _Built for Bharat. Not just India._
 
+SahiDawa is an open-source, anti-counterfeit medicine verification platform designed for India's healthcare ecosystem. By integrating AI-driven OCR and real-time CDSCO database checks, it empowers citizens to detect fake medicines, track drug recalls, and ensure medical safety.
+
 <br/>
 
 [**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](https://discord.gg/6Qa6VuE6) · [**Read the Docs**](./docs/)
