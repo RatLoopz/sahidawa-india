@@ -30,6 +30,8 @@ SahiDawa is an open-source, anti-counterfeit medicine verification platform desi
 
 ## 🔗 Quick Links
 
+- 🌐 [RatLoopz Collective Website](https://ratloopz.vercel.app/)
+
 - 📖 [Documentation](./docs/)
 - 📝 [Architecture Decision Records (ADRs)](./docs/adr/)
 - 🚀 [Getting Started](#-getting-started)
