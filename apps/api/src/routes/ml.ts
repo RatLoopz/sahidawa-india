@@ -1,7 +1,6 @@
 import { Router, Response } from "express";
 import { z } from "zod";
 import { createHash, createHmac, randomBytes } from "node:crypto";
-import { promises as dns } from "node:dns";
 import {
     getMlServiceUrl,
     getMlAuthHeaders,
@@ -11,7 +10,6 @@ import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
 import { limiter } from "../middleware/rateLimit";
 import { redisClient } from "../utils/redis";
-import { isBlockedOutboundHost } from "../utils/security/urlValidator";
 
 const router = Router();
 
@@ -26,7 +24,8 @@ const analyzeResponseSchema = z.object({
     details: z.string(),
 });
 
-const LINK_LOCAL_HOSTNAMES = [".local", ".internal", ".nip.io", ".localtest.me"];
+/** Must match apps/ml/routers/analyze.py CLOUDINARY_IMAGE_HOST allowlist. */
+const CLOUDINARY_IMAGE_HOST = "res.cloudinary.com";
 
 const ML_ANALYSIS_CACHE_TTL_SECONDS = 3600; // 1 hour
 const ML_ANALYSIS_TIMEOUT_MS = 8000;
@@ -36,16 +35,27 @@ function buildCacheKey(imageUrl: string): string {
     return `ml:analyze:${hash}`;
 }
 
-async function isPrivateHostname(urlStr: string): Promise<boolean> {
+/**
+ * Allowlist Cloudinary delivery URLs only — avoids DNS-rebinding TOCTOU from
+ * resolve-then-fetch checks, and matches the ML service gate.
+ */
+function isAllowedAnalyzeImageUrl(urlStr: string): boolean {
     try {
-        const hostname = new URL(urlStr).hostname.replace(/^\[|\]$/g, "");
-        if (isBlockedOutboundHost(hostname)) return true;
-        if (LINK_LOCAL_HOSTNAMES.some((s) => hostname.endsWith(s))) return true;
+        const parsed = new URL(urlStr);
+        if (parsed.protocol !== "https:") return false;
+        if (parsed.username || parsed.password) return false;
+        if (parsed.port && parsed.port !== "443") return false;
+        if (parsed.hostname.toLowerCase() !== CLOUDINARY_IMAGE_HOST) return false;
+        if (parsed.search || parsed.hash) return false;
 
-        const addresses = await dns.resolve4(hostname);
-        return addresses.some((addr) => isBlockedOutboundHost(addr));
-    } catch {
+        const pathSegments = parsed.pathname.split("/").filter(Boolean);
+        // Expected: /{cloud_name}/image/upload/...
+        if (pathSegments.length < 3 || pathSegments[1] !== "image" || pathSegments[2] !== "upload") {
+            return false;
+        }
         return true;
+    } catch {
+        return false;
     }
 }
 
@@ -60,14 +70,14 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
         return;
     }
 
-    if (await isPrivateHostname(parsed.data.imageUrl)) {
+    if (!isAllowedAnalyzeImageUrl(parsed.data.imageUrl)) {
         logger.warn("SSRF attempt blocked", {
             imageUrl: parsed.data.imageUrl,
             caller: req.user?.email ?? req.user?.id,
         });
         res.status(400).json({
             error: "Invalid request body",
-            details: [{ message: "imageUrl must point to a public HTTPS resource" }],
+            details: [{ message: "imageUrl must be a Cloudinary HTTPS image delivery URL" }],
         });
         return;
     }
