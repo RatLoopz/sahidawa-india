@@ -38,6 +38,8 @@ export default async function middleware(req: NextRequest) {
             [
                 "'self'",
                 getOrigin(supabaseUrl),
+                // Supabase Realtime uses WebSocket — must whitelist the wss:// origin explicitly.
+                getWsOrigin(supabaseUrl),
                 getOrigin(apiUrl),
                 getOrigin(mlUrl),
                 getWsOrigin(mlUrl),
@@ -59,8 +61,14 @@ export default async function middleware(req: NextRequest) {
     // Nonce-based strict CSP
     const csp = [
         "default-src 'self'",
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net https://unpkg.com`,
-        "worker-src 'self' blob:",
+        // 'wasm-unsafe-eval' is the precise W3C directive that allows WebAssembly compilation
+        // (required by Tesseract.js OCR) without opening up arbitrary eval().
+        // 'unsafe-eval' is included as a fallback for older browsers.
+        // 'strict-dynamic' propagates trust from the nonce to dynamically loaded scripts.
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com`,
+        // CDN hosts are listed so the Tesseract worker script (fetched from jsdelivr/unpkg)
+        // is allowed to spawn a blob: Web Worker.
+        "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com",
         `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
         `connect-src ${connectSrc}`,
         "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
