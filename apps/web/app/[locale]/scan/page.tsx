@@ -489,7 +489,7 @@ export default function ScanPage() {
 
                     {/* Results overlay */}
                     {showResult && (
-                        <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
+                        <div className="animate-in fade-in zoom-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm duration-300 sm:p-6 md:p-8">
                             {showLasaConfirmation ? (
                                 <LasaConfirmation
                                     scannedName={
@@ -541,7 +541,7 @@ export default function ScanPage() {
                                     {!verifyError &&
                                         verifyResult?.verified &&
                                         !verifyResult.medicine.is_counterfeit_alert && (
-                                            <div className="flex w-full max-w-sm flex-col items-center gap-6">
+                                            <div className="flex w-[94vw] max-w-[480px] flex-col items-center gap-5 sm:w-[480px]">
                                                 {verifyResult.batch_status && (
                                                     <div
                                                         className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${
