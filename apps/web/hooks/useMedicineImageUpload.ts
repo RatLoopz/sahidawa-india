@@ -6,6 +6,7 @@ import {
     extractMedicineName,
     extractBatchNumber,
     extractExpiryDate,
+    resolveToGeneric,
 } from "@/lib/sync/medicineParser";
 import { verifyMedicine, verifyMedicineByBrand, VerifyResult, fuzzyMatchBrand } from "@/lib/api";
 import { structuredLog } from "@/lib/structuredLogger";
@@ -248,14 +249,15 @@ export function useMedicineImageUpload({
             }
 
             const rawText = data.text;
+            const confidence = data.confidence / 100;
 
             if (!rawText || !rawText.trim()) {
-                toast.warning("No clear text found in image.");
-
-                setVerifyError(
-                    "Failed to read medicine text. Please ensure the image is clear or upload another one."
+                toast.warning(
+                    "No text found in image. Please photograph the printed text side of the medicine."
                 );
-
+                setVerifyError(
+                    "Could not read any text from this image. Please photograph the side of the package that shows the medicine name and batch number."
+                );
                 setOcrStatus("error");
                 setShowResult(true);
                 setIsScanning(false);
@@ -263,10 +265,8 @@ export function useMedicineImageUpload({
             }
 
             setOcrText(rawText);
-            setOcrConfidence(data.confidence / 100);
+            setOcrConfidence(confidence);
             setOcrStatus("done");
-
-            toast.success("OCR extraction complete!");
 
             // Parse OCR Text using utility regex
             const parsedBatchNum = extractBatchNumber(rawText);
@@ -275,11 +275,30 @@ export function useMedicineImageUpload({
 
             if (parsedBatchNum) setParsedBatch(parsedBatchNum);
             if (parsedExpiryStr) setParsedExpiry(parsedExpiryStr);
-            if (medName) setParsedBrand(medName);
+
+            // Resolve brand name to generic for better knowledge-base lookup
+            const resolvedName = medName ? resolveToGeneric(medName) : null;
+            const displayName = medName || resolvedName || undefined;
+            if (displayName) setParsedBrand(displayName);
 
             if (parsedBatchNum) {
                 setBatchInput(parsedBatchNum);
             }
+
+            // If OCR confidence is very low, the image side is probably the tablet/barcode side.
+            // Skip CDSCO lookup (it would fail on garbage text) but still show the knowledge card.
+            if (confidence < 0.3) {
+                toast.warning(
+                    "Image text is unclear (low quality scan). Showing info based on what was detected. For better results, photograph the printed text side."
+                );
+                await processVerificationResult(
+                    { verified: false, message: "Low confidence OCR — CDSCO lookup skipped" },
+                    displayName
+                );
+                return;
+            }
+
+            toast.success("Text extracted successfully!");
 
             // Database Lookup Strategy
             let finalResult: VerifyResult | null = null;

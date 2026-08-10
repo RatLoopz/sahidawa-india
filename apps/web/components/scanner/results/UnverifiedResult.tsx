@@ -1,4 +1,4 @@
-import { AlertTriangle, Pill, Info, Building2, Zap, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Pill, Info, Building2, Zap, ShieldAlert, ScanSearch } from "lucide-react";
 import { ExpiryBadge } from "../ExpiryBadge";
 import { ResultActions } from "./ResultActions";
 import {
@@ -6,6 +6,7 @@ import {
     extractManufacturer,
     extractDosage,
 } from "@/lib/medicineKnowledge";
+import { resolveToGeneric } from "@/lib/sync/medicineParser";
 
 export function UnverifiedResult({
     brandName,
@@ -25,6 +26,10 @@ export function UnverifiedResult({
     shareLabel: string;
 }) {
     const ingredient = ocrText ? lookupIngredientFromOcr(ocrText) : null;
+    // Second-pass: resolve brand name → generic → look up in knowledge base
+    const ingredientFromBrand =
+        !ingredient && brandName ? lookupIngredientFromOcr(resolveToGeneric(brandName)) : null;
+    const info = ingredient ?? ingredientFromBrand;
     const manufacturer = ocrText ? extractManufacturer(ocrText) : null;
     const dosage = ocrText ? extractDosage(ocrText) : null;
 
@@ -51,9 +56,9 @@ export function UnverifiedResult({
                         <h3 className="text-base leading-tight font-black tracking-tight text-amber-700 dark:text-amber-400">
                             {brandName || "Branded Medicine"}
                         </h3>
-                        {ingredient && (
+                        {info && (
                             <p className="text-xs font-semibold text-(--color-text-secondary)">
-                                {ingredient.genericName}
+                                {info.genericName}
                                 {dosage && (
                                     <span className="text-(--color-text-muted)"> · {dosage}</span>
                                 )}
@@ -108,13 +113,13 @@ export function UnverifiedResult({
                 </div>
 
                 {/* Ingredient knowledge card */}
-                {ingredient ? (
+                {info ? (
                     <div className="space-y-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900/40 dark:bg-blue-950/20">
                         {/* Category */}
                         <div className="flex items-center gap-1.5">
                             <Zap size={11} className="text-blue-500" aria-hidden="true" />
                             <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300">
-                                {ingredient.category}
+                                {info.category}
                             </span>
                         </div>
 
@@ -124,7 +129,7 @@ export function UnverifiedResult({
                                 Common Uses
                             </p>
                             <p className="text-xs leading-relaxed text-blue-800 dark:text-blue-200">
-                                {ingredient.uses}
+                                {info.uses}
                             </p>
                         </div>
 
@@ -134,7 +139,7 @@ export function UnverifiedResult({
                                 Available Forms
                             </p>
                             <p className="text-xs text-blue-700 dark:text-blue-300">
-                                {ingredient.commonForms}
+                                {info.commonForms}
                             </p>
                         </div>
 
@@ -147,7 +152,7 @@ export function UnverifiedResult({
                             />
                             <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-300">
                                 <strong className="font-bold">Safety: </strong>
-                                {ingredient.safetyNote}
+                                {info.safetyNote}
                             </p>
                         </div>
                     </div>
