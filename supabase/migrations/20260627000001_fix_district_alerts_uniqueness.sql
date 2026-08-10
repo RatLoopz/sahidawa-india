@@ -65,6 +65,8 @@ END $$;
 ALTER TABLE district_alerts
     DROP CONSTRAINT IF EXISTS district_alerts_district_key;
 
+DROP INDEX IF EXISTS public.idx_district_alerts_district_unique;
+
 ALTER TABLE district_alerts
     ADD CONSTRAINT district_alerts_district_medicine_key
     UNIQUE (district, medicine_name);
