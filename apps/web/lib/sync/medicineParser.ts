@@ -120,6 +120,16 @@ export const BRAND_TO_GENERIC: Record<string, string> = {
     febrex: "paracetamol",
     metacin: "paracetamol",
     "p-250": "paracetamol",
+    // Telmisartan brands
+    telma: "telmisartan",
+    "telma-ct": "telmisartan",
+    "telma-h": "telmisartan",
+    "telma-am": "telmisartan",
+    telvas: "telmisartan",
+    tazloc: "telmisartan",
+    telmikind: "telmisartan",
+    telpres: "telmisartan",
+    sartel: "telmisartan",
     // Ibuprofen brands
     brufen: "ibuprofen",
     combiflam: "ibuprofen",
@@ -233,33 +243,111 @@ export function extractMedicineName(text: string): string | null {
         if (name.length >= 4) return name;
     }
 
-    // Strategy 3: All-caps meaningful line (brand names are usually printed in ALL CAPS on Indian strips)
+    // Strategy 3 & 4 helper lists
+    const FULL_LINE_SKIP = [
+        "warning",
+        "warn",
+        "arng",
+        "warng",
+        "schedule",
+        "prescription",
+        "retail",
+        "practitioner",
+        "medical",
+        "drug",
+        "manufactur",
+        "marketed",
+        "mfg",
+        "exp",
+        "batch",
+        "lot",
+        "licence",
+        "lic no",
+        "glenmark",
+        "abbott",
+        "cipla",
+        "sun pharma",
+        "lupin",
+        "torrent",
+        "alkem",
+        "intas",
+        "cadila",
+        "zydus",
+        "pfizer",
+        "gsk",
+        "micro labs",
+        "macleods",
+        "composition",
+        "excipients",
+        "dosage",
+        "directed",
+        "physician",
+        "doctor",
+        "store",
+        "keep",
+        "children",
+        "temperature",
+        "moisture",
+        "light",
+        "overdose",
+        "injurious",
+        "liver",
+        "trade mark",
+        "regd",
+    ];
+
+    const CLEAN_WORDS = [
+        /\btablets?\b/gi,
+        /\bcapsules?\b/gi,
+        /\bstrips?\b/gi,
+        /\bmg\b/gi,
+        /\bmcg\b/gi,
+        /\bml\b/gi,
+    ];
+
+    const shouldSkipLine = (line: string): boolean => {
+        const lower = line.toLowerCase();
+        return FULL_LINE_SKIP.some((word) => lower.includes(word));
+    };
+
+    const cleanCandidate = (line: string): string => {
+        let cleaned = line;
+        for (const regex of CLEAN_WORDS) {
+            cleaned = cleaned.replace(regex, "");
+        }
+        return cleaned
+            .replace(/[^a-zA-Z\s\-]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    };
+
     const lines = text
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean);
 
-    const skip =
-        /^(exp(?:iry)?|batch|b\.?\s*no|mfg|date|composition|tablet(?:s)?|capsule(?:s)?|strip(?:s)?|drops?|syrup|injection|suspension|solution|ointment|cream|gel|powder|granules?|spray|inhaler|mg|mrp|rs|inr|use|manufacture|store|keep|dosage|made|india|limited|ltd|pvt|each|contain|direct|physician|uncoated|coated|store|dry|dark|place|temperature|exceed|overdose|injurious|liver|regd|trade|mark)/i;
-
-    // Must be at least 4 chars, no digits, not a noise word
+    // Strategy 3: All-caps meaningful line (brand names are usually printed in ALL CAPS on Indian strips)
     for (const line of lines) {
-        if (skip.test(line)) continue;
+        if (shouldSkipLine(line)) continue;
         if (/^\d/.test(line)) continue;
 
         const allCaps = line.match(/\b([A-Z][A-Z\s\-]{3,})\b/);
         if (allCaps) {
-            const candidate = allCaps[1].replace(/\s+/g, " ").trim();
-            if (candidate.length >= 4 && !/\d/.test(candidate)) return candidate;
+            const candidate = cleanCandidate(allCaps[1]);
+            if (candidate.length >= 4 && !shouldSkipLine(candidate)) {
+                return candidate;
+            }
         }
     }
 
     // Strategy 4: First non-noise, non-numeric line with 4+ meaningful characters
     for (const line of lines) {
-        if (skip.test(line)) continue;
+        if (shouldSkipLine(line)) continue;
         if (/^\d/.test(line)) continue;
-        const cleaned = line.replace(/[^a-zA-Z0-9\s-]/g, "").trim();
-        if (cleaned.length >= 4) return cleaned;
+        const candidate = cleanCandidate(line);
+        if (candidate.length >= 4) {
+            return candidate;
+        }
     }
 
     return null;
