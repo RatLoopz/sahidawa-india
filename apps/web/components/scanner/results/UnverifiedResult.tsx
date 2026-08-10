@@ -241,8 +241,32 @@ export function UnverifiedResult({
                     </div>
                 )}
 
+                {/* ── CASE 0: Not a Medicine ── */}
+                {!loading && profile && profile.isMedicine === false && (
+                    <div
+                        className="flex flex-col items-center gap-4 rounded-[1.8rem] border border-red-200 bg-red-50/50 p-6 text-center dark:border-red-900/40 dark:bg-red-950/10"
+                        role="alert"
+                    >
+                        <ShieldAlert
+                            size={36}
+                            className="animate-pulse text-red-500"
+                            aria-hidden="true"
+                        />
+                        <div className="space-y-1.5">
+                            <h4 className="text-xs font-black tracking-wider text-red-800 uppercase dark:text-red-400">
+                                Unrecognized Scanned Item
+                            </h4>
+                            <p className="text-xs leading-relaxed font-semibold text-red-700 dark:text-red-300">
+                                SahiDawa could not recognize "{brandName}" as a valid medicine name
+                                or active pharmaceutical ingredient. Please make sure to scan the
+                                text side of a valid medicine strip or packet under good lighting.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── CASE 2: Dynamic LLM safety profile loaded ── */}
-                {!loading && profile && (
+                {!loading && profile && profile.isMedicine !== false && (
                     <div className="space-y-4">
                         {/* Dynamic Side Effects */}
                         {profile.sideEffects && profile.sideEffects.length > 0 && (

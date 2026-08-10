@@ -62,7 +62,11 @@ const SYSTEM_PROMPT = `You are a senior clinical pharmacologist with expertise i
 Generate a comprehensive medicine safety profile as a single valid JSON object.
 Output ONLY the JSON — no markdown fences, no explanation, no preamble.
 
-Rules:
+Validation Rule:
+- First, determine if the query represents a real medicine, active pharmaceutical ingredient (API), chemical drug compound, or known brand name. Set "isMedicine" to true if yes, and false if no (e.g., for household objects like cup, hand, keyboard, table, or random text/gibberish).
+- If "isMedicine" is false, you MUST set "activeIngredient" and "genericName" to empty strings, and all arrays to empty arrays, and other strings to empty strings.
+
+Rules for valid medicines:
 - sideEffects: include 4-8 entries mixing common and severe effects.
 - ageBasedDosage: always include all three groups (children, adults, elderly).
   For contraindicated groups, set dose to "Not recommended" and add a warning.
@@ -73,6 +77,7 @@ Rules:
 
 Required JSON shape:
 {
+  "isMedicine": boolean,
   "activeIngredient": "string — INN generic name",
   "genericName": "string — display name",
   "brandAliases": ["array of common brand names"],
@@ -87,6 +92,7 @@ Required JSON shape:
 const GEMINI_SCHEMA: Schema = {
     type: SchemaType.OBJECT,
     properties: {
+        isMedicine: { type: SchemaType.BOOLEAN },
         activeIngredient: { type: SchemaType.STRING },
         genericName: { type: SchemaType.STRING },
         brandAliases: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
@@ -135,6 +141,7 @@ const GEMINI_SCHEMA: Schema = {
         pregnancyCategory: { type: SchemaType.STRING },
     },
     required: [
+        "isMedicine",
         "activeIngredient",
         "genericName",
         "brandAliases",
@@ -261,6 +268,20 @@ export async function GET(request: NextRequest) {
                 .maybeSingle();
 
             if (data?.profile_json) {
+                const cachedProfile = data.profile_json as any;
+                if (
+                    cachedProfile &&
+                    "isMedicine" in cachedProfile &&
+                    cachedProfile.isMedicine === false
+                ) {
+                    return NextResponse.json(
+                        {
+                            error: "This name does not appear to be a recognized medicine. Please scan the text side of a valid medicine strip or packet.",
+                            code: "NOT_A_MEDICINE",
+                        },
+                        { status: 404 }
+                    );
+                }
                 return NextResponse.json(data.profile_json, {
                     headers: {
                         "X-Cache": "HIT",
@@ -304,6 +325,31 @@ export async function GET(request: NextRequest) {
                 { status: 503 }
             );
         }
+    }
+    // ── 3.5 Check if LLM determined it's NOT a medicine ──────────────────────
+    if (profile && "isMedicine" in profile && (profile as any).isMedicine === false) {
+        if (db) {
+            try {
+                await db.from("medicine_safety_profiles").upsert(
+                    {
+                        generic_name: genericName,
+                        profile_json: profile,
+                        updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: "generic_name" }
+                );
+            } catch {
+                // non-fatal
+            }
+        }
+
+        return NextResponse.json(
+            {
+                error: "This name does not appear to be a recognized medicine. Please scan the text side of a valid medicine strip or packet.",
+                code: "NOT_A_MEDICINE",
+            },
+            { status: 404 }
+        );
     }
 
     // ── 4. Persist to Supabase (best-effort, optional) ────────────────────────

@@ -23,6 +23,7 @@ export type SideEffect = {
 };
 
 export type MedicineSafetyProfile = {
+    isMedicine?: boolean;
     activeIngredient: string;
     genericName: string;
     /** Common brand names that map to this profile */

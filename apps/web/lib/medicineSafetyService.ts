@@ -65,6 +65,17 @@ export async function fetchSafetyProfile(
 
         clearTimeout(timeoutId);
 
+        if (res.status === 404) {
+            try {
+                const body = await res.clone().json();
+                if (body && body.code === "NOT_A_MEDICINE") {
+                    return { isMedicine: false } as any;
+                }
+            } catch {
+                // fall through
+            }
+        }
+
         if (!res.ok) {
             console.warn(
                 `[medicineSafetyService] API returned ${res.status} — using static fallback`
