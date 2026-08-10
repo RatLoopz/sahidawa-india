@@ -64,8 +64,9 @@ export function UnverifiedResult({
     const resolvedBrand = brandName ? resolveToGeneric(brandName) : null;
     const resolvedOcr = ocrText ? resolveToGeneric(ocrText) : null;
 
-    // Prevent LLM hallucinations: Do not use raw OCR text as a search query if we couldn't even extract a medicine name from it,
-    // unless the OCR text explicitly resolved to a known generic name in our knowledge base.
+    // Allow the AI backend to act as a fallback parser.
+    // The backend's prompt is already instructed to return isMedicine: false if it's not a real medicine,
+    // which prevents hallucinations on non-medicine images.
     let searchQuery: string | null = null;
     if (resolvedBrand) {
         searchQuery = resolvedBrand;
@@ -73,6 +74,8 @@ export function UnverifiedResult({
         searchQuery = resolvedOcr;
     } else if (staticInfo?.genericName) {
         searchQuery = staticInfo.genericName;
+    } else if (ocrText && ocrText.trim().length >= 3) {
+        searchQuery = ocrText;
     }
 
     useEffect(() => {
