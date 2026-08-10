@@ -60,8 +60,10 @@ export function UnverifiedResult({
     const manufacturer = ocrText ? extractManufacturer(ocrText) : null;
     const dosage = ocrText ? extractDosage(ocrText) : null;
 
-    // Resolve the query search query for the API
-    const searchQuery = brandName || (ocrText ? resolveToGeneric(ocrText) : null);
+    // Resolve the query search query for the API, preferring generic names
+    const resolvedBrand = brandName ? resolveToGeneric(brandName) : null;
+    const resolvedOcr = ocrText ? resolveToGeneric(ocrText) : null;
+    const searchQuery = resolvedBrand || resolvedOcr;
 
     useEffect(() => {
         if (!searchQuery?.trim()) return;

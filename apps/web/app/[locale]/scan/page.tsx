@@ -487,254 +487,274 @@ export default function ScanPage() {
                         </div>
                     )}
                 </div>
-                {/* ── Clean Light Control Card ── */}
+                {/* ── Clean Light Control Card & Sidebar Results ── */}
                 <aside
                     aria-label="Scan controls and batch verification"
-                    className="flex w-full shrink-0 flex-col justify-start gap-5 border-t border-(--color-border-muted) bg-(--color-surface-page) p-5 sm:p-6 md:w-[360px] md:justify-center md:rounded-r-2xl md:border-t-0 md:border-l lg:w-[400px]"
+                    className="flex w-full shrink-0 flex-col justify-start gap-5 overflow-y-auto border-t border-(--color-border-muted) bg-(--color-surface-page) p-5 sm:p-6 md:w-[400px] md:rounded-r-2xl md:border-t-0 md:border-l lg:w-[460px]"
+                    style={{ maxHeight: "calc(100vh - 4rem)" }}
                 >
-                    {/* Pending queue */}
-                    <PendingScanQueue pending={pending} isSyncing={isSyncing} />
-
-                    {/* ── Batch Verification ── */}
-                    <form onSubmit={handleBatchSubmit} className="flex gap-2">
-                        <label htmlFor="batch-input" className="sr-only">
-                            Enter batch number
-                        </label>
-                        <input
-                            id="batch-input"
-                            type="text"
-                            value={batchInput}
-                            onChange={(e) => setBatchInput(e.target.value)}
-                            placeholder={tScan("enterBatchNumber")}
-                            className="min-w-0 flex-1 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
-                        />
-                        <button
-                            type="submit"
-                            disabled={isScanning}
-                            className="flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-600 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label={
-                                isScanning
-                                    ? "Verifying medicine..."
-                                    : isOffline
-                                      ? "Verify button disabled - offline"
-                                      : "Verify medicine batch number"
-                            }
-                            aria-busy={isScanning}
-                        >
-                            <Search size={16} aria-hidden="true" />
-                            {isOffline ? tScan("offlineVerify") : tScan("verify")}
-                        </button>
-                    </form>
-
-                    {/* Helper text */}
-                    <p className="-mt-2 text-xs leading-relaxed text-(--color-text-muted)">
-                        {tScan("batchNumberHelp")}
-                    </p>
-
-                    {/* Divider */}
-                    <div className="h-px bg-(--color-border-muted)" />
-
-                    {/* View History */}
-                    <Link
-                        href="/history"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-emerald-500/30 hover:bg-(--color-surface-hover) focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
-                    >
-                        <History size={16} aria-hidden="true" />
-                        {tScan("viewHistory")}
-                    </Link>
-
-                    {/* Divider */}
-                    <div className="h-px bg-(--color-border-muted)" />
-
-                    {/* OCR result (if any) */}
-                    {ocrText && (
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs dark:border-emerald-800/40 dark:bg-emerald-900/10">
-                            <div className="mb-2 flex items-center justify-between border-b border-emerald-100 pb-2 dark:border-emerald-800/30">
-                                <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                                    OCR Text
-                                </span>
-                                {ocrConfidence !== null && (
-                                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                        {Math.round(ocrConfidence * 100)}%
-                                    </span>
-                                )}
+                    {showResult ? (
+                        <div className="animate-in fade-in flex flex-col gap-5 duration-300">
+                            {/* Close/Back to Scan Button at the top */}
+                            <div className="flex items-center justify-between border-b border-(--color-border-muted) pb-3">
+                                <h4 className="text-xs font-black tracking-wider text-(--color-text-muted) uppercase">
+                                    Verification Result
+                                </h4>
+                                <button
+                                    onClick={handleDismissResult}
+                                    className="flex items-center gap-1 text-xs font-black text-emerald-600 transition-colors hover:text-emerald-500"
+                                >
+                                    <X size={14} /> Close
+                                </button>
                             </div>
-                            {batchInput && (
-                                <div className="mb-2 flex items-center gap-2 rounded-lg bg-emerald-100/80 px-3 py-1.5 dark:bg-emerald-900/20">
-                                    <span className="text-emerald-700 dark:text-emerald-400">
-                                        Batch:
-                                    </span>
-                                    <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">
-                                        {batchInput}
-                                    </span>
-                                </div>
-                            )}
-                            <pre className="max-h-28 overflow-y-auto font-mono whitespace-pre-wrap text-(--color-text-muted)">
-                                {ocrText}
-                            </pre>
-                        </div>
-                    )}
 
-                    {/* ── Scan Controls ── */}
-                    <div className="flex flex-col gap-3">
-                        <h3 className="text-center text-[11px] font-bold tracking-widest text-(--color-text-muted) uppercase">
-                            Scan Controls
-                        </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {/* Scan Barcode */}
-                            <button
-                                onClick={() => {
-                                    setCameraPermissionDenied(false);
-                                    setIsCameraActive((prev) => !prev);
-                                }}
-                                disabled={isOffline}
-                                className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                                    isCameraActive
-                                        ? "bg-red-500 text-white shadow-red-500/20 hover:bg-red-600 focus:ring-red-500/40"
-                                        : "bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600 focus:ring-emerald-500/40"
-                                }`}
-                                aria-label={
-                                    isCameraActive
-                                        ? "Stop barcode scanner camera"
-                                        : "Start barcode scanner camera"
-                                }
-                                aria-pressed={isCameraActive}
-                            >
-                                <ScanLine size={15} aria-hidden="true" />
-                                {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
-                            </button>
-
-                            {/* Upload Photo */}
-                            <label
-                                htmlFor={isOffline ? undefined : "medicine-upload"}
-                                onClick={(e) => {
-                                    if (isOffline) {
-                                        e.preventDefault();
-                                        toast.error(
-                                            "You are currently offline. Please check your internet connection."
-                                        );
+                            {showLasaConfirmation ? (
+                                <LasaConfirmation
+                                    scannedName={
+                                        pendingVerifyResult?.verified
+                                            ? pendingVerifyResult.medicine.brand_name
+                                            : parsedBrand
                                     }
-                                }}
-                                className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 text-sm font-semibold text-(--color-text-primary) shadow-sm transition-all hover:border-slate-300 hover:bg-(--color-surface-muted) focus:ring-2 focus:ring-emerald-500/20 focus:outline-none ${
-                                    isOffline ? "cursor-not-allowed opacity-50" : ""
-                                }`}
-                                aria-label="Upload medicine photo from device (disabled while offline)"
-                                aria-disabled={isOffline}
-                            >
-                                <Layers size={15} aria-hidden="true" />
-                                {tScan("uploadPhoto")}
-                            </label>
-                        </div>
-                    </div>
-                </aside>
-
-                {/* ── Inline Results View (Covers entire layout seamlessly) ── */}
-                {showResult && (
-                    <div className="animate-in slide-in-from-bottom-8 absolute inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-(--color-surface-background) p-4 duration-300 sm:p-8 md:rounded-2xl lg:p-12">
-                        {showLasaConfirmation ? (
-                            <LasaConfirmation
-                                scannedName={
-                                    pendingVerifyResult?.verified
-                                        ? pendingVerifyResult.medicine.brand_name
-                                        : parsedBrand
-                                }
-                                matches={lasaMatches}
-                                onConfirmScanned={handleConfirmScanned}
-                                onSelectConflict={handleSelectConflict}
-                            />
-                        ) : (
-                            <div className="flex w-full max-w-[640px] flex-col items-center gap-6 pt-4 pb-12">
-                                {verifyError && (
-                                    <ErrorResult
-                                        message={verifyError}
-                                        onRetry={() => handleVerify(batchInput)}
-                                        onClose={handleDismissResult}
-                                        isOffline={isOffline}
-                                    />
-                                )}
-
-                                {!verifyError &&
-                                    verifyResult?.verified &&
-                                    verifyResult.medicine.is_counterfeit_alert && (
-                                        <CounterfeitAlertResult
-                                            medicine={verifyResult.medicine}
-                                            onScanAgain={handleScanAgain}
-                                            onShare={handleShare}
-                                            onCopyMedicineDetails={handleCopyMedicineDetails}
-                                            shareLabel={tScan("share.button")}
-                                            copied={copied}
+                                    matches={lasaMatches}
+                                    onConfirmScanned={handleConfirmScanned}
+                                    onSelectConflict={handleSelectConflict}
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center gap-5">
+                                    {verifyError && (
+                                        <ErrorResult
+                                            message={verifyError}
+                                            onRetry={() => handleVerify(batchInput)}
+                                            onClose={handleDismissResult}
+                                            isOffline={isOffline}
                                         />
                                     )}
 
-                                {!verifyError &&
-                                    verifyResult?.verified &&
-                                    !verifyResult.medicine.is_counterfeit_alert && (
-                                        <div className="flex w-full flex-col items-center gap-5">
-                                            {verifyResult.batch_status && (
-                                                <div
-                                                    className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${
-                                                        verifyResult.batch_status === "safe"
-                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                                            : verifyResult.batch_status ===
-                                                                "recalled"
-                                                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                                                    }`}
-                                                >
-                                                    {verifyResult.batch_status === "safe" &&
-                                                        "Batch Safe"}
-                                                    {verifyResult.batch_status === "recalled" &&
-                                                        "Batch Recalled"}
-                                                    {verifyResult.batch_status === "unknown" &&
-                                                        "Batch Status Unknown"}
-                                                </div>
-                                            )}
-
-                                            {verifyResult.batch_status === "recalled" && (
-                                                <div className="w-full rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/10">
-                                                    <p className="text-sm font-bold text-red-700 dark:text-red-400">
-                                                        {tScan("batch_recalled_title")}
-                                                    </p>
-                                                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                                                        {tScan("batch_recalled_body")}
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            <VerifiedSafeResult
+                                    {!verifyError &&
+                                        verifyResult?.verified &&
+                                        verifyResult.medicine.is_counterfeit_alert && (
+                                            <CounterfeitAlertResult
                                                 medicine={verifyResult.medicine}
-                                                scanMeta={verifyResult.scanMeta}
                                                 onScanAgain={handleScanAgain}
                                                 onShare={handleShare}
-                                                shareLabel={tScan("share.button")}
                                                 onCopyMedicineDetails={handleCopyMedicineDetails}
+                                                shareLabel={tScan("share.button")}
                                                 copied={copied}
                                             />
+                                        )}
 
-                                            <button
-                                                onClick={handleSaveToABHA}
-                                                className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
-                                            >
-                                                {tScan("save_to_abha")}
-                                            </button>
+                                    {!verifyError &&
+                                        verifyResult?.verified &&
+                                        !verifyResult.medicine.is_counterfeit_alert && (
+                                            <div className="flex w-full flex-col items-center gap-4">
+                                                {verifyResult.batch_status && (
+                                                    <div
+                                                        className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${
+                                                            verifyResult.batch_status === "safe"
+                                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                                : verifyResult.batch_status ===
+                                                                    "recalled"
+                                                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                                  : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                                        }`}
+                                                    >
+                                                        {verifyResult.batch_status === "safe" &&
+                                                            "Batch Safe"}
+                                                        {verifyResult.batch_status === "recalled" &&
+                                                            "Batch Recalled"}
+                                                        {verifyResult.batch_status === "unknown" &&
+                                                            "Batch Status Unknown"}
+                                                    </div>
+                                                )}
+
+                                                {verifyResult.batch_status === "recalled" && (
+                                                    <div className="w-full rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/10">
+                                                        <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                                                            {tScan("batch_recalled_title")}
+                                                        </p>
+                                                        <p className="mt-1 text-xs text-red-600 dark:text-red-300">
+                                                            {tScan("batch_recalled_body")}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <VerifiedSafeResult
+                                                    medicine={verifyResult.medicine}
+                                                    scanMeta={verifyResult.scanMeta}
+                                                    onScanAgain={handleScanAgain}
+                                                    onShare={handleShare}
+                                                    shareLabel={tScan("share.button")}
+                                                    onCopyMedicineDetails={
+                                                        handleCopyMedicineDetails
+                                                    }
+                                                    copied={copied}
+                                                />
+
+                                                <button
+                                                    onClick={handleSaveToABHA}
+                                                    className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                                                >
+                                                    {tScan("save_to_abha")}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                    {!verifyError && verifyResult && !verifyResult.verified && (
+                                        <UnverifiedResult
+                                            brandName={parsedBrand}
+                                            batchNumber={parsedBatch}
+                                            expiryDate={parsedExpiry}
+                                            ocrText={ocrText ?? undefined}
+                                            onScanAgain={handleDismissResult}
+                                            onShare={handleShare}
+                                            shareLabel={tScan("share.button")}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            {/* Pending queue */}
+                            <PendingScanQueue pending={pending} isSyncing={isSyncing} />
+
+                            {/* ── Batch Verification ── */}
+                            <form onSubmit={handleBatchSubmit} className="flex gap-2">
+                                <label htmlFor="batch-input" className="sr-only">
+                                    Enter batch number
+                                </label>
+                                <input
+                                    id="batch-input"
+                                    type="text"
+                                    value={batchInput}
+                                    onChange={(e) => setBatchInput(e.target.value)}
+                                    placeholder={tScan("enterBatchNumber")}
+                                    className="min-w-0 flex-1 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={isScanning}
+                                    className="flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-600 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    aria-label={
+                                        isScanning
+                                            ? "Verifying medicine..."
+                                            : isOffline
+                                              ? "Verify button disabled - offline"
+                                              : "Verify medicine batch number"
+                                    }
+                                    aria-busy={isScanning}
+                                >
+                                    <Search size={16} aria-hidden="true" />
+                                    {isOffline ? tScan("offlineVerify") : tScan("verify")}
+                                </button>
+                            </form>
+
+                            {/* Helper text */}
+                            <p className="-mt-2 text-xs leading-relaxed text-(--color-text-muted)">
+                                {tScan("batchNumberHelp")}
+                            </p>
+
+                            {/* Divider */}
+                            <div className="h-px bg-(--color-border-muted)" />
+
+                            {/* View History */}
+                            <Link
+                                href="/history"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-emerald-500/30 hover:bg-(--color-surface-hover) focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            >
+                                <History size={16} aria-hidden="true" />
+                                {tScan("viewHistory")}
+                            </Link>
+
+                            {/* Divider */}
+                            <div className="h-px bg-(--color-border-muted)" />
+
+                            {/* OCR result (if any) */}
+                            {ocrText && (
+                                <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs dark:border-emerald-800/40 dark:bg-emerald-900/10">
+                                    <div className="mb-2 flex items-center justify-between border-b border-emerald-100 pb-2 dark:border-emerald-800/30">
+                                        <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                                            OCR Text
+                                        </span>
+                                        {ocrConfidence !== null && (
+                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                                {Math.round(ocrConfidence * 100)}%
+                                            </span>
+                                        )}
+                                    </div>
+                                    {batchInput && (
+                                        <div className="mb-2 flex items-center gap-2 rounded-lg bg-emerald-100/80 px-3 py-1.5 dark:bg-emerald-900/20">
+                                            <span className="text-emerald-700 dark:text-emerald-400">
+                                                Batch:
+                                            </span>
+                                            <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">
+                                                {batchInput}
+                                            </span>
                                         </div>
                                     )}
+                                    <pre className="max-h-28 overflow-y-auto font-mono whitespace-pre-wrap text-(--color-text-muted)">
+                                        {ocrText}
+                                    </pre>
+                                </div>
+                            )}
 
-                                {!verifyError && verifyResult && !verifyResult.verified && (
-                                    <UnverifiedResult
-                                        brandName={parsedBrand}
-                                        batchNumber={parsedBatch}
-                                        expiryDate={parsedExpiry}
-                                        ocrText={ocrText ?? undefined}
-                                        onScanAgain={handleDismissResult}
-                                        onShare={handleShare}
-                                        shareLabel={tScan("share.button")}
-                                    />
-                                )}
+                            {/* ── Scan Controls ── */}
+                            <div className="flex flex-col gap-3">
+                                <h3 className="text-center text-[11px] font-bold tracking-widest text-(--color-text-muted) uppercase">
+                                    Scan Controls
+                                </h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* Scan Barcode */}
+                                    <button
+                                        onClick={() => {
+                                            setCameraPermissionDenied(false);
+                                            setIsCameraActive((prev) => !prev);
+                                        }}
+                                        disabled={isOffline}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                                            isCameraActive
+                                                ? "bg-red-500 text-white shadow-red-500/20 hover:bg-red-600 focus:ring-red-500/40"
+                                                : "bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600 focus:ring-emerald-500/40"
+                                        }`}
+                                        aria-label={
+                                            isCameraActive
+                                                ? "Stop barcode scanner camera"
+                                                : "Start barcode scanner camera"
+                                        }
+                                        aria-pressed={isCameraActive}
+                                    >
+                                        <ScanLine size={15} aria-hidden="true" />
+                                        {isCameraActive
+                                            ? tScan("stopScanner")
+                                            : tScan("ScanBarcode")}
+                                    </button>
+
+                                    {/* Upload Photo */}
+                                    <label
+                                        htmlFor={isOffline ? undefined : "medicine-upload"}
+                                        onClick={(e) => {
+                                            if (isOffline) {
+                                                e.preventDefault();
+                                                toast.error(
+                                                    "You are currently offline. Please check your internet connection."
+                                                );
+                                            }
+                                        }}
+                                        className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 text-sm font-semibold text-(--color-text-primary) shadow-sm transition-all hover:border-slate-300 hover:bg-(--color-surface-muted) focus:ring-2 focus:ring-emerald-500/20 focus:outline-none ${
+                                            isOffline ? "cursor-not-allowed opacity-50" : ""
+                                        }`}
+                                        aria-label="Upload medicine photo from device (disabled while offline)"
+                                        aria-disabled={isOffline}
+                                    >
+                                        <Layers size={15} aria-hidden="true" />
+                                        {tScan("uploadPhoto")}
+                                    </label>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                )}
+                        </>
+                    )}
+                </aside>{" "}
+                {/* Sibling overlay is completely removed; results are now inline in the aside sidebar */}
             </div>
         </div>
     );
