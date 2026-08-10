@@ -1,5 +1,12 @@
 import { generateKeyPairSync } from "node:crypto";
-import { generateOTP, verifyOTP, resetAbdmPublicKeyCache } from "../src/services/abha.service";
+import crypto from "node:crypto";
+import {
+    generateOTP,
+    verifyOTP,
+    resetAbdmPublicKeyCache,
+    encryptToken,
+    decryptToken,
+} from "../src/services/abha.service";
 
 jest.mock("../src/utils/logger", () => ({
     __esModule: true,
@@ -201,6 +208,49 @@ describe("ABHA service ABDM sandbox integration", () => {
         await expect(generateOTP("deepak@sbx")).rejects.toThrow(
             "ABDM sandbox request failed: getaddrinfo ENOTFOUND"
         );
+    });
+});
+
+describe("ABHA token encryption", () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+        process.env = {
+            ...originalEnv,
+            ABHA_TOKEN_ENCRYPTION_KEY: "dedicated-abha-encryption-key",
+            ABDM_SANDBOX_CLIENT_SECRET: "sandbox-client-secret",
+        };
+    });
+
+    afterEach(() => {
+        process.env = originalEnv;
+    });
+
+    it("round-trips with AES-256-GCM and a dedicated key", () => {
+        const { encryptedToken, iv, salt } = encryptToken("abdm-bearer-token");
+
+        expect(encryptedToken.startsWith("gcm:")).toBe(true);
+        expect(decryptToken(encryptedToken, iv, salt)).toBe("abdm-bearer-token");
+    });
+
+    it("rejects tampered GCM ciphertext", () => {
+        const { encryptedToken, iv, salt } = encryptToken("abdm-bearer-token");
+        const tampered = `${encryptedToken.slice(0, -2)}ff`;
+
+        expect(() => decryptToken(tampered, iv, salt)).toThrow();
+    });
+
+    it("still decrypts legacy AES-CBC payloads", () => {
+        const iv = crypto.randomBytes(16);
+        const salt = crypto.randomBytes(16);
+        const key = crypto.scryptSync("legacy-secret", salt, 32);
+        const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+        let encryptedToken = cipher.update("legacy-abdm-token", "utf8", "hex");
+        encryptedToken += cipher.final("hex");
+
+        expect(
+            decryptToken(encryptedToken, iv.toString("hex"), salt.toString("hex"), "legacy-secret")
+        ).toBe("legacy-abdm-token");
     });
 });
 
