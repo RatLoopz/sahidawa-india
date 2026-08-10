@@ -24,7 +24,7 @@ import { rateLimit } from "@/lib/rateLimit";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const MAX_QUERY_LENGTH = 100;
+const MAX_QUERY_LENGTH = 2000;
 
 // ── OpenFDA ───────────────────────────────────────────────────────────────────
 async function fetchOpenFdaContext(genericName: string): Promise<string> {
@@ -62,11 +62,15 @@ const SYSTEM_PROMPT = `You are a senior clinical pharmacologist with expertise i
 Generate a comprehensive medicine safety profile as a single valid JSON object.
 Output ONLY the JSON — no markdown fences, no explanation, no preamble.
 
-Validation Rule:
-- First, determine if the query represents a real medicine, active pharmaceutical ingredient (API), chemical drug compound, or known brand name. Set "isMedicine" to true if yes, and false if no (e.g., for household objects like cup, hand, keyboard, table, or random text/gibberish).
-- If "isMedicine" is false, you MUST set "activeIngredient" and "genericName" to empty strings, and all arrays to empty arrays, and other strings to empty strings.
+Validation Rule (CRITICAL):
+- First, determine if the drug name represents a REAL medicine, active pharmaceutical ingredient (API), chemical drug compound, or known brand name.
+- If the name is gibberish, a household object, or NOT a medicine (e.g., "luffy", "manga", "anime", "table", random text), you MUST set "isMedicine": false.
+- If "isMedicine" is false, you MUST set "activeIngredient" and "genericName" to "", and all arrays to []. Do NOT hallucinate a default medicine like Amoxicillin!
+- Only set "isMedicine": true if you are confident the query is a real pharmaceutical product.
 
 Rules for valid medicines:
+- description: provide a brief, 1-2 sentence description of what the medicine is.
+- commonUses: include 2-4 common conditions this medicine treats.
 - sideEffects: include 4-8 entries mixing common and severe effects.
 - ageBasedDosage: always include all three groups (children, adults, elderly).
   For contraindicated groups, set dose to "Not recommended" and add a warning.
@@ -247,7 +251,7 @@ export async function GET(request: NextRequest) {
 
     if (q.length > MAX_QUERY_LENGTH) {
         return NextResponse.json(
-            { error: "Query parameter 'q' must be 100 characters or fewer." },
+            { error: "Query parameter 'q' must be 2000 characters or fewer." },
             { status: 400 }
         );
     }

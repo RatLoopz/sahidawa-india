@@ -175,13 +175,23 @@ export function UnverifiedResult({
                                     </p>
 
                                     {/* Plain Language Usages / Description */}
-                                    {staticInfo?.uses && (
+                                    {(profile?.description ||
+                                        profile?.commonUses?.length ||
+                                        staticInfo?.uses) && (
                                         <div className="mt-2.5 border-t border-slate-100 pt-2.5 text-left dark:border-slate-800">
                                             <span className="mb-1 block text-[9px] font-black tracking-widest text-slate-400 uppercase">
-                                                Common Therapeutic Uses
+                                                Common Therapeutic Uses & Info
                                             </span>
                                             <p className="text-xs leading-relaxed font-semibold text-(--color-text-secondary)">
-                                                {staticInfo.uses}
+                                                {profile?.description && (
+                                                    <span className="mb-1 block">
+                                                        {profile.description}
+                                                    </span>
+                                                )}
+                                                {profile?.commonUses &&
+                                                profile.commonUses.length > 0
+                                                    ? `Uses: ${profile.commonUses.join(", ")}`
+                                                    : staticInfo?.uses}
                                             </p>
                                         </div>
                                     )}

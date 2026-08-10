@@ -26,6 +26,8 @@ export type MedicineSafetyProfile = {
     isMedicine?: boolean;
     activeIngredient: string;
     genericName: string;
+    description?: string;
+    commonUses?: string[];
     /** Common brand names that map to this profile */
     brandAliases?: string[];
     sideEffects: SideEffect[];
