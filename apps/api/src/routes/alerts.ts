@@ -246,8 +246,10 @@ alertsRouter.post(
             //   - byBrandName:    alerts that have only a brand name (no manufacturer)
             // Each bucket is resolved in a single UPDATE ... WHERE batch_number IN (...)
             // query, capping the total number of DB round-trips at 2 regardless of N.
-            const byManufacturer = new Map<string, string[]>(); // manufacturer -> batch_numbers[]
-            const byBrandName = new Map<string, string[]>(); // brand_name -> batch_numbers[]
+            const byManufacturerCounterfeit = new Map<string, string[]>();
+            const byManufacturerNSQ = new Map<string, string[]>();
+            const byBrandNameCounterfeit = new Map<string, string[]>();
+            const byBrandNameNSQ = new Map<string, string[]>();
             const noBatchAlerts: typeof validatedAlerts = [];
 
             for (const alert of validatedAlerts) {
@@ -255,44 +257,49 @@ alertsRouter.post(
                     noBatchAlerts.push(alert);
                     continue;
                 }
+                
+                const typeStr = (alert.alert_type || "").toLowerCase();
+                const isCounterfeit = typeStr.includes("counterfeit") || typeStr.includes("spurious");
+                
                 if (alert.manufacturer) {
-                    if (!byManufacturer.has(alert.manufacturer)) {
-                        byManufacturer.set(alert.manufacturer, []);
+                    const map = isCounterfeit ? byManufacturerCounterfeit : byManufacturerNSQ;
+                    if (!map.has(alert.manufacturer)) {
+                        map.set(alert.manufacturer, []);
                     }
-                    byManufacturer.get(alert.manufacturer)!.push(alert.batch_number);
+                    map.get(alert.manufacturer)!.push(alert.batch_number);
                 } else if (alert.reported_brand_name) {
-                    if (!byBrandName.has(alert.reported_brand_name)) {
-                        byBrandName.set(alert.reported_brand_name, []);
+                    const map = isCounterfeit ? byBrandNameCounterfeit : byBrandNameNSQ;
+                    if (!map.has(alert.reported_brand_name)) {
+                        map.set(alert.reported_brand_name, []);
                     }
-                    byBrandName.get(alert.reported_brand_name)!.push(alert.batch_number);
+                    map.get(alert.reported_brand_name)!.push(alert.batch_number);
                 }
             }
 
             const batchUpdatePromises: Promise<unknown>[] = [];
 
-            for (const [manufacturer, batchNumbers] of byManufacturer) {
-                batchUpdatePromises.push(
-                    Promise.resolve(
-                        supabase
-                            .from("medicines")
-                            .update({ status: medicineStatus, is_counterfeit_alert: true })
-                            .in("batch_number", batchNumbers)
-                            .eq("manufacturer", manufacturer)
-                    )
-                );
-            }
+            const pushUpdates = (
+                map: Map<string, string[]>, 
+                isCounterfeit: boolean, 
+                field: "manufacturer" | "brand_name"
+            ) => {
+                for (const [key, batchNumbers] of map) {
+                    batchUpdatePromises.push(
+                        Promise.resolve(
+                            supabase
+                                .from("medicines")
+                                .update({ status: medicineStatus, is_counterfeit_alert: isCounterfeit })
+                                .in("batch_number", batchNumbers)
+                                .eq(field === "brand_name" ? "brand_name" : "manufacturer", key)
+                        )
+                    );
+                }
+            };
 
-            for (const [brandName, batchNumbers] of byBrandName) {
-                batchUpdatePromises.push(
-                    Promise.resolve(
-                        supabase
-                            .from("medicines")
-                            .update({ status: medicineStatus, is_counterfeit_alert: true })
-                            .in("batch_number", batchNumbers)
-                            .eq("brand_name", brandName)
-                    )
-                );
-            }
+            pushUpdates(byManufacturerCounterfeit, true, "manufacturer");
+            pushUpdates(byManufacturerNSQ, false, "manufacturer");
+            pushUpdates(byBrandNameCounterfeit, true, "brand_name");
+            pushUpdates(byBrandNameNSQ, false, "brand_name");
 
             await Promise.all(batchUpdatePromises);
 
