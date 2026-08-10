@@ -136,24 +136,51 @@ export function UnverifiedResult({
                     <span className="flex h-14 w-14 flex-none items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-4 ring-amber-100/50 dark:bg-amber-950/40 dark:text-amber-400 dark:ring-amber-950/20">
                         <Pill size={28} strokeWidth={2} aria-hidden="true" />
                     </span>
-                    <div className="space-y-1">
-                        <h3 className="text-xl leading-tight font-black tracking-tight text-amber-700 dark:text-amber-400">
-                            {brandName || "Branded Medicine"}
-                        </h3>
-                        {/* Display resolved generic name */}
+                    <div className="w-full space-y-3">
+                        {/* Scanned Brand Name */}
+                        <div>
+                            <span className="mb-0.5 block text-[10px] font-black tracking-wider text-slate-400 uppercase">
+                                Scanned Brand Name
+                            </span>
+                            <h3 className="text-xl leading-tight font-black tracking-tight text-amber-700 dark:text-amber-400">
+                                {brandName || "Branded Medicine"}
+                            </h3>
+                        </div>
+
+                        {/* Generic Active Ingredient */}
                         {(profile?.genericName || staticInfo?.genericName) && (
-                            <p className="text-sm font-bold text-(--color-text-secondary)">
-                                {profile?.genericName || staticInfo?.genericName}
-                                {dosage && (
-                                    <span className="text-(--color-text-muted)"> · {dosage}</span>
+                            <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-900/20">
+                                <span className="mb-1 block text-[10px] font-black tracking-wider text-slate-400 uppercase">
+                                    Generic Active Ingredient (AI Resolved)
+                                </span>
+                                <p className="text-sm font-extrabold text-(--color-text-primary)">
+                                    {profile?.genericName || staticInfo?.genericName}
+                                    {dosage && (
+                                        <span className="font-medium text-(--color-text-muted)">
+                                            {" "}
+                                            · {dosage}
+                                        </span>
+                                    )}
+                                </p>
+
+                                {/* Plain Language Usages / Description */}
+                                {staticInfo?.uses && (
+                                    <div className="mt-2.5 border-t border-slate-100 pt-2.5 text-left dark:border-slate-800">
+                                        <span className="mb-1 block text-[9px] font-black tracking-widest text-slate-400 uppercase">
+                                            Common Therapeutic Uses
+                                        </span>
+                                        <p className="text-xs leading-relaxed font-semibold text-(--color-text-secondary)">
+                                            {staticInfo.uses}
+                                        </p>
+                                    </div>
                                 )}
-                            </p>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* "Not in CDSCO" badge */}
-                <span className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-amber-50/80 px-3.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-200/60 dark:bg-amber-950/30 dark:text-amber-400 dark:ring-amber-800/40">
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-amber-50/80 px-3.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-200/60 dark:bg-amber-950/30 dark:text-amber-400 dark:ring-amber-800/40">
                     <AlertTriangle size={11} aria-hidden="true" />
                     Not found in CDSCO Database
                 </span>
