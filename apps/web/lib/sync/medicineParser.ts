@@ -231,8 +231,8 @@ export function extractMedicineName(text: string): string | null {
         const re = new RegExp(`\\b${brandRegexStr}(?=\\b|\\d)`, "i");
         const m = text.match(re);
         if (m) {
-            // Return the canonical brand name from our dictionary so the rest of the app recognizes it
-            return brand;
+            // Return the actual matched text (e.g. "Dolo-650") for better UI display
+            return m[0].trim();
         }
     }
 
