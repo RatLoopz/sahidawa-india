@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import crypto from "crypto";
 import { SupabaseClient, User } from "@supabase/supabase-js";
-import { supabase, dbConfig } from "../db/client";
+import { supabase, dbConfig, getAuthSupabase } from "../db/client";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { isSupabaseConnectionError } from "../utils/withDbFallback";
@@ -17,6 +17,7 @@ export interface AuthenticatedUser {
 
 export interface AuthenticatedRequest extends Request {
     user?: AuthenticatedUser;
+    supabase?: SupabaseClient;
 }
 
 type SupabaseAuthClient = Pick<SupabaseClient, "auth">;
@@ -296,6 +297,8 @@ async function authenticateRequest(
         }
         return true;
     }
+
+    req.supabase = getAuthSupabase(token);
 
     if (dbConfig?.isSupabaseOffline) {
         return handleOfflineAuth(req, res, required);

@@ -763,7 +763,7 @@ router.post(
                 part_type,
                 status,
             }));
-            await supabase
+            await req.supabase!
                 .from("scan_submission_parts")
                 .upsert(rows, { onConflict: "scan_id,part_type" });
 
@@ -775,7 +775,7 @@ router.post(
                 });
             }
 
-            const { error: idemUpdateError } = await supabase
+            const { error: idemUpdateError } = await req.supabase!
                 .from("submission_idempotency")
                 .update({ scan_id: resolvedScanId })
                 .eq("idempotency_key", idempotencyKey);
@@ -800,7 +800,7 @@ router.post(
 
             if (idempotencyKey) {
                 try {
-                    await supabase
+                    await req.supabase!
                         .from("submission_idempotency")
                         .delete()
                         .eq("idempotency_key", idempotencyKey);

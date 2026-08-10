@@ -335,7 +335,7 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
             guestPhone = verified;
         }
 
-        let query = supabase
+        let query = req.supabase!
             .from("notification_subscribers")
             .select("phone, channels, language, district, is_active");
 
@@ -430,7 +430,7 @@ router.post(
 
             if (!dbFailed) {
                 try {
-                    const { data, error: findError } = await supabase
+                    const { data, error: findError } = await req.supabase!
                         .from("notification_subscribers")
                         .select("*")
                         .eq("phone", formattedPhone)
@@ -538,7 +538,7 @@ router.post(
                     updatePayload.status = "active";
                 }
 
-                const { data: updated, error: updateError } = await supabase
+                const { data: updated, error: updateError } = await req.supabase!
                     .from("notification_subscribers")
                     .update(updatePayload)
                     .eq("id", existing.id)
@@ -558,7 +558,7 @@ router.post(
                 if (!isOwner && otp && otpExpires) {
                     await otpStore.store(formattedPhone, otp, otpExpires);
                 }
-                const { data: created, error: insertError } = await supabase
+                const { data: created, error: insertError } = await req.supabase!
                     .from("notification_subscribers")
                     .insert({
                         user_id: req.user?.id || null,
@@ -669,7 +669,7 @@ router.post(
 
             if (!dbFailed) {
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await req.supabase!
                         .from("notification_subscribers")
                         .select("*")
                         .eq("phone", formattedPhone)
@@ -740,7 +740,7 @@ router.post(
                     await clearPendingPhoneChange(req.user.id);
 
                     if (!dbFailed) {
-                        const { error: updateError } = await supabase
+                        const { error: updateError } = await req.supabase!
                             .from("notification_subscribers")
                             .update({ phone: formattedPhone })
                             .eq("user_id", req.user.id);
@@ -769,7 +769,7 @@ router.post(
             }
 
             if (!dbFailed) {
-                const { error: updateError } = await supabase
+                const { error: updateError } = await req.supabase!
                     .from("notification_subscribers")
                     .update({ status: "active" })
                     .eq("id", subscriber.id);

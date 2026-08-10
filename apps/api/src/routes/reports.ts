@@ -117,7 +117,7 @@ reportsRouter.post(
             );
 
             const reportHash = computeReportHash(validationPayload);
-            const { data: reports, error } = await supabase
+            const { data: reports, error } = await req.supabase!
                 .from("counterfeit_reports")
                 .upsert(
                     {
@@ -161,7 +161,7 @@ reportsRouter.post(
 
             let statusCode = 201;
             if (!report) {
-                const { data: existingReport, error: fetchError } = await supabase
+                const { data: existingReport, error: fetchError } = await req.supabase!
                     .from("counterfeit_reports")
                     .select(
                         "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
@@ -233,7 +233,7 @@ reportsRouter.get(
         const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
 
         try {
-            let query = supabase
+            let query = req.supabase!
                 .from("counterfeit_reports")
                 .select(
                     "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
@@ -269,7 +269,7 @@ reportsRouter.get(
     }
 );
 
-reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Response) => {
+reportsRouter.get("/", requireAuth, requireRole("admin"), async (req: AuthenticatedRequest, res: Response) => {
     const rawLimit = req.query.limit;
     let limit = DEFAULT_ADMIN_REPORTS_LIMIT;
 
@@ -299,7 +299,7 @@ reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Respo
     }
 
     try {
-        let query = supabase
+        let query = req.supabase!
             .from("counterfeit_reports")
             .select("*")
             .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`)
@@ -342,7 +342,7 @@ reportsRouter.patch(
     "/:id/status",
     requireAuth,
     requireRole("admin"),
-    async (req, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const parsedId = uuidSchema.safeParse(req.params.id);
         if (!parsedId.success) {
             res.status(400).json({ error: "Invalid UUID format" });
@@ -371,7 +371,7 @@ reportsRouter.patch(
             // caller can submit arbitrary IDs and receive a 500 instead of a
             // 404, leaking that the endpoint performs blind updates and
             // enabling IDOR-style enumeration across report IDs.
-            const { data: existing, error: fetchError } = await supabase
+            const { data: existing, error: fetchError } = await req.supabase!
                 .from("counterfeit_reports")
                 .select("id")
                 .eq("id", req.params.id)
@@ -387,7 +387,7 @@ reportsRouter.patch(
                 updatePayload.is_escalated = false;
             }
 
-            const { data, error } = await supabase
+            const { data, error } = await req.supabase!
                 .from("counterfeit_reports")
                 .update(updatePayload)
                 .eq("id", req.params.id)
@@ -405,7 +405,7 @@ reportsRouter.patch(
             // row per medicine, instead of the most recent upsert silently
             // overwriting any prior alert for a different medicine in that district.
             if (status === "verified_fake" && data.district && data.reported_brand_name) {
-                const { count } = await supabase
+                const { count } = await req.supabase!
                     .from("counterfeit_reports")
                     .select("*", { count: "exact", head: true })
                     .eq("district", data.district)
@@ -420,8 +420,8 @@ reportsRouter.patch(
                     // Fetch the existing alert (if any) for this district+medicine
                     // pair first, so we only fire a push notification on genuine
                     // creation or escalation — not on every redundant upsert when
-                    // the level hasn't actually changed.
-                    const { data: existingAlert } = await supabase
+                    // level hasn't actually changed.
+                    const { data: existingAlert } = await req.supabase!
                         .from("district_alerts")
                         .select("alert_level")
                         .eq("district", data.district)
@@ -431,7 +431,7 @@ reportsRouter.patch(
                     const previousAlertLevel = existingAlert?.alert_level ?? null;
                     const isNewOrEscalated = !existingAlert || previousAlertLevel !== alertLevel;
 
-                    const { data: upsertedAlert, error: alertError } = await supabase
+                    const { data: upsertedAlert, error: alertError } = await req.supabase!
                         .from("district_alerts")
                         .upsert(
                             {
@@ -500,7 +500,7 @@ reportsRouter.patch(
     limiter,
     requireAuth,
     requireRole("admin", "moderator"),
-    async (req, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const parsedId = uuidSchema.safeParse(req.params.id);
         if (!parsedId.success) {
             res.status(400).json({ error: "Invalid UUID format" });
@@ -520,7 +520,7 @@ reportsRouter.patch(
         const snoozedUntil = new Date();
         snoozedUntil.setDate(snoozedUntil.getDate() + parsedBody.data.days);
 
-        const { error } = await supabase
+        const { error } = await req.supabase!
             .from("counterfeit_reports")
             .update({ snoozed_until: snoozedUntil.toISOString() })
             .eq("id", req.params.id);

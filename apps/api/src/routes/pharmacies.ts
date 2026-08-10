@@ -164,6 +164,7 @@ const inventoryRowSchema = z.object({
 
 // Reusable incremental CSV parsing helper using PapaParse step mode
 async function parseCsvIncremental(
+    client: any,
     fileInput: string | NodeJS.ReadableStream,
     pharmacyId: string,
     onProgress?: (stats: {
@@ -260,7 +261,7 @@ async function parseCsvIncremental(
                     const batch = [...rowsToInsert];
                     rowsToInsert = []; // Free up heap memory
 
-                    Promise.resolve(supabase.from("pharmacy_inventory").insert(batch))
+                    Promise.resolve(client.from("pharmacy_inventory").insert(batch))
                         .then(({ error }) => {
                             if (error) {
                                 logger.error(`Database bulk insertion failed: ${error.message}`);
@@ -292,7 +293,7 @@ async function parseCsvIncremental(
                 if (isDone) return;
 
                 if (rowsToInsert.length > 0) {
-                    Promise.resolve(supabase.from("pharmacy_inventory").insert(rowsToInsert))
+                    Promise.resolve(client.from("pharmacy_inventory").insert(rowsToInsert))
                         .then(({ error }) => {
                             if (isDone) return;
                             isDone = true;
@@ -904,7 +905,7 @@ router.post(
 
             const pharmacyId = req.body.pharmacyId || req.query.pharmacyId;
 
-            let query = supabase.from("pharmacies").select("id").eq("created_by", req.user.id);
+            let query = req.supabase!.from("pharmacies").select("id").eq("created_by", req.user.id);
 
             if (pharmacyId) {
                 query = query.eq("id", pharmacyId);
@@ -935,6 +936,7 @@ router.post(
 
             // Incremental parsing using the reusable helper (pharmacyId is already known)
             const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
+                req.supabase!,
                 fileContent,
                 pharmacy.id,
                 (stats) => {
