@@ -6,11 +6,10 @@ import { Link, useRouter } from "@/i18n/routing";
 import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
 import ABHABadge from "@/components/ABHABadge";
 import { useSession } from "@/src/components/AuthProvider";
+import { setSessionAccessToken } from "@/lib/accessToken";
 import { clearReadCache } from "@/lib/offline/db";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
-
-const ACCESS_TOKEN_KEY = "sb-access-token";
 
 type ProfileSession =
     | { status: "checking" }
@@ -114,7 +113,7 @@ export default function ProfilePage() {
             const result = readSessionFromToken(token);
 
             if (result.clearToken) {
-                localStorage.removeItem(ACCESS_TOKEN_KEY);
+                setSessionAccessToken(null);
             }
 
             setSession(result.session);
@@ -125,17 +124,16 @@ export default function ProfilePage() {
 
     const handleRetry = () => {
         setSession({ status: "checking" });
-        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
         try {
             const result = readSessionFromToken(token);
-            if (result.clearToken) localStorage.removeItem(ACCESS_TOKEN_KEY);
+            if (result.clearToken) setSessionAccessToken(null);
             setSession(result.session);
         } catch {
             setSession({ status: "error" });
         }
     };
     const handleSignOut = () => {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        setSessionAccessToken(null);
         // Clear the cookie-backed session too. Without this, the middleware
         // keeps seeing a valid session while the app is signed out, which
         // causes protected flows to bounce between login and the app.

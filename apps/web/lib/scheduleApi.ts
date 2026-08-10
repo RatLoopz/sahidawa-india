@@ -1,4 +1,5 @@
 import { API_BASE, getCsrfToken } from "./api";
+import { getSessionAccessToken } from "./accessToken";
 import { fetchWithRetry, offlineRequestQueue, DoseQueuedOfflineError } from "./apiWithRetry";
 import { readCacheGet, readCachePut } from "./offline/db";
 
@@ -47,8 +48,7 @@ export interface AdherenceStats {
 }
 
 function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
+    return getSessionAccessToken();
 }
 
 /**

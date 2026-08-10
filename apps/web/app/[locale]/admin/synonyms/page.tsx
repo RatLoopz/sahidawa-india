@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { createBrowserClient } from "@supabase/ssr";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
+import { getSessionAccessToken } from "@/lib/accessToken";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { Loader2, RefreshCw, Trash2, Plus, AlertCircle, FileText, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -19,8 +20,7 @@ interface OcrSynonym {
 }
 
 function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
+    return getSessionAccessToken();
 }
 
 /**
