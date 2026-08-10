@@ -136,6 +136,23 @@ router.post(
         try {
             const { product_id } = parsed.data;
 
+            // Validate that the medicine actually exists
+            const { data: medicineData, error: medError } = await supabase
+                .from("medicines")
+                .select("id")
+                .eq("id", product_id)
+                .maybeSingle();
+
+            if (medError) {
+                next(medError);
+                return;
+            }
+
+            if (!medicineData) {
+                res.status(404).json({ error: "Medicine not found" });
+                return;
+            }
+
             const { data: existing, error: checkError } = await supabase
                 .from("wishlists")
                 .select("id")
