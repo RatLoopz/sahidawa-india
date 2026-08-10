@@ -492,7 +492,8 @@ export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null 
     let bestExact: IngredientInfo | null = null;
     let bestExactLen = 0;
     for (const [key, info] of Object.entries(KNOWLEDGE_BASE)) {
-        const re = new RegExp(`\\b${key}\\b`, "i");
+        const keyRegexStr = key.replace(/-/g, "[-\\s]*");
+        const re = new RegExp(`\\b${keyRegexStr}(?=\\b|\\d)`, "i");
         if (re.test(norm) && key.length > bestExactLen) {
             bestExact = info;
             bestExactLen = key.length;
@@ -502,7 +503,8 @@ export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null 
 
     // 2. Second-pass: Exact brand name lookup in normalized text
     for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
-        const re = new RegExp(`\\b${brand}\\b`, "i");
+        const brandRegexStr = brand.replace(/-/g, "[-\\s]*");
+        const re = new RegExp(`\\b${brandRegexStr}(?=\\b|\\d)`, "i");
         if (re.test(norm)) {
             const resolved = KNOWLEDGE_BASE[generic];
             if (resolved) return resolved;

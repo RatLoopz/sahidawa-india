@@ -227,10 +227,12 @@ export function extractMedicineName(text: string): string | null {
 
     // Strategy 1: Brand name lookup in full OCR text
     for (const [brand] of Object.entries(BRAND_TO_GENERIC)) {
-        const re = new RegExp(`\\b${brand}\\b`, "i");
+        const brandRegexStr = brand.replace(/-/g, "[-\\s]*");
+        const re = new RegExp(`\\b${brandRegexStr}(?=\\b|\\d)`, "i");
         const m = text.match(re);
         if (m) {
-            return m[0];
+            // Return the canonical brand name from our dictionary so the rest of the app recognizes it
+            return brand;
         }
     }
 
@@ -361,9 +363,10 @@ export function resolveToGeneric(medicineName: string): string {
     // Check exact match first
     if (BRAND_TO_GENERIC[norm]) return BRAND_TO_GENERIC[norm];
 
-    // Check if brand is present as a whole word
+    // Check if brand is present as a whole word (allowing trailing numbers and optional hyphens)
     for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
-        const re = new RegExp(`\\b${brand}\\b`, "i");
+        const brandRegexStr = brand.replace(/-/g, "[-\\s]*");
+        const re = new RegExp(`\\b${brandRegexStr}(?=\\b|\\d)`, "i");
         if (re.test(norm)) return generic;
     }
     return norm;
