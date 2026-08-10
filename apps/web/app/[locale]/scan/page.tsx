@@ -486,137 +486,6 @@ export default function ScanPage() {
                             </section>
                         </div>
                     )}
-
-                    {/* Results overlay */}
-                    {showResult && (
-                        <div
-                            onClick={(e) => {
-                                if (e.target === e.currentTarget) {
-                                    handleDismissResult();
-                                }
-                            }}
-                            className="animate-in fade-in zoom-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm duration-300 sm:p-6 md:p-8"
-                        >
-                            {showLasaConfirmation ? (
-                                <LasaConfirmation
-                                    scannedName={
-                                        pendingVerifyResult?.verified
-                                            ? pendingVerifyResult.medicine.brand_name
-                                            : parsedBrand
-                                    }
-                                    matches={lasaMatches}
-                                    onConfirmScanned={handleConfirmScanned}
-                                    onSelectConflict={handleSelectConflict}
-                                />
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={handleDismissResult}
-                                        className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                                        aria-label="Close verification result (Press Escape)"
-                                        title="Close result (Esc)"
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Escape") {
-                                                handleDismissResult();
-                                            }
-                                        }}
-                                    >
-                                        <X size={24} aria-hidden="true" />
-                                    </button>
-
-                                    {verifyError && (
-                                        <ErrorResult
-                                            message={verifyError}
-                                            onRetry={() => handleVerify(batchInput)}
-                                            onClose={handleDismissResult}
-                                            isOffline={isOffline}
-                                        />
-                                    )}
-
-                                    {!verifyError &&
-                                        verifyResult?.verified &&
-                                        verifyResult.medicine.is_counterfeit_alert && (
-                                            <CounterfeitAlertResult
-                                                medicine={verifyResult.medicine}
-                                                onScanAgain={handleScanAgain}
-                                                onShare={handleShare}
-                                                onCopyMedicineDetails={handleCopyMedicineDetails}
-                                                shareLabel={tScan("share.button")}
-                                                copied={copied}
-                                            />
-                                        )}
-
-                                    {!verifyError &&
-                                        verifyResult?.verified &&
-                                        !verifyResult.medicine.is_counterfeit_alert && (
-                                            <div className="flex w-[94vw] max-w-[480px] flex-col items-center gap-5 sm:w-[480px]">
-                                                {verifyResult.batch_status && (
-                                                    <div
-                                                        className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${
-                                                            verifyResult.batch_status === "safe"
-                                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                                                : verifyResult.batch_status ===
-                                                                    "recalled"
-                                                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                                                  : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                                                        }`}
-                                                    >
-                                                        {verifyResult.batch_status === "safe" &&
-                                                            "Batch Safe"}
-                                                        {verifyResult.batch_status === "recalled" &&
-                                                            "Batch Recalled"}
-                                                        {verifyResult.batch_status === "unknown" &&
-                                                            "Batch Status Unknown"}
-                                                    </div>
-                                                )}
-
-                                                {verifyResult.batch_status === "recalled" && (
-                                                    <div className="w-full max-w-sm rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/10">
-                                                        <p className="text-sm font-bold text-red-700 dark:text-red-400">
-                                                            {tScan("batch_recalled_title")}
-                                                        </p>
-                                                        <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                                                            {tScan("batch_recalled_body")}
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                <VerifiedSafeResult
-                                                    medicine={verifyResult.medicine}
-                                                    scanMeta={verifyResult.scanMeta}
-                                                    onScanAgain={handleScanAgain}
-                                                    onShare={handleShare}
-                                                    shareLabel={tScan("share.button")}
-                                                    onCopyMedicineDetails={
-                                                        handleCopyMedicineDetails
-                                                    }
-                                                    copied={copied}
-                                                />
-
-                                                <button
-                                                    onClick={handleSaveToABHA}
-                                                    className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
-                                                >
-                                                    {tScan("save_to_abha")}
-                                                </button>
-                                            </div>
-                                        )}
-
-                                    {!verifyError && verifyResult && !verifyResult.verified && (
-                                        <UnverifiedResult
-                                            brandName={parsedBrand}
-                                            batchNumber={parsedBatch}
-                                            expiryDate={parsedExpiry}
-                                            ocrText={ocrText ?? undefined}
-                                            onScanAgain={handleDismissResult}
-                                            onShare={handleShare}
-                                            shareLabel={tScan("share.button")}
-                                        />
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    )}
                 </div>
                 {/* ── Clean Light Control Card ── */}
                 <aside
@@ -758,6 +627,114 @@ export default function ScanPage() {
                         </div>
                     </div>
                 </aside>
+
+                {/* ── Inline Results View (Covers entire layout seamlessly) ── */}
+                {showResult && (
+                    <div className="animate-in slide-in-from-bottom-8 absolute inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-(--color-surface-background) p-4 duration-300 sm:p-8 md:rounded-2xl lg:p-12">
+                        {showLasaConfirmation ? (
+                            <LasaConfirmation
+                                scannedName={
+                                    pendingVerifyResult?.verified
+                                        ? pendingVerifyResult.medicine.brand_name
+                                        : parsedBrand
+                                }
+                                matches={lasaMatches}
+                                onConfirmScanned={handleConfirmScanned}
+                                onSelectConflict={handleSelectConflict}
+                            />
+                        ) : (
+                            <div className="flex w-full max-w-[640px] flex-col items-center gap-6 pt-4 pb-12">
+                                {verifyError && (
+                                    <ErrorResult
+                                        message={verifyError}
+                                        onRetry={() => handleVerify(batchInput)}
+                                        onClose={handleDismissResult}
+                                        isOffline={isOffline}
+                                    />
+                                )}
+
+                                {!verifyError &&
+                                    verifyResult?.verified &&
+                                    verifyResult.medicine.is_counterfeit_alert && (
+                                        <CounterfeitAlertResult
+                                            medicine={verifyResult.medicine}
+                                            onScanAgain={handleScanAgain}
+                                            onShare={handleShare}
+                                            onCopyMedicineDetails={handleCopyMedicineDetails}
+                                            shareLabel={tScan("share.button")}
+                                            copied={copied}
+                                        />
+                                    )}
+
+                                {!verifyError &&
+                                    verifyResult?.verified &&
+                                    !verifyResult.medicine.is_counterfeit_alert && (
+                                        <div className="flex w-full flex-col items-center gap-5">
+                                            {verifyResult.batch_status && (
+                                                <div
+                                                    className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${
+                                                        verifyResult.batch_status === "safe"
+                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                            : verifyResult.batch_status ===
+                                                                "recalled"
+                                                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                                    }`}
+                                                >
+                                                    {verifyResult.batch_status === "safe" &&
+                                                        "Batch Safe"}
+                                                    {verifyResult.batch_status === "recalled" &&
+                                                        "Batch Recalled"}
+                                                    {verifyResult.batch_status === "unknown" &&
+                                                        "Batch Status Unknown"}
+                                                </div>
+                                            )}
+
+                                            {verifyResult.batch_status === "recalled" && (
+                                                <div className="w-full rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/10">
+                                                    <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                                                        {tScan("batch_recalled_title")}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">
+                                                        {tScan("batch_recalled_body")}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <VerifiedSafeResult
+                                                medicine={verifyResult.medicine}
+                                                scanMeta={verifyResult.scanMeta}
+                                                onScanAgain={handleScanAgain}
+                                                onShare={handleShare}
+                                                shareLabel={tScan("share.button")}
+                                                onCopyMedicineDetails={handleCopyMedicineDetails}
+                                                copied={copied}
+                                            />
+
+                                            <button
+                                                onClick={handleSaveToABHA}
+                                                className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                                            >
+                                                {tScan("save_to_abha")}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                {!verifyError && verifyResult && !verifyResult.verified && (
+                                    <UnverifiedResult
+                                        brandName={parsedBrand}
+                                        batchNumber={parsedBatch}
+                                        expiryDate={parsedExpiry}
+                                        ocrText={ocrText ?? undefined}
+                                        onScanAgain={handleDismissResult}
+                                        onShare={handleShare}
+                                        shareLabel={tScan("share.button")}
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

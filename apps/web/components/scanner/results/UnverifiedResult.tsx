@@ -107,8 +107,8 @@ export function UnverifiedResult({
 
     return (
         <div
-            className="relative flex w-[94vw] max-w-[480px] flex-col overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary) shadow-2xl transition-all duration-300 sm:w-[480px]"
-            style={{ maxHeight: "min(90vh, 700px)" }}
+            className="relative flex w-full max-w-[640px] flex-col overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary) shadow-2xl transition-all duration-300"
+            style={{ maxHeight: "min(90vh, 750px)" }}
             role="region"
             aria-label={`Medicine info — ${brandName || "Unknown medicine"}`}
             aria-live="polite"
