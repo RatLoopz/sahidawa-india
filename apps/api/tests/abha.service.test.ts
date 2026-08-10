@@ -119,7 +119,7 @@ describe("ABHA service ABDM sandbox integration", () => {
         expect(otpRequestBody.loginId.length).toBeGreaterThan(100);
     });
 
-    it("verifies an ABHA OTP and keeps the token response contract stable", async () => {
+    it("verifies an ABHA OTP and does not return the ABDM token to the client", async () => {
         fetchMock
             .mockResolvedValueOnce(jsonResponse(200, { accessToken: "session-access-token" }))
             .mockResolvedValueOnce(
@@ -133,7 +133,7 @@ describe("ABHA service ABDM sandbox integration", () => {
         await expect(
             verifyOTP("test-user-id", "test@sbx", "otp-txn-id", "123456")
         ).resolves.toEqual({
-            token: "abha-login-token",
+            linked: true,
         });
 
         expect(fetchMock).toHaveBeenNthCalledWith(

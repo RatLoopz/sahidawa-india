@@ -27,7 +27,7 @@ jest.mock("../src/middleware/auth", () => ({
 
 jest.mock("../src/services/abha.service", () => ({
     generateOTP: jest.fn().mockResolvedValue({ txnId: "mock-txn-id" }),
-    verifyOTP: jest.fn().mockResolvedValue({ token: "mock-token" }),
+    verifyOTP: jest.fn().mockResolvedValue({ linked: true }),
     uploadVerification: jest.fn().mockResolvedValue({ success: true }),
     getPrescriptions: jest.fn().mockResolvedValue([]),
     unlinkABHA: jest.fn().mockResolvedValue({ success: true }),
@@ -140,7 +140,8 @@ describe("POST /api/v1/abha/verify-otp", () => {
             .post("/api/v1/abha/verify-otp")
             .send({ abhaAddress: "testuser@abdm", txnId: "txn-1", otp: "123456" });
         expect(response.status).toBe(200);
-        expect(response.body.token).toBe("mock-token");
+        expect(response.body.linked).toBe(true);
+        expect(response.body.token).toBeUndefined();
     });
 });
 

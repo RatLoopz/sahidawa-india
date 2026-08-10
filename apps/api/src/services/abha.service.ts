@@ -68,7 +68,7 @@ export const verifyOTP = async (
     abhaAddress: string,
     txnId: string,
     otp: string
-): Promise<{ token: string }> => {
+): Promise<{ linked: true }> => {
     logger.info("ABHA OTP verification requested", {
         userId,
         txnId,
@@ -127,8 +127,10 @@ export const verifyOTP = async (
         status: "SUCCESS",
     });
 
+    // Keep the ABDM bearer server-side only (encrypted at rest). Returning it
+    // to the browser lets XSS/devtools exfiltrate health-record credentials.
     return {
-        token,
+        linked: true,
     };
 };
 
