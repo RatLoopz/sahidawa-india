@@ -11,6 +11,7 @@ import zlib from "zlib";
 import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 import { promises as fs } from "fs";
 import path from "path";
+import { markOfflineOnConnectionError } from "../utils/withDbFallback";
 
 const router = Router();
 
@@ -475,13 +476,7 @@ async function resolveMedicinesToGenerics(
 
                 if (error) {
                     dbFailed = true;
-                    if (
-                        error.message?.includes("fetch failed") ||
-                        error.message?.includes("refused") ||
-                        error.message?.includes("timeout")
-                    ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
-                    }
+                    markOfflineOnConnectionError(error);
                     break;
                 }
 
@@ -496,13 +491,7 @@ async function resolveMedicinesToGenerics(
 
                     if (error) {
                         dbFailed = true;
-                        if (
-                            error.message?.includes("fetch failed") ||
-                            error.message?.includes("refused") ||
-                            error.message?.includes("timeout")
-                        ) {
-                            if (dbConfig) dbConfig.isSupabaseOffline = true;
-                        }
+                        markOfflineOnConnectionError(error);
                         break;
                     }
                 }
@@ -521,13 +510,7 @@ async function resolveMedicinesToGenerics(
         } catch (dbErr: unknown) {
             dbFailed = true;
             const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
-            if (
-                msg.includes("fetch failed") ||
-                msg.includes("refused") ||
-                msg.includes("timeout")
-            ) {
-                if (dbConfig) dbConfig.isSupabaseOffline = true;
-            }
+            markOfflineOnConnectionError(msg);
         }
     }
 

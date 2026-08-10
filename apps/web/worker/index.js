@@ -95,7 +95,7 @@ self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE_NAME).then((cache) =>
             cache.addAll(PRECACHE_PAGES).catch(() => {
-                console.log(
+                console.info(
                     "[SW] Some shell pages could not be precached; they will be cached on first visit."
                 );
             })
@@ -130,7 +130,7 @@ self.addEventListener("activate", (event) => {
                             (name.startsWith("sahidawa-") && !validCaches.has(name))
                     )
                     .map((name) => {
-                        console.log(`[SW] Deleting stale cache: ${name}`);
+                        console.info(`[SW] Deleting stale cache: ${name}`);
                         return caches.delete(name);
                     })
             )
@@ -157,6 +157,18 @@ self.addEventListener("fetch", (event) => {
         url.hostname === "tile.openstreetmap.org"
     ) {
         event.respondWith(cacheFirstWithExpiry(request, TILES_CACHE_NAME, 7 * 24 * 60 * 60 * 1000));
+        return;
+    }
+
+    // --- Cache Tesseract/OCR CDN assets for fast, offline accessibility ---
+    if (
+        url.hostname.includes("jsdelivr.net") ||
+        url.hostname.includes("unpkg.com") ||
+        url.hostname.includes("projectnaptha.com")
+    ) {
+        event.respondWith(
+            cacheFirstWithExpiry(request, STATIC_CACHE_NAME, 30 * 24 * 60 * 60 * 1000)
+        );
         return;
     }
 
@@ -295,6 +307,11 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
             });
             cache
                 .put(request, cloned)
+                .then(() => {
+                    if (cacheName === TILES_CACHE_NAME) {
+                        limitCacheSize(TILES_CACHE_NAME, 200);
+                    }
+                })
                 .catch(() => console.warn("[SW] Failed to cache asset in cacheFirstWithExpiry"));
         }
         return networkResponse;
@@ -309,6 +326,24 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
         }
 
         return new Response("Offline", { status: 503 });
+    }
+}
+
+/**
+ * Limit cache size by deleting the oldest entries in FIFO order.
+ */
+async function limitCacheSize(cacheName, maxItems) {
+    try {
+        const cache = await caches.open(cacheName);
+        const keys = await cache.keys();
+        if (keys.length > maxItems) {
+            const numberToDelete = keys.length - maxItems;
+            for (let i = 0; i < numberToDelete; i++) {
+                await cache.delete(keys[i]);
+            }
+        }
+    } catch (e) {
+        console.warn(`[SW] Failed to limit cache size for ${cacheName}`, e);
     }
 }
 

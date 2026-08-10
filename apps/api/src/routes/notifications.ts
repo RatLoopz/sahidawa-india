@@ -16,6 +16,7 @@ import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
 import { safeCompare } from "../utils/cryptoUtils";
+import { markOfflineOnConnectionError, withDbFallback } from "../utils/withDbFallback";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -345,46 +346,26 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
         }
 
         let subscriber = null;
-        let dbFailed = dbConfig?.isSupabaseOffline;
 
-        if (!dbFailed) {
-            try {
+        subscriber = await withDbFallback(
+            async () => {
                 const { data, error } = await query.maybeSingle();
                 if (error) {
-                    dbFailed = true;
-                    if (
-                        error.message?.includes("fetch failed") ||
-                        error.message?.includes("refused") ||
-                        error.message?.includes("timeout")
-                    ) {
-                        if (dbConfig) dbConfig.setOffline();
-                    }
-                } else {
-                    subscriber = data;
+                    markOfflineOnConnectionError(error);
+                    throw error;
                 }
-            } catch (dbError: any) {
-                dbFailed = true;
-                const msg = dbError?.message || String(dbError);
-                if (
-                    msg.includes("fetch failed") ||
-                    msg.includes("refused") ||
-                    msg.includes("timeout")
-                ) {
-                    if (dbConfig) dbConfig.setOffline();
+                return data;
+            },
+            () => {
+                logger.warn(
+                    "Supabase database is offline. Falling back to in-memory subscription store."
+                );
+                if (req.user) {
+                    return memorySubscriberStore.find((s) => s.user_id === req.user!.id) ?? null;
                 }
+                return memorySubscriberStore.get(guestPhone!) ?? null;
             }
-        }
-
-        if (dbFailed) {
-            logger.warn(
-                "Supabase database is offline. Falling back to in-memory subscription store."
-            );
-            if (req.user) {
-                subscriber = memorySubscriberStore.find((s) => s.user_id === req.user!.id);
-            } else {
-                subscriber = memorySubscriberStore.get(guestPhone!);
-            }
-        }
+        );
 
         if (!subscriber) {
             res.json({ registered: false });
@@ -467,9 +448,9 @@ router.post(
                     } else {
                         existing = data;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -706,9 +687,9 @@ router.post(
                     } else {
                         subscriber = data;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -991,9 +972,9 @@ router.patch(
                     } else {
                         data = dbData;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -1074,9 +1055,9 @@ router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest,
                 } else {
                     data = dbData;
                 }
-            } catch (dbError: any) {
+            } catch (dbError: unknown) {
                 dbFailed = true;
-                const msg = dbError?.message || String(dbError);
+                const msg = dbError instanceof Error ? dbError.message : String(dbError);
                 if (
                     msg.includes("fetch failed") ||
                     msg.includes("refused") ||

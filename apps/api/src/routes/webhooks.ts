@@ -7,6 +7,32 @@ import { invalidateCacheByPattern } from "../services/cache.service";
 
 const router = Router();
 
+/** Log IP + header names only — never Authorization values or raw header maps. */
+function unauthorizedWebhookMeta(req: Request) {
+    return {
+        ip: req.ip,
+        headerNames: Object.keys(req.headers).map((name) => name.toLowerCase()),
+    };
+}
+
+/** Shared Bearer secret check for all webhook routes. Returns false after sending 401. */
+function assertWebhookAuth(req: Request, res: Response, routePath: string): boolean {
+    const secret = process.env.SUPABASE_WEBHOOK_SECRET;
+    const authHeader = req.headers["authorization"];
+    const isValid =
+        typeof secret === "string" &&
+        typeof authHeader === "string" &&
+        safeCompare(authHeader, `Bearer ${secret}`);
+
+    if (isValid) {
+        return true;
+    }
+
+    logger.warn(`Unauthorized webhook attempt on ${routePath}`, unauthorizedWebhookMeta(req));
+    res.status(401).json({ error: "Unauthorized" });
+    return false;
+}
+
 /**
  * POST /api/webhooks/supabase/health-schemes
  *
@@ -19,21 +45,7 @@ router.post(
     "/supabase/health-schemes",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        // Verify secret token using a timing-safe comparison
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/health-schemes", {
-                ip: req.ip,
-                headers: req.headers,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/health-schemes")) {
             return;
         }
 
@@ -80,21 +92,7 @@ router.post(
     "/supabase/medicines",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        // Verify secret token using a timing-safe comparison
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/medicines", {
-                ip: req.ip,
-                headers: req.headers,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/medicines")) {
             return;
         }
 
@@ -234,18 +232,7 @@ router.post(
     "/supabase/pharmacies",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/pharmacies")) {
             return;
         }
 
@@ -266,18 +253,7 @@ router.post(
     "/supabase/reports",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/reports", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/reports")) {
             return;
         }
 
@@ -297,18 +273,7 @@ router.post(
     "/supabase/users",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/users", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/users")) {
             return;
         }
 
@@ -334,19 +299,7 @@ router.post(
     "/etl/medicines-updated",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/etl/medicines-updated", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/etl/medicines-updated")) {
             return;
         }
 

@@ -94,8 +94,8 @@ export default function AdminSynonymsPage() {
 
             if (error) throw error;
             setSynonyms(data as OcrSynonym[]);
-        } catch (err: any) {
-            setError(err.message || t("fetchError"));
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t("fetchError"));
         } finally {
             setLoading(false);
         }
@@ -136,8 +136,8 @@ export default function AdminSynonymsPage() {
             setNormalizedTerm("");
             await fetchSynonyms();
             await invalidateCache();
-        } catch (err: any) {
-            setError(err.message || t("addError"));
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t("addError"));
         } finally {
             setActionLoading(null);
         }
@@ -154,8 +154,8 @@ export default function AdminSynonymsPage() {
 
             await fetchSynonyms();
             await invalidateCache();
-        } catch (err: any) {
-            setError(err.message || t("deleteError"));
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t("deleteError"));
         } finally {
             setActionLoading(null);
         }
@@ -220,8 +220,8 @@ export default function AdminSynonymsPage() {
             await fetchSynonyms();
             await invalidateCache();
             toast.success(t("uploadSuccess", { count: payload.length }));
-        } catch (err: any) {
-            setError(err.message || t("uploadError"));
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t("uploadError"));
             if (fileInputRef.current) fileInputRef.current.value = "";
         } finally {
             setActionLoading(null);
