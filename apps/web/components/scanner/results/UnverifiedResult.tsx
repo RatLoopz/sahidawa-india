@@ -6,9 +6,6 @@ import {
     Building2,
     Zap,
     ShieldAlert,
-    User,
-    Baby,
-    Users,
     Wine,
     Apple,
     Droplets,
@@ -161,34 +158,35 @@ export function UnverifiedResult({
                         </div>
 
                         {/* Generic Active Ingredient */}
-                        {(profile?.genericName || staticInfo?.genericName) && (
-                            <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-900/20">
-                                <span className="mb-1 block text-[10px] font-black tracking-wider text-slate-400 uppercase">
-                                    Generic Active Ingredient (AI Resolved)
-                                </span>
-                                <p className="text-sm font-extrabold text-(--color-text-primary)">
-                                    {profile?.genericName || staticInfo?.genericName}
-                                    {dosage && (
-                                        <span className="font-medium text-(--color-text-muted)">
-                                            {" "}
-                                            · {dosage}
-                                        </span>
-                                    )}
-                                </p>
+                        {(!profile || profile.isMedicine !== false) &&
+                            (profile?.genericName || staticInfo?.genericName) && (
+                                <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-900/20">
+                                    <span className="mb-1 block text-[10px] font-black tracking-wider text-slate-400 uppercase">
+                                        Generic Active Ingredient (AI Resolved)
+                                    </span>
+                                    <p className="text-sm font-extrabold text-(--color-text-primary)">
+                                        {profile?.genericName || staticInfo?.genericName}
+                                        {dosage && (
+                                            <span className="font-medium text-(--color-text-muted)">
+                                                {" "}
+                                                · {dosage}
+                                            </span>
+                                        )}
+                                    </p>
 
-                                {/* Plain Language Usages / Description */}
-                                {staticInfo?.uses && (
-                                    <div className="mt-2.5 border-t border-slate-100 pt-2.5 text-left dark:border-slate-800">
-                                        <span className="mb-1 block text-[9px] font-black tracking-widest text-slate-400 uppercase">
-                                            Common Therapeutic Uses
-                                        </span>
-                                        <p className="text-xs leading-relaxed font-semibold text-(--color-text-secondary)">
-                                            {staticInfo.uses}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                                    {/* Plain Language Usages / Description */}
+                                    {staticInfo?.uses && (
+                                        <div className="mt-2.5 border-t border-slate-100 pt-2.5 text-left dark:border-slate-800">
+                                            <span className="mb-1 block text-[9px] font-black tracking-widest text-slate-400 uppercase">
+                                                Common Therapeutic Uses
+                                            </span>
+                                            <p className="text-xs leading-relaxed font-semibold text-(--color-text-secondary)">
+                                                {staticInfo.uses}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                     </div>
                 </div>
 

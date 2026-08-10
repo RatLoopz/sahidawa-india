@@ -516,7 +516,7 @@ export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null 
     const words = norm.split(/\s+/).filter((w) => w.length >= 3);
 
     let bestFuzzy: IngredientInfo | null = null;
-    let bestScore = 0.65; // Threshold is 0.65 (stricter to avoid random matches)
+    let bestScore = 0.8; // Threshold is 0.80 (very strict to avoid random matches like gibberish matching Amoxicillin)
 
     for (const word of words) {
         if (word.length <= 3) continue; // Skip 3-letter words for fuzzy matching to avoid noise

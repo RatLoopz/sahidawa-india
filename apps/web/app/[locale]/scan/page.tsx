@@ -378,7 +378,7 @@ export default function ScanPage() {
                                 src={uploadedImage}
                                 alt="Uploaded"
                                 wrapperClassName="h-full w-full"
-                                className="h-full w-full object-cover opacity-60"
+                                className="h-full w-full object-cover opacity-100"
                             />
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -388,36 +388,38 @@ export default function ScanPage() {
                     </div>
 
                     {/* Scan frame brackets */}
-                    <div className="relative z-10 h-64 w-64 sm:h-72 sm:w-72 md:h-80 md:w-80 lg:h-96 lg:w-96">
-                        {/* Corner brackets — neon green glow */}
-                        <div className="absolute top-0 left-0 h-10 w-10 animate-pulse rounded-tl-2xl border-t-[3px] border-l-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
-                        <div className="absolute top-0 right-0 h-10 w-10 animate-pulse rounded-tr-2xl border-t-[3px] border-r-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
-                        <div className="absolute bottom-0 left-0 h-10 w-10 animate-pulse rounded-bl-2xl border-b-[3px] border-l-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
-                        <div className="absolute right-0 bottom-0 h-10 w-10 animate-pulse rounded-br-2xl border-r-[3px] border-b-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                    {!showResult && (
+                        <div className="relative z-10 h-64 w-64 sm:h-72 sm:w-72 md:h-80 md:w-80 lg:h-96 lg:w-96">
+                            {/* Corner brackets — neon green glow */}
+                            <div className="absolute top-0 left-0 h-10 w-10 animate-pulse rounded-tl-2xl border-t-[3px] border-l-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                            <div className="absolute top-0 right-0 h-10 w-10 animate-pulse rounded-tr-2xl border-t-[3px] border-r-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                            <div className="absolute bottom-0 left-0 h-10 w-10 animate-pulse rounded-bl-2xl border-b-[3px] border-l-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
+                            <div className="absolute right-0 bottom-0 h-10 w-10 animate-pulse rounded-br-2xl border-r-[3px] border-b-[3px] border-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.5)]" />
 
-                        {/* Animated scan line */}
-                        {isScanning && (
-                            <div className="animate-scan absolute right-4 left-4 z-20 h-0.5 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.9)]" />
-                        )}
+                            {/* Animated scan line */}
+                            {isScanning && (
+                                <div className="animate-scan absolute right-4 left-4 z-20 h-0.5 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.9)]" />
+                            )}
 
-                        {/* Idle state — camera icon + CTA */}
-                        {!isScanning && !showResult && !isCameraActive && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
-                                <Camera
-                                    size={52}
-                                    className="text-emerald-400/40 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]"
-                                    aria-hidden="true"
-                                />
-                                <button
-                                    onClick={() => setIsCameraActive(true)}
-                                    className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-7 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all hover:from-emerald-400 hover:to-emerald-500 hover:shadow-emerald-400/40 focus:ring-2 focus:ring-emerald-400/50 focus:outline-none"
-                                    aria-label="Tap to start the barcode scanner camera"
-                                >
-                                    Tap to start camera
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                            {/* Idle state — camera icon + CTA */}
+                            {!isScanning && !showResult && !isCameraActive && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
+                                    <Camera
+                                        size={52}
+                                        className="text-emerald-400/40 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]"
+                                        aria-hidden="true"
+                                    />
+                                    <button
+                                        onClick={() => setIsCameraActive(true)}
+                                        className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-7 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all hover:from-emerald-400 hover:to-emerald-500 hover:shadow-emerald-400/40 focus:ring-2 focus:ring-emerald-400/50 focus:outline-none"
+                                        aria-label="Tap to start the barcode scanner camera"
+                                    >
+                                        Tap to start camera
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {isScanning && <SkeletonLoader />}
 

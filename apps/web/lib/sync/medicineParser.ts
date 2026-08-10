@@ -223,8 +223,6 @@ export const BRAND_TO_GENERIC: Record<string, string> = {
 export function extractMedicineName(text: string): string | null {
     if (!text || text.trim().length < 4) return null;
 
-    const norm = text.toLowerCase();
-
     // Strategy 1: Brand name lookup in full OCR text
     for (const [brand] of Object.entries(BRAND_TO_GENERIC)) {
         const brandRegexStr = brand.replace(/-/g, "[-\\s]*");
