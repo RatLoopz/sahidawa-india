@@ -109,7 +109,7 @@ export function extractBatchNumber(text: string): string | null {
  * Known Indian medicine brand names and their generic active ingredients.
  * Used to identify a medicine from OCR text even when the formal parsing fails.
  */
-const BRAND_TO_GENERIC: Record<string, string> = {
+export const BRAND_TO_GENERIC: Record<string, string> = {
     // Paracetamol / Acetaminophen brands
     dolo: "paracetamol",
     crocin: "paracetamol",

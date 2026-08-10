@@ -453,20 +453,113 @@ const KNOWLEDGE_BASE: Record<string, IngredientInfo> = {
  * Given raw OCR text extracted from a medicine packet, returns the best matching
  * ingredient knowledge entry, or null if no match is found.
  */
-export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null {
-    const norm = normalise(ocrText);
-    // Longest-match wins to avoid spurious partial matches
-    let best: IngredientInfo | null = null;
-    let bestLen = 0;
+import { BRAND_TO_GENERIC } from "./sync/medicineParser";
 
+/** Calculate similarity of two strings using Sorensen-Dice coefficient */
+function getSimilarity(s1: string, s2: string): number {
+    s1 = s1.toLowerCase().replace(/[^a-z0-9]/g, "");
+    s2 = s2.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (s1 === s2) return 1.0;
+    if (s1.length < 2 || s2.length < 2) return 0.0;
+
+    const getBigrams = (str: string) => {
+        const bigrams = new Set<string>();
+        for (let i = 0; i < str.length - 1; i++) {
+            bigrams.add(str.substring(i, i + 2));
+        }
+        return bigrams;
+    };
+    const b1 = getBigrams(s1);
+    const b2 = getBigrams(s2);
+    let intersection = 0;
+    for (const val of b1) {
+        if (b2.has(val)) intersection++;
+    }
+    return (2.0 * intersection) / (b1.size + b2.size || 1);
+}
+
+/**
+ * Given raw OCR text extracted from a medicine packet, returns the best matching
+ * ingredient knowledge entry, or null if no match is found. Uses a combination of
+ * exact substring matches, brand-to-generic lookup, word-by-word fuzzy matching,
+ * and hardcoded OCR typo guards.
+ */
+export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null {
+    if (!ocrText) return null;
+    const norm = normalise(ocrText);
+
+    // 1. First-pass: Exact substring match for ingredients (highest precision)
+    let bestExact: IngredientInfo | null = null;
+    let bestExactLen = 0;
     for (const [key, info] of Object.entries(KNOWLEDGE_BASE)) {
-        if (norm.includes(key) && key.length > bestLen) {
-            best = info;
-            bestLen = key.length;
+        if (norm.includes(key) && key.length > bestExactLen) {
+            bestExact = info;
+            bestExactLen = key.length;
+        }
+    }
+    if (bestExact) return bestExact;
+
+    // 2. Second-pass: Exact brand name lookup in normalized text
+    for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
+        if (norm.includes(brand)) {
+            const resolved = KNOWLEDGE_BASE[generic];
+            if (resolved) return resolved;
         }
     }
 
-    return best;
+    // 3. Third-pass: Fuzzy matching word-by-word
+    // Split the OCR text into clean alphanumeric words of length >= 3
+    const words = norm.split(/\s+/).filter((w) => w.length >= 3);
+
+    let bestFuzzy: IngredientInfo | null = null;
+    let bestScore = 0.5; // Threshold is 0.50
+
+    for (const word of words) {
+        // A. Fuzzy match against generic ingredients in KNOWLEDGE_BASE
+        for (const [key, info] of Object.entries(KNOWLEDGE_BASE)) {
+            const score = getSimilarity(word, key);
+            if (score > bestScore) {
+                bestScore = score;
+                bestFuzzy = info;
+            }
+        }
+
+        // B. Fuzzy match against brand names in BRAND_TO_GENERIC
+        for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
+            const score = getSimilarity(word, brand);
+            if (score > bestScore) {
+                const resolved = KNOWLEDGE_BASE[generic];
+                if (resolved) {
+                    bestScore = score;
+                    bestFuzzy = resolved;
+                }
+            }
+        }
+    }
+
+    if (bestFuzzy) return bestFuzzy;
+
+    // 4. Fourth-pass: If still no match, look for common OCR typos for paracetamol/acetaminophen
+    const paracetamolTypos = [
+        "jacetomol",
+        "lacetomol",
+        "acetomol",
+        "paracetol",
+        "paracetemol",
+        "paracetmol",
+        "paraceta",
+        "acetaminop",
+        "acetaminofen",
+        "acetominophen",
+        "acetamniophen",
+    ];
+    for (const typo of paracetamolTypos) {
+        if (norm.includes(typo)) {
+            return KNOWLEDGE_BASE.paracetamol;
+        }
+    }
+
+    return null;
 }
 
 /**
