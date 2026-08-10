@@ -330,6 +330,20 @@ export async function GET(request: NextRequest) {
             );
         }
     }
+
+    // ── 3.3 Validate LLM output semantic correctness ─────────────────────────
+    if (profile && typeof profile === "object") {
+        const p = profile as any;
+        if (
+            !p.genericName?.trim() ||
+            !p.activeIngredient?.trim() ||
+            p.genericName.toLowerCase() === "unknown" ||
+            p.activeIngredient.toLowerCase() === "unknown"
+        ) {
+            p.isMedicine = false;
+        }
+    }
+
     // ── 3.5 Check if LLM determined it's NOT a medicine ──────────────────────
     if (profile && "isMedicine" in profile && (profile as any).isMedicine === false) {
         if (db) {

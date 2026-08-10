@@ -59,7 +59,6 @@ export function UnverifiedResult({
 
     // Resolve the query search query for the API, preferring generic names
     const resolvedBrand = brandName ? resolveToGeneric(brandName) : null;
-    const resolvedOcr = ocrText ? resolveToGeneric(ocrText) : null;
 
     // Allow the AI backend to act as a fallback parser.
     // The backend's prompt is already instructed to return isMedicine: false if it's not a real medicine,
@@ -67,8 +66,6 @@ export function UnverifiedResult({
     let searchQuery: string | null = null;
     if (resolvedBrand) {
         searchQuery = resolvedBrand;
-    } else if (resolvedOcr && resolvedOcr !== ocrText?.toLowerCase().trim()) {
-        searchQuery = resolvedOcr;
     } else if (staticInfo?.genericName) {
         searchQuery = staticInfo.genericName;
     } else if (ocrText && ocrText.trim().length >= 3) {
