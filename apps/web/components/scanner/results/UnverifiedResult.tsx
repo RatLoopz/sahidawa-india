@@ -63,7 +63,17 @@ export function UnverifiedResult({
     // Resolve the query search query for the API, preferring generic names
     const resolvedBrand = brandName ? resolveToGeneric(brandName) : null;
     const resolvedOcr = ocrText ? resolveToGeneric(ocrText) : null;
-    const searchQuery = resolvedBrand || resolvedOcr;
+
+    // Prevent LLM hallucinations: Do not use raw OCR text as a search query if we couldn't even extract a medicine name from it,
+    // unless the OCR text explicitly resolved to a known generic name in our knowledge base.
+    let searchQuery: string | null = null;
+    if (resolvedBrand) {
+        searchQuery = resolvedBrand;
+    } else if (resolvedOcr && resolvedOcr !== ocrText?.toLowerCase().trim()) {
+        searchQuery = resolvedOcr;
+    } else if (staticInfo?.genericName) {
+        searchQuery = staticInfo.genericName;
+    }
 
     useEffect(() => {
         if (!searchQuery?.trim()) return;
@@ -143,7 +153,7 @@ export function UnverifiedResult({
                                 Scanned Brand Name
                             </span>
                             <h3 className="text-xl leading-tight font-black tracking-tight text-amber-700 dark:text-amber-400">
-                                {brandName || "Branded Medicine"}
+                                {brandName || "Unknown Medicine"}
                             </h3>
                         </div>
 
@@ -462,9 +472,10 @@ export function UnverifiedResult({
                             className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
                             aria-hidden="true"
                         />
-                        <p className="text-xs leading-relaxed font-medium text-amber-800 dark:text-amber-300">
-                            This appears to be a branded medicine not in the CDSCO database. Please
-                            consult a pharmacist or doctor for usage and safety information.
+                        <p className="text-xs leading-relaxed font-semibold text-amber-800/80 dark:text-amber-200/70">
+                            {brandName
+                                ? "This appears to be a medicine not in the CDSCO database. Please exercise caution and consult a healthcare professional."
+                                : "We could not identify a known medicine from this scan. If this is a medicine, please ensure the name is clearly visible and try again."}
                         </p>
                     </div>
                 )}
