@@ -56,7 +56,7 @@ export async function fetchGenericAlternatives(
     lat?: number,
     lng?: number,
     signal?: AbortSignal
-): Promise<GenericAlternative> {
+): Promise<GenericAlternative | null> {
     let url = `${API_BASE}/api/v1/alternatives/${encodeURIComponent(medicineId)}`;
     if (lat !== undefined && lng !== undefined) {
         url += `?lat=${lat}&lng=${lng}`;
@@ -67,6 +67,12 @@ export async function fetchGenericAlternatives(
         timeout: 10000,
         signal,
     });
+    // A 404 means no generic alternative exists for this medicine — a normal,
+    // expected outcome, not a network/server failure. Let the caller render
+    // a neutral empty state instead of a hard error.
+    if (res.status === 404) {
+        return null;
+    }
 
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
