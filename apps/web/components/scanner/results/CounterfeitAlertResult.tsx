@@ -1,5 +1,5 @@
 import { VerifiedMedicine } from "@/lib/api";
-import { AlertTriangle, Check, Copy } from "lucide-react";
+import { AlertTriangle, Check, Copy, X } from "lucide-react";
 import { ResultActions } from "./ResultActions";
 export function CounterfeitAlertResult({
     medicine,
@@ -24,6 +24,15 @@ export function CounterfeitAlertResult({
             aria-live="assertive"
             aria-atomic="true"
         >
+            {/* Close Button */}
+            <button
+                onClick={onScanAgain}
+                className="absolute top-5 right-5 z-20 rounded-full bg-slate-100/80 p-2 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                aria-label="Close result"
+                title="Close"
+            >
+                <X size={16} strokeWidth={2.5} />
+            </button>
             <div className="absolute top-0 right-0 left-0 h-2 bg-red-500"></div>
             <div className="flex flex-col items-center space-y-4 text-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-600 shadow-inner dark:bg-red-950/30 dark:text-red-400">

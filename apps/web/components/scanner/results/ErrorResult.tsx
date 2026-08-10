@@ -1,12 +1,14 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
 export function ErrorResult({
     message,
     onRetry,
+    onClose,
     isOffline,
 }: {
     message: string;
     onRetry: () => void;
+    onClose?: () => void;
     isOffline?: boolean;
 }) {
     return (
@@ -17,6 +19,17 @@ export function ErrorResult({
             aria-live="assertive"
             aria-atomic="true"
         >
+            {/* Close Button */}
+            {onClose && (
+                <button
+                    onClick={onClose}
+                    className="absolute top-5 right-5 z-20 rounded-full bg-slate-100/80 p-2 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                    aria-label="Close error result"
+                    title="Close"
+                >
+                    <X size={16} strokeWidth={2.5} />
+                </button>
+            )}
             <div className="absolute top-0 right-0 left-0 h-2 bg-slate-400"></div>
             <div className="flex flex-col items-center space-y-4 text-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-(--color-surface-muted) text-(--color-text-secondary) shadow-inner">

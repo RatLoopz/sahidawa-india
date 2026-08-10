@@ -489,7 +489,14 @@ export default function ScanPage() {
 
                     {/* Results overlay */}
                     {showResult && (
-                        <div className="animate-in fade-in zoom-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm duration-300 sm:p-6 md:p-8">
+                        <div
+                            onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                    handleDismissResult();
+                                }
+                            }}
+                            className="animate-in fade-in zoom-in fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm duration-300 sm:p-6 md:p-8"
+                        >
                             {showLasaConfirmation ? (
                                 <LasaConfirmation
                                     scannedName={
@@ -521,6 +528,7 @@ export default function ScanPage() {
                                         <ErrorResult
                                             message={verifyError}
                                             onRetry={() => handleVerify(batchInput)}
+                                            onClose={handleDismissResult}
                                             isOffline={isOffline}
                                         />
                                     )}

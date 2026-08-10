@@ -15,6 +15,7 @@ import {
     UtensilsCrossed,
     Refrigerator,
     HeartPulse,
+    X,
 } from "lucide-react";
 import { ExpiryBadge } from "../ExpiryBadge";
 import { ResultActions } from "./ResultActions";
@@ -113,6 +114,16 @@ export function UnverifiedResult({
             aria-live="polite"
             aria-atomic="true"
         >
+            {/* Close Button */}
+            <button
+                onClick={onScanAgain}
+                className="dark:bg-slate-850 dark:hover:bg-slate-750 absolute top-5 right-5 z-20 rounded-full bg-slate-100/80 p-2 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                aria-label="Close result"
+                title="Close"
+            >
+                <X size={16} strokeWidth={2.5} />
+            </button>
+
             {/* Top Amber bar */}
             <div className="absolute top-0 right-0 left-0 h-2 flex-none bg-gradient-to-r from-amber-400 to-amber-500" />
 
