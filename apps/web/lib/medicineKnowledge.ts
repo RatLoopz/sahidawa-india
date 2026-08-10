@@ -492,7 +492,8 @@ export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null 
     let bestExact: IngredientInfo | null = null;
     let bestExactLen = 0;
     for (const [key, info] of Object.entries(KNOWLEDGE_BASE)) {
-        if (norm.includes(key) && key.length > bestExactLen) {
+        const re = new RegExp(`\\b${key}\\b`, "i");
+        if (re.test(norm) && key.length > bestExactLen) {
             bestExact = info;
             bestExactLen = key.length;
         }
@@ -501,7 +502,8 @@ export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null 
 
     // 2. Second-pass: Exact brand name lookup in normalized text
     for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
-        if (norm.includes(brand)) {
+        const re = new RegExp(`\\b${brand}\\b`, "i");
+        if (re.test(norm)) {
             const resolved = KNOWLEDGE_BASE[generic];
             if (resolved) return resolved;
         }
@@ -512,9 +514,11 @@ export function lookupIngredientFromOcr(ocrText: string): IngredientInfo | null 
     const words = norm.split(/\s+/).filter((w) => w.length >= 3);
 
     let bestFuzzy: IngredientInfo | null = null;
-    let bestScore = 0.5; // Threshold is 0.50
+    let bestScore = 0.65; // Threshold is 0.65 (stricter to avoid random matches)
 
     for (const word of words) {
+        if (word.length <= 3) continue; // Skip 3-letter words for fuzzy matching to avoid noise
+
         // A. Fuzzy match against generic ingredients in KNOWLEDGE_BASE
         for (const [key, info] of Object.entries(KNOWLEDGE_BASE)) {
             const score = getSimilarity(word, key);

@@ -227,11 +227,10 @@ export function extractMedicineName(text: string): string | null {
 
     // Strategy 1: Brand name lookup in full OCR text
     for (const [brand] of Object.entries(BRAND_TO_GENERIC)) {
-        if (norm.includes(brand)) {
-            // Return the original-case match from the text
-            const re = new RegExp(`\\b${brand}\\b`, "i");
-            const m = text.match(re);
-            return m ? m[0] : brand;
+        const re = new RegExp(`\\b${brand}\\b`, "i");
+        const m = text.match(re);
+        if (m) {
+            return m[0];
         }
     }
 
@@ -359,10 +358,13 @@ export function extractMedicineName(text: string): string | null {
  */
 export function resolveToGeneric(medicineName: string): string {
     const norm = medicineName.toLowerCase().trim();
-    // Check full match first, then partial
+    // Check exact match first
     if (BRAND_TO_GENERIC[norm]) return BRAND_TO_GENERIC[norm];
+
+    // Check if brand is present as a whole word
     for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
-        if (norm.includes(brand) || brand.includes(norm)) return generic;
+        const re = new RegExp(`\\b${brand}\\b`, "i");
+        if (re.test(norm)) return generic;
     }
     return norm;
 }
