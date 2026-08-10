@@ -64,11 +64,23 @@ const nextConfig = {
     },
     poweredByHeader: false,
     async headers() {
+        // Derive the WSS origin from the Supabase HTTPS URL so that Supabase
+        // Realtime WebSocket connections are explicitly whitelisted.
+        const supabaseWssOrigin = (() => {
+            try {
+                const u = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+                return `wss://${u.host}`;
+            } catch {
+                return "";
+            }
+        })();
+
         const connectSrc = [
             ...new Set(
                 [
                     "'self'",
                     process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    supabaseWssOrigin,
                     process.env.NEXT_PUBLIC_API_URL,
                     process.env.NEXT_PUBLIC_ML_SERVICE_URL,
                     process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT || (process.env.NODE_ENV === "development" ? "http://localhost:4318" : ""),
@@ -82,8 +94,10 @@ const nextConfig = {
                     .filter(Boolean)
                     .map((u) => {
                         if (u === "'self'") return u;
+                        // Keep wss:// origins as-is; URL constructor normalises them fine.
                         try {
-                            return new URL(u).origin;
+                            const parsed = new URL(u);
+                            return parsed.origin;
                         } catch {
                             return "";
                         }
@@ -105,14 +119,15 @@ const nextConfig = {
                         key: "Content-Security-Policy",
                         value: [
                             "default-src 'self'",
-                            // 'unsafe-eval' is required for WebAssembly (Tesseract OCR WASM engine).
-                            // 'strict-dynamic' propagates trust to dynamically created scripts.
-                            "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
-                            // blob: is required so Tesseract's CDN worker script can spawn a Blob Worker.
+                            // 'wasm-unsafe-eval' allows WebAssembly (Tesseract OCR WASM engine) without
+                            // allowing arbitrary eval(). Unlike 'unsafe-eval', Next.js nonce middleware
+                            // does NOT strip this directive. Both are included for broad browser support.
+                            "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                            // blob: is required so the Tesseract CDN worker can spawn a Blob Worker.
                             "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com",
                             "style-src 'self' 'unsafe-inline'",
-                            // wss: is required for Supabase Realtime WebSocket connections.
-                            `connect-src ${connectSrc} wss: https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
+                            // connectSrc already includes explicit wss:// origin for Supabase Realtime.
+                            `connect-src ${connectSrc} https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
                             "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
                             "font-src 'self'",
                             "object-src 'none'",

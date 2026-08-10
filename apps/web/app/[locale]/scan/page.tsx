@@ -249,7 +249,9 @@ export default function ScanPage() {
             try {
                 await handleVerify(scannedText);
             } catch (error: unknown) {
-                setApiError(error instanceof Error ? error.message : "Failed to verify medicine with CDSCO.");
+                setApiError(
+                    error instanceof Error ? error.message : "Failed to verify medicine with CDSCO."
+                );
             } finally {
                 setIsVerifying(false);
             }
@@ -597,6 +599,7 @@ export default function ScanPage() {
                                             brandName={parsedBrand}
                                             batchNumber={parsedBatch}
                                             expiryDate={parsedExpiry}
+                                            ocrText={ocrText ?? undefined}
                                             onScanAgain={handleDismissResult}
                                             onShare={handleShare}
                                             shareLabel={tScan("share.button")}

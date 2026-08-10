@@ -34,7 +34,7 @@ export function VerifiedSafeResult({
     const tScan = useTranslations("Scan");
     return (
         <div
-            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl"
+            className="relative w-[94vw] max-w-[480px] overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl sm:w-[480px]"
             role="region"
             aria-label="Verification result - Medicine is verified and safe"
             aria-live="polite"
