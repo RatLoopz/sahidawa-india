@@ -1705,7 +1705,9 @@
         "abhaSetup": "ABHA Setup",
         "abhaRecords": "ABHA Records",
         "notificationSettings": "Notification Settings",
-        "privacySecurity": "Privacy & Security"
+        "privacySecurity": "Privacy & Security",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Navbar": {
         "logo_alt": "SahiDawa Logo"

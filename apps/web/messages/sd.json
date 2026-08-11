@@ -1546,7 +1546,9 @@
         "abhaSetup": "ABHA سيٽ اپ",
         "abhaRecords": "ABHA رڪارڊ",
         "notificationSettings": "اطلاعي سيٽنگون",
-        "privacySecurity": "رازداري ۽ سلامتي"
+        "privacySecurity": "رازداري ۽ سلامتي",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
