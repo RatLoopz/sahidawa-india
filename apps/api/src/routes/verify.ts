@@ -309,14 +309,14 @@ router.post(
             await refreshLiveSafety(req.supabase!, data);
 
             // Look up batch recall status from batches table
-            const { data: batchData } = await req.supabase!
-                .from("batches")
+            const { data: batchData } = await req
+                .supabase!.from("batches")
                 .select("recall_status")
                 .eq("batch_number", batchNumber)
                 .maybeSingle();
             const batch_status = getBatchStatus(batchData?.recall_status);
 
-            const { data: counts, error: countError } = await req.supabase!
+            const { data: counts, error: countError } = await supabase
                 .rpc("get_scan_counts", { p_batch_number: data.batch_number })
                 .maybeSingle();
 
@@ -354,7 +354,7 @@ router.post(
 
             setImmediate(async () => {
                 try {
-                    const { error: insertError } = await req.supabase!.from("scan_history").insert([
+                    const { error: insertError } = await supabase.from("scan_history").insert([
                         {
                             batch_number: data.batch_number,
                             medicine_id: data.id,

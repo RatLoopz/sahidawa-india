@@ -200,10 +200,19 @@ export async function POST(req: NextRequest) {
         let fastestData;
         try {
             fastestData = await Promise.any(fetchPromises);
-        } catch {
-            // This catches both complete network failures AND cases where all mirrors returned 0 elements
-            console.warn("[overpass] All mirrors rejected or returned 0 elements");
-            fastestData = { elements: [] };
+        } catch (aggregateError: any) {
+            // Check if any mirror successfully completed but returned 0 elements
+            const zeroElementErrors = (aggregateError.errors || []).filter(
+                (err: any) => err.message && err.message.includes("returned 0 elements")
+            );
+
+            if (zeroElementErrors.length > 0) {
+                console.warn("[overpass] At least one mirror successfully returned 0 elements");
+                fastestData = { elements: [] };
+            } else {
+                console.error("[overpass] All parallel mirrors failed with errors/timeouts");
+                throw aggregateError;
+            }
         }
 
         // Abort remaining in-flight requests

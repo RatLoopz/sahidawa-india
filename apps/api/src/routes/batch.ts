@@ -171,6 +171,8 @@ router.get(
                 }
 
                 const { data: medicineData, error: medicineError } = await query
+                    .order("created_at", { ascending: false })
+                    .order("id", { ascending: true })
                     .limit(1)
                     .maybeSingle();
 
@@ -430,7 +432,11 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
             query = query.eq("brand_name", brandName);
         }
 
-        const { data: medicineMatch } = await query.limit(1).maybeSingle();
+        const { data: medicineMatch } = await query
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true })
+            .limit(1)
+            .maybeSingle();
 
         if (medicineMatch) {
             medicine_id = medicineMatch.id;
