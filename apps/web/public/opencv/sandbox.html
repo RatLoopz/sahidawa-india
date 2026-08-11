@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!--
+    Sandboxed OpenCV.js container.
+
+    Security model:
+    - Loaded inside an iframe with sandbox="allow-scripts" (NO allow-same-origin)
+    - This gives the iframe a unique opaque origin, completely isolating it
+      from the parent page. The parent's CSP does NOT apply here.
+    - 'unsafe-eval' is required because OpenCV.js (Emscripten build) uses
+      new Function() for WASM-JS interop. This is safely contained because:
+      1. The iframe cannot access parent DOM/cookies/storage (no allow-same-origin)
+      2. The iframe cannot navigate the parent
+      3. Any injected script runs in the isolated opaque origin
+    - No explicit CSP meta tag needed; the sandbox attribute provides isolation.
+  -->
+  <title>OpenCV Sandbox</title>
+</head>
+<body>
+  <script src="/opencv/opencv.js"></script>
+  <script>
+    // ── OpenCV readiness ───────────────────────────────────────────────
+    var cvReady = null;
+    var cvReadyPromise = new Promise(function (resolve) { cvReady = resolve; });
+
+    if (typeof cv !== 'undefined') {
+      cv.onRuntimeInitialized = function () { cvReady(cv); };
+    } else {
+      var origOnLoad = window.onload;
+      window.onload = function () {
+        if (origOnLoad) origOnLoad();
+        if (typeof cv !== 'undefined') {
+          cv.onRuntimeInitialized = function () { cvReady(cv); };
+        }
+      };
+    }
+
+    // ── Detection handler ──────────────────────────────────────────────
+    window.addEventListener('message', function (evt) {
+      // Validate source: only accept messages from the parent window.
+      // In a sandboxed iframe the parent is the only legitimate sender.
+      if (evt.source !== window.parent) return;
+
+      var data = evt.data;
+      if (!data || data.type !== 'opencv-detect-packaging') return;
+
+      // Process asynchronously so multiple rapid requests queue correctly
+      (async function () {
+        try {
+          var cvInstance = await cvReadyPromise;
+          var blob = data.imageData;
+          var bmp = await createImageBitmap(blob);
+
+          var canvas = new OffscreenCanvas(bmp.width, bmp.height);
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(bmp, 0, 0);
+          bmp.close();
+
+          var src = cvInstance.imread(canvas);
+          var gray = new cvInstance.Mat();
+          var blurred = new cvInstance.Mat();
+          var edges = new cvInstance.Mat();
+          var contours = new cvInstance.MatVector();
+          var hierarchy = new cvInstance.Mat();
+
+          var looksLikePackaging = false;
+          var minAreaRatio = data.minAreaRatio || 0.02;
+          var angleToleranceDeg = data.angleToleranceDeg || 25;
+
+          try {
+            var frameArea = src.rows * src.cols;
+            var minArea = frameArea * minAreaRatio;
+
+            cvInstance.cvtColor(src, gray, cvInstance.COLOR_RGBA2GRAY);
+            cvInstance.GaussianBlur(gray, blurred, new cvInstance.Size(3, 3), 0);
+            cvInstance.Canny(blurred, edges, 30, 100);
+            cvInstance.findContours(edges, contours, hierarchy, cvInstance.RETR_EXTERNAL, cvInstance.CHAIN_APPROX_SIMPLE);
+
+            for (var i = 0; i < contours.size(); i++) {
+              var contour = contours.get(i);
+              var area = cvInstance.contourArea(contour);
+              if (area < minArea) { contour.delete(); continue; }
+
+              var approx = new cvInstance.Mat();
+              var perimeter = cvInstance.arcLength(contour, true);
+              cvInstance.approxPolyDP(contour, approx, 0.02 * perimeter, true);
+
+              if (approx.rows === 4 && cvInstance.isContourConvex(approx)) {
+                if (hasRoughlyRightAngles(cvInstance, approx, angleToleranceDeg)) {
+                  looksLikePackaging = true;
+                }
+              }
+              approx.delete();
+              contour.delete();
+              if (looksLikePackaging) break;
+            }
+          } finally {
+            src.delete(); gray.delete(); blurred.delete();
+            edges.delete(); contours.delete(); hierarchy.delete();
+            canvas.close();
+          }
+
+          window.parent.postMessage({
+            type: 'opencv-detect-packaging-result',
+            requestId: data.requestId,
+            result: { looksLikePackaging: looksLikePackaging }
+          }, '*');
+        } catch (err) {
+          window.parent.postMessage({
+            type: 'opencv-detect-packaging-result',
+            requestId: data.requestId,
+            error: String(err && err.message || err)
+          }, '*');
+        }
+      })();
+    });
+
+    // ── Geometry helpers ───────────────────────────────────────────────
+    function hasRoughlyRightAngles(cvInst, approx, toleranceDeg) {
+      var pts = [];
+      for (var i = 0; i < 4; i++) {
+        pts.push({ x: approx.intAt(i, 0), y: approx.intAt(i, 1) });
+      }
+      for (var i = 0; i < 4; i++) {
+        var p0 = pts[(i + 3) % 4];
+        var p1 = pts[i];
+        var p2 = pts[(i + 1) % 4];
+        var v1 = { x: p0.x - p1.x, y: p0.y - p1.y };
+        var v2 = { x: p2.x - p1.x, y: p2.y - p1.y };
+        var dot = v1.x * v2.x + v1.y * v2.y;
+        var mag1 = Math.hypot(v1.x, v1.y);
+        var mag2 = Math.hypot(v2.x, v2.y);
+        if (mag1 === 0 || mag2 === 0) return false;
+        var angleDeg = (Math.acos(dot / (mag1 * mag2)) * 180) / Math.PI;
+        if (Math.abs(angleDeg - 90) > toleranceDeg) return false;
+      }
+      return true;
+    }
+
+    // ── Signal readiness to parent ─────────────────────────────────────
+    // This message is sent AFTER the inline script has fully executed,
+    // which means the message handler above is registered and ready to
+    // receive detection requests. The parent waits for this message
+    // (not the iframe load event) before sending requests.
+    window.parent.postMessage({ type: 'opencv-sandbox-ready' }, '*');
+  </script>
+</body>
+</html>

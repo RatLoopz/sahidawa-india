@@ -53,8 +53,8 @@ async function main() {
                     encryption_iv: iv,
                     encryption_salt: salt,
                 });
-            } catch (err: any) {
-                logger.error(`Failed to rotate secret for user ${record.user_id}: ${err.message}`);
+            } catch (err: unknown) {
+                logger.error(`Failed to rotate secret for user ${record.user_id}: ${err instanceof Error ? err.message : String(err)}`);
             }
         }
 

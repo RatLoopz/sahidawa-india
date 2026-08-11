@@ -164,6 +164,7 @@ const inventoryRowSchema = z.object({
 
 // Reusable incremental CSV parsing helper using PapaParse step mode
 async function parseCsvIncremental(
+    client: any,
     fileInput: string | NodeJS.ReadableStream,
     pharmacyId: string,
     onProgress?: (stats: {
@@ -260,7 +261,7 @@ async function parseCsvIncremental(
                     const batch = [...rowsToInsert];
                     rowsToInsert = []; // Free up heap memory
 
-                    Promise.resolve(supabase.from("pharmacy_inventory").insert(batch))
+                    Promise.resolve(client.from("pharmacy_inventory").insert(batch))
                         .then(({ error }) => {
                             if (error) {
                                 logger.error(`Database bulk insertion failed: ${error.message}`);
@@ -292,7 +293,7 @@ async function parseCsvIncremental(
                 if (isDone) return;
 
                 if (rowsToInsert.length > 0) {
-                    Promise.resolve(supabase.from("pharmacy_inventory").insert(rowsToInsert))
+                    Promise.resolve(client.from("pharmacy_inventory").insert(rowsToInsert))
                         .then(({ error }) => {
                             if (isDone) return;
                             isDone = true;
@@ -367,9 +368,13 @@ router.post(
 
             const pharmacy = await pharmacyService.registerPharmacy(parsed.data, req.user.id);
             res.status(201).json({ pharmacy });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -601,12 +606,18 @@ router.get(
 
             const result = await pharmacyService.searchByMedicine(rawQuery);
             res.json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
-            logger.error("Pharmacy medicine search failed", { error: err.message });
+            logger.error("Pharmacy medicine search failed", {
+                error: err instanceof Error ? err.message : String(err),
+            });
             res.status(500).json({ error: "Database query failed" });
         }
     }
@@ -901,8 +912,9 @@ router.post(
             const fileContent = rawFileContent.replace(/^\uFEFF/, "");
 
             const pharmacyId = req.body.pharmacyId || req.query.pharmacyId;
+            const client = req.supabase || supabase;
 
-            let query = supabase.from("pharmacies").select("id").eq("created_by", req.user.id);
+            let query = client.from("pharmacies").select("id").eq("created_by", req.user.id);
 
             if (pharmacyId) {
                 query = query.eq("id", pharmacyId);
@@ -933,6 +945,7 @@ router.post(
 
             // Incremental parsing using the reusable helper (pharmacyId is already known)
             const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
+                client,
                 fileContent,
                 pharmacy.id,
                 (stats) => {
@@ -979,7 +992,7 @@ router.post(
                 );
                 res.end();
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Unknown error";
             logger.error(`Exception in bulk operations handler: ${message}`);
             if (!res.headersSent) {
@@ -1018,9 +1031,13 @@ router.put(
                 req.body
             );
             res.status(200).json({ pharmacy });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -1045,9 +1062,13 @@ router.delete(
             const pharmacyId = String(req.params.id);
             await pharmacyService.deletePharmacy(pharmacyId, req.user!.id, req.user!.role);
             res.status(200).json({ message: "Pharmacy deleted successfully" });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -1079,12 +1100,18 @@ router.post(
                 fileContent
             );
             res.status(200).json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
-            logger.error(`Exception in specific pharmacy upload handler: ${err.message}`);
+            logger.error(
+                `Exception in specific pharmacy upload handler: ${err instanceof Error ? err.message : String(err)}`
+            );
             next(err);
         }
     }

@@ -1,15 +1,29 @@
--- SahiDawa Dummy Seed Data
--- This data is automatically loaded when you run `npx supabase start`
+-- ============================================================================
+-- ⚠️  LOCAL DEVELOPMENT ONLY — Pharmacy Seed Data
+-- ============================================================================
+-- These are FAKE records for local dev/testing only.
+-- ✅ PRODUCTION data comes from the ETL: cd apps/etl && python run_stores.py
+--
+-- On production Supabase, the ETL inserts real Jan Aushadhi stores from
+-- the official government website with geocoded GPS coordinates.
+-- These seed records are tagged source='seed_dev' and is_active=false
+-- so they NEVER appear on the live map — they only exist for local testing.
+-- ============================================================================
 
--- 1. Insert Dummy Pharmacies (Jan Aushadhi Kendras)
--- Using PostGIS Point(Longitude, Latitude) for the location column
-INSERT INTO public.pharmacies (id, name, address, district, state, phone_number, is_verified, location)
+-- 1. Insert Local Dev Pharmacy Records (tagged seed_dev, inactive on prod)
+INSERT INTO public.pharmacies (id, name, address, district, state, phone_number, is_verified, location, status, is_active, source)
 VALUES
-  ('11111111-1111-1111-1111-111111111111', 'Pradhan Mantri Bhartiya Jan Aushadhi Kendra - Delhi', 'Connaught Place, New Delhi', 'New Delhi', 'Delhi', '9876543210', true, ST_SetSRID(ST_MakePoint(77.2177, 28.6304), 4326)),
-  ('22222222-2222-2222-2222-222222222222', 'Jan Aushadhi Kendra - Mumbai', 'Andheri West, Mumbai', 'Mumbai Suburban', 'Maharashtra', '9876543211', true, ST_SetSRID(ST_MakePoint(72.8277, 19.1363), 4326)),
-  ('33333333-3333-3333-3333-333333333333', 'Jan Aushadhi Kendra - Bangalore', 'Indiranagar, Bangalore', 'Bengaluru Urban', 'Karnataka', '9876543212', true, ST_SetSRID(ST_MakePoint(77.6408, 12.9784), 4326)),
-  ('44444444-4444-4444-4444-444444444444','Jan Aushadhi Kendra - Nagpur','Dharampeth, Nagpur','Nagpur','Maharashtra','9876543213',false,ST_SetSRID(ST_MakePoint(79.0882, 21.1458), 4326))
-ON CONFLICT (id) DO NOTHING;
+  -- Major city anchors for local map testing
+  ('11111111-1111-1111-1111-111111111111', '[DEV] Jan Aushadhi Kendra - Delhi', 'Connaught Place, New Delhi', 'New Delhi', 'Delhi', '9876543210', true, ST_SetSRID(ST_MakePoint(77.2177, 28.6304), 4326), 'approved', true, 'seed_dev'),
+  ('22222222-2222-2222-2222-222222222222', '[DEV] Jan Aushadhi Kendra - Mumbai', 'Andheri West, Mumbai', 'Mumbai Suburban', 'Maharashtra', '9876543211', true, ST_SetSRID(ST_MakePoint(72.8277, 19.1363), 4326), 'approved', true, 'seed_dev'),
+  ('33333333-3333-3333-3333-333333333333', '[DEV] Jan Aushadhi Kendra - Bangalore', 'Indiranagar, Bangalore', 'Bengaluru Urban', 'Karnataka', '9876543212', true, ST_SetSRID(ST_MakePoint(77.6408, 12.9784), 4326), 'approved', true, 'seed_dev'),
+  -- Assam/Guwahati anchors for testing pincode 781030
+  ('55555555-5555-5555-5555-555555555555', '[DEV] PMBJK00173 - Azara Guwahati', 'Girijananda Choudhary Institute Of Pharmaceutical Science, Azara, Guwahati-781001', 'Kamrup', 'Assam', '9854046526', true, ST_SetSRID(ST_MakePoint(91.6080622, 26.1157909), 4326), 'approved', true, 'seed_dev'),
+  ('66666666-6666-6666-6666-666666666666', '[DEV] PMBJK00174 - Gorchuk Guwahati', 'Kotahbari Road, Gorchuk, Guwahati-781001', 'Kamrup', 'Assam', '8638040602', true, ST_SetSRID(ST_MakePoint(91.7080622, 26.1257909), 4326), 'approved', true, 'seed_dev'),
+  ('99999999-9999-9999-9999-999999999999', '[DEV] PMBJK00177 - Amingaon Guwahati', 'Amingaon (Madhyam) Near S. B. I, Guwahati-31, Kamrup, Assam- 781031', 'Kamrup', 'Assam', '9864022600', true, ST_SetSRID(ST_MakePoint(91.6880622, 26.2057909), 4326), 'approved', true, 'seed_dev')
+ON CONFLICT (id) DO UPDATE
+  SET status = 'approved', is_active = true, source = 'seed_dev',
+      name = EXCLUDED.name, address = EXCLUDED.address;
 
 -- 2. Insert Dummy Medicines
 -- Using brand_name, generic_name, manufacturer

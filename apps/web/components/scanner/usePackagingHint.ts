@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { detectPackaging } from "@/lib/vision/detectPackaging";
+import { detectPackaging, destroySandbox } from "@/lib/vision/detectPackaging";
 
 const CHECK_INTERVAL_MS = 500;
 
@@ -43,6 +43,7 @@ export function usePackagingHint(
         return () => {
             cancelled = true;
             window.clearInterval(intervalId);
+            destroySandbox();
         };
     }, [videoRef, enabled]);
 

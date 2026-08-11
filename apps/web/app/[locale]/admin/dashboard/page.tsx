@@ -262,11 +262,11 @@ export default function AdminDashboard() {
                     keys!
                 </>
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" />{" "}
-                    {err.message || "Cache flush failed"}
+                    {err instanceof Error ? err.message : "Cache flush failed"}
                 </>,
                 false
             );

@@ -105,31 +105,267 @@ export function extractBatchNumber(text: string): string | null {
     return null;
 }
 
+/**
+ * Known Indian medicine brand names and their generic active ingredients.
+ * Used to identify a medicine from OCR text even when the formal parsing fails.
+ */
+export const BRAND_TO_GENERIC: Record<string, string> = {
+    // Paracetamol / Acetaminophen brands
+    dolo: "paracetamol",
+    crocin: "paracetamol",
+    calpol: "paracetamol",
+    malidens: "paracetamol",
+    panadol: "paracetamol",
+    pyrigesic: "paracetamol",
+    febrex: "paracetamol",
+    metacin: "paracetamol",
+    "p-250": "paracetamol",
+    // Telmisartan brands
+    telma: "telmisartan",
+    "telma-ct": "telmisartan",
+    "telma-h": "telmisartan",
+    "telma-am": "telmisartan",
+    telvas: "telmisartan",
+    tazloc: "telmisartan",
+    telmikind: "telmisartan",
+    telpres: "telmisartan",
+    sartel: "telmisartan",
+    // Ibuprofen brands
+    brufen: "ibuprofen",
+    combiflam: "ibuprofen",
+    ibugesic: "ibuprofen",
+    advil: "ibuprofen",
+    nurofen: "ibuprofen",
+    // Amoxicillin brands
+    amoxil: "amoxicillin",
+    novamox: "amoxicillin",
+    mox: "amoxicillin",
+    wymox: "amoxicillin",
+    // Azithromycin brands
+    zithromax: "azithromycin",
+    azithral: "azithromycin",
+    azee: "azithromycin",
+    azax: "azithromycin",
+    // Metformin brands
+    glucophage: "metformin",
+    glycomet: "metformin",
+    gluconorm: "metformin",
+    obimet: "metformin",
+    // Atorvastatin brands
+    lipitor: "atorvastatin",
+    atorva: "atorvastatin",
+    storvas: "atorvastatin",
+    lipvas: "atorvastatin",
+    // Amlodipine brands
+    norvasc: "amlodipine",
+    stamlo: "amlodipine",
+    amlokind: "amlodipine",
+    amlong: "amlodipine",
+    // Omeprazole / PPI brands
+    prilosec: "omeprazole",
+    omez: "omeprazole",
+    losec: "omeprazole",
+    pantocid: "pantoprazole",
+    pan: "pantoprazole",
+    rablet: "rabeprazole",
+    // Cetirizine brands
+    zyrtec: "cetirizine",
+    cetzine: "cetirizine",
+    alerid: "cetirizine",
+    okacet: "cetirizine",
+    // Ciprofloxacin brands
+    cipro: "ciprofloxacin",
+    ciplox: "ciprofloxacin",
+    cifran: "ciprofloxacin",
+    // Metronidazole brands
+    flagyl: "metronidazole",
+    metrogyl: "metronidazole",
+    aristogyl: "metronidazole",
+    // Aspirin brands
+    disprin: "aspirin",
+    ecosprin: "aspirin",
+    loprin: "aspirin",
+    // Clopidogrel brands
+    plavix: "clopidogrel",
+    clopilet: "clopidogrel",
+    deplatt: "clopidogrel",
+    // Levothyroxine brands
+    thyronorm: "levothyroxine",
+    eltroxin: "levothyroxine",
+    // Ondansetron brands
+    zofran: "ondansetron",
+    ondem: "ondansetron",
+    vomikind: "ondansetron",
+    // Domperidone brands
+    domstal: "domperidone",
+    vomitab: "domperidone",
+    domperidone: "domperidone",
+    // Diclofenac brands
+    voveran: "diclofenac",
+    volini: "diclofenac",
+    diclofenac: "diclofenac",
+    // Salbutamol brands
+    asthalin: "salbutamol",
+    ventolin: "salbutamol",
+    levolin: "salbutamol",
+};
+
+/**
+ * Given raw OCR text, attempts to identify the medicine name.
+ *
+ * Strategy:
+ * 1. Look for known Indian brand names directly in the OCR text (brand lookup)
+ * 2. Look for IP/BP/USP generic names (e.g. "Paracetamol Tablets IP")
+ * 3. Fall back to first meaningful all-caps line (at least 4 chars, not a noise word)
+ *
+ * Returns null if the text is too short or noisy to extract a reliable name.
+ */
 export function extractMedicineName(text: string): string | null {
+    if (!text || text.trim().length < 4) return null;
+
+    // Strategy 1: Brand name lookup in full OCR text
+    for (const [brand] of Object.entries(BRAND_TO_GENERIC)) {
+        const brandRegexStr = brand.replace(/-/g, "[-\\s]*");
+        const re = new RegExp(`\\b${brandRegexStr}(?=\\b|\\d)`, "i");
+        const m = text.match(re);
+        if (m) {
+            // Return the actual matched text (e.g. "Dolo-650") for better UI display
+            return m[0].trim();
+        }
+    }
+
+    // Strategy 2: Look for "XYZ Tablets IP/BP/USP" pattern (generic medicine name line)
+    const ipPattern = /([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+Tablets?\s+I\.?P\.?|B\.?P\.?|U\.?S\.?P\.?/i;
+    const ipMatch = text.match(ipPattern);
+    if (ipMatch?.[1]) {
+        const name = ipMatch[1].trim();
+        if (name.length >= 4) return name;
+    }
+
+    // Strategy 3 & 4 helper lists
+    const FULL_LINE_SKIP = [
+        "warning",
+        "warn",
+        "arng",
+        "warng",
+        "schedule",
+        "prescription",
+        "retail",
+        "practitioner",
+        "medical",
+        "drug",
+        "manufactur",
+        "marketed",
+        "mfg",
+        "exp",
+        "batch",
+        "lot",
+        "licence",
+        "lic no",
+        "glenmark",
+        "abbott",
+        "cipla",
+        "sun pharma",
+        "lupin",
+        "torrent",
+        "alkem",
+        "intas",
+        "cadila",
+        "zydus",
+        "pfizer",
+        "gsk",
+        "micro labs",
+        "macleods",
+        "composition",
+        "excipients",
+        "dosage",
+        "directed",
+        "physician",
+        "doctor",
+        "store",
+        "keep",
+        "children",
+        "temperature",
+        "moisture",
+        "light",
+        "overdose",
+        "injurious",
+        "liver",
+        "trade mark",
+        "regd",
+    ];
+
+    const CLEAN_WORDS = [
+        /\btablets?\b/gi,
+        /\bcapsules?\b/gi,
+        /\bstrips?\b/gi,
+        /\bmg\b/gi,
+        /\bmcg\b/gi,
+        /\bml\b/gi,
+    ];
+
+    const shouldSkipLine = (line: string): boolean => {
+        const lower = line.toLowerCase();
+        return FULL_LINE_SKIP.some((word) => lower.includes(word));
+    };
+
+    const cleanCandidate = (line: string): string => {
+        let cleaned = line;
+        for (const regex of CLEAN_WORDS) {
+            cleaned = cleaned.replace(regex, "");
+        }
+        return cleaned
+            .replace(/[^a-zA-Z\s\-]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    };
+
     const lines = text
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean);
-    const skip =
-        /^(exp(?:iry)?|batch|b\.?\s*no|mfg|date|composition|tablet(?:s)?|capsule(?:s)?|strip(?:s)?|drops?|syrup|injection|suspension|solution|ointment|cream|gel|powder|granules?|spray|inhaler|mg|mrp|rs|inr|use|manufacture|store|keep|dosage)/i;
 
+    // Strategy 3: All-caps meaningful line (brand names are usually printed in ALL CAPS on Indian strips)
     for (const line of lines) {
-        if (skip.test(line)) continue;
+        if (shouldSkipLine(line)) continue;
         if (/^\d/.test(line)) continue;
 
-        const allCaps = line.match(/\b([A-Z][A-Z\s-]{2,})\b/);
+        const allCaps = line.match(/\b([A-Z][A-Z\s\-]{3,})\b/);
         if (allCaps) {
-            const candidate = allCaps[1].replace(/\s+/g, " ").trim();
-            if (candidate.length >= 3 && !/\d/.test(candidate)) return candidate;
+            const candidate = cleanCandidate(allCaps[1]);
+            if (candidate.length >= 4 && !shouldSkipLine(candidate)) {
+                return candidate;
+            }
         }
     }
 
+    // Strategy 4: First non-noise, non-numeric line with 4+ meaningful characters
     for (const line of lines) {
-        if (skip.test(line)) continue;
+        if (shouldSkipLine(line)) continue;
         if (/^\d/.test(line)) continue;
-        const cleaned = line.replace(/[^a-zA-Z0-9\s-]/g, "").trim();
-        if (cleaned.length > 2) return cleaned;
+        const candidate = cleanCandidate(line);
+        if (candidate.length >= 4) {
+            return candidate;
+        }
     }
 
     return null;
+}
+
+/**
+ * Given a medicine name (brand or generic), resolve it to the generic active
+ * ingredient if it's a known brand. Returns the original name if not found.
+ */
+export function resolveToGeneric(medicineName: string): string {
+    const norm = medicineName.toLowerCase().trim();
+    // Check exact match first
+    if (BRAND_TO_GENERIC[norm]) return BRAND_TO_GENERIC[norm];
+
+    // Check if brand is present as a whole word (allowing trailing numbers and optional hyphens)
+    for (const [brand, generic] of Object.entries(BRAND_TO_GENERIC)) {
+        const brandRegexStr = brand.replace(/-/g, "[-\\s]*");
+        const re = new RegExp(`\\b${brandRegexStr}(?=\\b|\\d)`, "i");
+        if (re.test(norm)) return generic;
+    }
+    return norm;
 }

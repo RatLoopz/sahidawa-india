@@ -229,8 +229,8 @@ export default function InteractionCheckerPage() {
             setInteractions(sorted);
             setIsOfflineResult(response.verified === false);
             setHasChecked(true);
-        } catch (err: any) {
-            setError(err.message || t("errorMessage"));
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : t("errorMessage"));
         } finally {
             setIsLoading(false);
         }

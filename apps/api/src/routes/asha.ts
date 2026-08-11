@@ -77,7 +77,7 @@ ashaRouter.post(
             const awarderRole = req.user!.role;
 
             // SECURITY: Only supervisors and admins can award points
-            if (awarderRole !== "supervisor" && awarderRole !== "admin") {
+            if (awarderRole !== "moderator" && awarderRole !== "admin") {
                 return res
                     .status(403)
                     .json({ error: "Forbidden: Only supervisors and admins can award points" });

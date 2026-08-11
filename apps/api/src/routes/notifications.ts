@@ -16,6 +16,7 @@ import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
 import { safeCompare } from "../utils/cryptoUtils";
+import { markOfflineOnConnectionError, withDbFallback } from "../utils/withDbFallback";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -206,6 +207,15 @@ const updatePhoneSchema = z
     })
     .strict();
 
+export function escapeXml(text: string): string {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+}
+
 const twilioWebhookSchema = z.object({
     From: z
         .string()
@@ -323,6 +333,7 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
         // which stops one guest from reading another's subscription just by
         // knowing their number.
         let guestPhone: string | undefined;
+        const client = req.supabase || supabase;
         if (!req.user) {
             const verified = verifyGuestPhone(getGuestToken(req));
             if (!verified) {
@@ -334,7 +345,7 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
             guestPhone = verified;
         }
 
-        let query = supabase
+        let query = client
             .from("notification_subscribers")
             .select("phone, channels, language, district, is_active");
 
@@ -345,46 +356,26 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
         }
 
         let subscriber = null;
-        let dbFailed = dbConfig?.isSupabaseOffline;
 
-        if (!dbFailed) {
-            try {
+        subscriber = await withDbFallback(
+            async () => {
                 const { data, error } = await query.maybeSingle();
                 if (error) {
-                    dbFailed = true;
-                    if (
-                        error.message?.includes("fetch failed") ||
-                        error.message?.includes("refused") ||
-                        error.message?.includes("timeout")
-                    ) {
-                        if (dbConfig) dbConfig.setOffline();
-                    }
-                } else {
-                    subscriber = data;
+                    markOfflineOnConnectionError(error);
+                    throw error;
                 }
-            } catch (dbError: any) {
-                dbFailed = true;
-                const msg = dbError?.message || String(dbError);
-                if (
-                    msg.includes("fetch failed") ||
-                    msg.includes("refused") ||
-                    msg.includes("timeout")
-                ) {
-                    if (dbConfig) dbConfig.setOffline();
+                return data;
+            },
+            () => {
+                logger.warn(
+                    "Supabase database is offline. Falling back to in-memory subscription store."
+                );
+                if (req.user) {
+                    return memorySubscriberStore.find((s) => s.user_id === req.user!.id) ?? null;
                 }
+                return memorySubscriberStore.get(guestPhone!) ?? null;
             }
-        }
-
-        if (dbFailed) {
-            logger.warn(
-                "Supabase database is offline. Falling back to in-memory subscription store."
-            );
-            if (req.user) {
-                subscriber = memorySubscriberStore.find((s) => s.user_id === req.user!.id);
-            } else {
-                subscriber = memorySubscriberStore.get(guestPhone!);
-            }
-        }
+        );
 
         if (!subscriber) {
             res.json({ registered: false });
@@ -442,6 +433,7 @@ router.post(
         const targetStatus = isOwner ? "active" : "pending";
         const otp = isOwner ? null : randomInt(100000, 1000000).toString();
         const otpExpires = isOwner ? null : new Date(Date.now() + 10 * 60 * 1000).toISOString();
+        const client = req.supabase || supabase;
 
         try {
             let existing = null;
@@ -449,7 +441,7 @@ router.post(
 
             if (!dbFailed) {
                 try {
-                    const { data, error: findError } = await supabase
+                    const { data, error: findError } = await client
                         .from("notification_subscribers")
                         .select("*")
                         .eq("phone", formattedPhone)
@@ -467,9 +459,9 @@ router.post(
                     } else {
                         existing = data;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -557,7 +549,7 @@ router.post(
                     updatePayload.status = "active";
                 }
 
-                const { data: updated, error: updateError } = await supabase
+                const { data: updated, error: updateError } = await client
                     .from("notification_subscribers")
                     .update(updatePayload)
                     .eq("id", existing.id)
@@ -577,7 +569,7 @@ router.post(
                 if (!isOwner && otp && otpExpires) {
                     await otpStore.store(formattedPhone, otp, otpExpires);
                 }
-                const { data: created, error: insertError } = await supabase
+                const { data: created, error: insertError } = await client
                     .from("notification_subscribers")
                     .insert({
                         user_id: req.user?.id || null,
@@ -685,10 +677,11 @@ router.post(
         try {
             let dbFailed = dbConfig?.isSupabaseOffline;
             let subscriber = null;
+            const client = req.supabase || supabase;
 
             if (!dbFailed) {
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await client
                         .from("notification_subscribers")
                         .select("*")
                         .eq("phone", formattedPhone)
@@ -706,9 +699,9 @@ router.post(
                     } else {
                         subscriber = data;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -759,7 +752,7 @@ router.post(
                     await clearPendingPhoneChange(req.user.id);
 
                     if (!dbFailed) {
-                        const { error: updateError } = await supabase
+                        const { error: updateError } = await client
                             .from("notification_subscribers")
                             .update({ phone: formattedPhone })
                             .eq("user_id", req.user.id);
@@ -788,7 +781,7 @@ router.post(
             }
 
             if (!dbFailed) {
-                const { error: updateError } = await supabase
+                const { error: updateError } = await client
                     .from("notification_subscribers")
                     .update({ status: "active" })
                     .eq("id", subscriber.id);
@@ -886,9 +879,10 @@ router.patch(
         // compatibility with existing clients that expect subscriber in the body.
         if (req.user && formattedNewPhone) {
             let currentSubscriber = null;
+            const client = req.supabase || supabase;
             if (!dbConfig?.isSupabaseOffline) {
                 try {
-                    const { data } = await supabase
+                    const { data } = await client
                         .from("notification_subscribers")
                         .select("phone, channels, language, district, is_active")
                         .eq("user_id", req.user.id)
@@ -970,10 +964,11 @@ router.patch(
         try {
             let data = null;
             let dbFailed = dbConfig?.isSupabaseOffline;
+            const client = req.supabase || supabase;
 
             if (!dbFailed) {
                 try {
-                    let query = supabase.from("notification_subscribers").update(updateData);
+                    let query = client.from("notification_subscribers").update(updateData);
                     query = req.user
                         ? query.eq("user_id", req.user.id)
                         : query.eq("phone", guestPhone!);
@@ -991,9 +986,9 @@ router.patch(
                     } else {
                         data = dbData;
                     }
-                } catch (dbError: any) {
+                } catch (dbError: unknown) {
                     dbFailed = true;
-                    const msg = dbError?.message || String(dbError);
+                    const msg = dbError instanceof Error ? dbError.message : String(dbError);
                     if (
                         msg.includes("fetch failed") ||
                         msg.includes("refused") ||
@@ -1053,10 +1048,11 @@ router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest,
     try {
         let data = null;
         let dbFailed = dbConfig?.isSupabaseOffline;
+        const client = req.supabase || supabase;
 
         if (!dbFailed) {
             try {
-                let query = supabase.from("notification_subscribers").delete();
+                let query = client.from("notification_subscribers").delete();
                 query = req.user
                     ? query.eq("user_id", req.user.id)
                     : query.eq("phone", guestPhone!);
@@ -1074,9 +1070,9 @@ router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest,
                 } else {
                     data = dbData;
                 }
-            } catch (dbError: any) {
+            } catch (dbError: unknown) {
                 dbFailed = true;
-                const msg = dbError?.message || String(dbError);
+                const msg = dbError instanceof Error ? dbError.message : String(dbError);
                 if (
                     msg.includes("fetch failed") ||
                     msg.includes("refused") ||
@@ -1277,7 +1273,7 @@ router.post(
             res.setHeader("Content-Type", "text/xml");
             res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Message>${replyMessage}</Message>
+    <Message>${escapeXml(replyMessage)}</Message>
 </Response>`);
         } catch (err) {
             logger.error({ message: "Error in Twilio webhook", error: err });

@@ -44,8 +44,8 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
             composition: row.composition,
             cdsco_approval_status: row.cdsco_approval_status || "approved",
         }));
-    } catch (error: any) {
-        console.error(error.message || error);
+    } catch (error: unknown) {
+        console.error(error instanceof Error ? error.message : error);
         return [];
     }
 }
@@ -67,7 +67,7 @@ function CalculatorPageContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-
+    const [noAlternativeFound, setNoAlternativeFound] = useState(false);
     const searchParams = useSearchParams();
     const medicineId = searchParams?.get("medicineId");
 
@@ -98,6 +98,7 @@ function CalculatorPageContent() {
             setAlternativeData(null);
             setGenericAlternative(null);
             setError(null);
+            setNoAlternativeFound(false);
             setQuantity(1);
 
             if (!medicine) return;
@@ -124,7 +125,11 @@ function CalculatorPageContent() {
                 }
 
                 const data = await fetchGenericAlternatives(medicine.id, lat, lng);
-                setAlternativeData(data);
+                if (data === null) {
+                    setNoAlternativeFound(true);
+                } else {
+                    setAlternativeData(data);
+                }
 
                 // Fetch related generic alternatives (same generic composition, not current brand, not Jan Aushadhi)
                 const { data: genericAlts } = await supabase
@@ -259,6 +264,15 @@ function CalculatorPageContent() {
                     <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-red-700 dark:text-red-400">
                         <AlertCircle size={20} className="shrink-0" />
                         <p className="text-sm font-semibold">{error}</p>
+                    </div>
+                )}
+
+                {noAlternativeFound && !error && (
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300">
+                        <Pill size={20} className="shrink-0" />
+                        <p className="text-sm font-semibold">
+                            No generic alternative found for this medicine yet.
+                        </p>
                     </div>
                 )}
 

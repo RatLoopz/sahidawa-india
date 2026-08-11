@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import createNextIntlPlugin from "next-intl/plugin";
 import withPWAInit, { runtimeCaching as defaultRuntimeCaching } from "@ducanh2912/next-pwa";
 import { createWorkboxRuntimeCaching } from "./worker/workboxRuntimeCaching.mjs";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin();
 const workboxRuntimeCaching = createWorkboxRuntimeCaching(defaultRuntimeCaching);
@@ -64,11 +65,23 @@ const nextConfig = {
     },
     poweredByHeader: false,
     async headers() {
+        // Derive the WSS origin from the Supabase HTTPS URL so that Supabase
+        // Realtime WebSocket connections are explicitly whitelisted.
+        const supabaseWssOrigin = (() => {
+            try {
+                const u = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+                return `wss://${u.host}`;
+            } catch {
+                return "";
+            }
+        })();
+
         const connectSrc = [
             ...new Set(
                 [
                     "'self'",
                     process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    supabaseWssOrigin,
                     process.env.NEXT_PUBLIC_API_URL,
                     process.env.NEXT_PUBLIC_ML_SERVICE_URL,
                     process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT || (process.env.NODE_ENV === "development" ? "http://localhost:4318" : ""),
@@ -82,8 +95,10 @@ const nextConfig = {
                     .filter(Boolean)
                     .map((u) => {
                         if (u === "'self'") return u;
+                        // Keep wss:// origins as-is; URL constructor normalises them fine.
                         try {
-                            return new URL(u).origin;
+                            const parsed = new URL(u);
+                            return parsed.origin;
                         } catch {
                             return "";
                         }
@@ -105,9 +120,15 @@ const nextConfig = {
                         key: "Content-Security-Policy",
                         value: [
                             "default-src 'self'",
-                            "script-src 'self'",
+                            // 'wasm-unsafe-eval' allows WebAssembly (Tesseract OCR WASM engine) without
+                            // allowing arbitrary eval(). Both are included for broad browser support,
+                            // but 'unsafe-eval' is strictly disabled in production.
+                            `script-src 'self' ${process.env.NODE_ENV === "production" ? "" : "'unsafe-eval'"} 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com`,
+                            // blob: is required so the Tesseract CDN worker can spawn a Blob Worker.
+                            "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com",
                             "style-src 'self' 'unsafe-inline'",
-                            `connect-src ${connectSrc}`,
+                            // connectSrc already includes explicit wss:// origin for Supabase Realtime.
+                            `connect-src ${connectSrc} https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com`,
                             "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
                             "font-src 'self'",
                             "object-src 'none'",
@@ -127,4 +148,19 @@ const nextConfig = {
     },
 };
 
-export default withPWA(withNextIntl(nextConfig));
+export default withSentryConfig(
+    withPWA(withNextIntl(nextConfig)),
+    {
+        org: "sahidawa-organization",
+        project: "sahidawa-web",
+        silent: !process.env.CI,
+        widenClientFileUpload: true,
+        reactComponentAnnotation: {
+            enabled: true,
+        },
+        tunnelRoute: "/monitoring",
+        hideSourceMaps: true,
+        disableLogger: true,
+        automaticVercelMonitors: true,
+    }
+);

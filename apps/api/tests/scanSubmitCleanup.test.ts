@@ -275,3 +275,137 @@ describe("POST /api/v1/scan/submit — temp file cleanup (#4112)", () => {
         expect(cleanedTempPaths(unlinkSpy).length).toBe(0);
     });
 });
+
+describe("POST /api/v1/scan/submit — temp file cleanup on idempotency short-circuits (#4243)", () => {
+    let server: http.Server;
+    let unlinkSpy: jest.SpyInstance;
+
+    beforeAll((done) => {
+        server = http.createServer(app);
+        server.listen(0, done);
+    });
+
+    afterAll((done) => {
+        server.closeAllConnections?.();
+        server.close(() => done());
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        unlinkSpy = jest.spyOn(fs, "unlinkSync");
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("deletes the uploaded files when the Idempotency-Key header is missing (400)", async () => {
+        // No Idempotency-Key header: idempotencyMiddleware returns 400 before
+        // the /submit handler body ever runs. Multer still wrote the file, so
+        // the pre-idempotency cleanup must remove it.
+        const res = await request(server)
+            .post(SUBMIT_URL)
+            .field("deviceId", "device-1")
+            .field("clientUpdatedAt", Date.now().toString())
+            .attach("image", JPEG_BUF, {
+                filename: "nokey.jpg",
+                contentType: "image/jpeg",
+            });
+
+        expect(res.status).toBe(400);
+        await waitFor(() => cleanedTempPaths(unlinkSpy).length > 0);
+        const cleaned = cleanedTempPaths(unlinkSpy);
+        expect(cleaned.some((p) => p.endsWith(".jpg"))).toBe(true);
+        for (const p of cleaned) {
+            expect(fs.existsSync(p)).toBe(false);
+        }
+    });
+
+    it("deletes the uploaded files when Redis returns a cached replay (200)", async () => {
+        // Redis already has an idem:<key> entry: idempotencyMiddleware returns
+        // the cached 200 without running the handler — cleanup must still run.
+        (redisClient.get as jest.Mock).mockResolvedValue(
+            JSON.stringify({ scanId: "cached-scan", parts: { image: "synced", voice: "synced" } })
+        );
+
+        const res = await request(server)
+            .post(SUBMIT_URL)
+            .set("Idempotency-Key", "cleanup-redis-replay-key")
+            .field("deviceId", "device-1")
+            .field("clientUpdatedAt", Date.now().toString())
+            .attach("image", JPEG_BUF, {
+                filename: "replay.jpg",
+                contentType: "image/jpeg",
+            });
+
+        expect(res.status).toBe(200);
+        await waitFor(() => cleanedTempPaths(unlinkSpy).length > 0);
+        const cleaned = cleanedTempPaths(unlinkSpy);
+        expect(cleaned.some((p) => p.endsWith(".jpg"))).toBe(true);
+        for (const p of cleaned) {
+            expect(fs.existsSync(p)).toBe(false);
+        }
+    });
+
+    it("deletes the uploaded files when the key is already completed (200)", async () => {
+        // Reservation INSERT hits the primary-key conflict (23505), then the
+        // prior request already recorded a scan_id → completed-key 200 replay.
+        (redisClient.get as jest.Mock).mockResolvedValue(null);
+        (supabase.insert as jest.Mock).mockReturnValueOnce(
+            Promise.resolve({ data: null, error: { code: "23505", message: "duplicate key" } })
+        );
+        (supabase.maybeSingle as jest.Mock).mockResolvedValueOnce({
+            data: { scan_id: "already-done" },
+            error: null,
+        });
+
+        const res = await request(server)
+            .post(SUBMIT_URL)
+            .set("Idempotency-Key", "cleanup-completed-key")
+            .field("deviceId", "device-1")
+            .field("clientUpdatedAt", Date.now().toString())
+            .attach("image", JPEG_BUF, {
+                filename: "completed.jpg",
+                contentType: "image/jpeg",
+            });
+
+        expect(res.status).toBe(200);
+        await waitFor(() => cleanedTempPaths(unlinkSpy).length > 0);
+        const cleaned = cleanedTempPaths(unlinkSpy);
+        expect(cleaned.some((p) => p.endsWith(".jpg"))).toBe(true);
+        for (const p of cleaned) {
+            expect(fs.existsSync(p)).toBe(false);
+        }
+    });
+
+    it("deletes the uploaded files when the key is in-flight (409)", async () => {
+        // Reservation INSERT hits 23505 and scan_id is still null → the other
+        // request is in-flight → 409 without ever reaching the handler.
+        (redisClient.get as jest.Mock).mockResolvedValue(null);
+        (supabase.insert as jest.Mock).mockReturnValueOnce(
+            Promise.resolve({ data: null, error: { code: "23505", message: "duplicate key" } })
+        );
+        (supabase.maybeSingle as jest.Mock).mockResolvedValueOnce({
+            data: { scan_id: null },
+            error: null,
+        });
+
+        const res = await request(server)
+            .post(SUBMIT_URL)
+            .set("Idempotency-Key", "cleanup-inflight-key")
+            .field("deviceId", "device-1")
+            .field("clientUpdatedAt", Date.now().toString())
+            .attach("voice", WEBM_BUF, {
+                filename: "inflight.webm",
+                contentType: "audio/webm",
+            });
+
+        expect(res.status).toBe(409);
+        await waitFor(() => cleanedTempPaths(unlinkSpy).length > 0);
+        const cleaned = cleanedTempPaths(unlinkSpy);
+        expect(cleaned.some((p) => p.endsWith(".webm"))).toBe(true);
+        for (const p of cleaned) {
+            expect(fs.existsSync(p)).toBe(false);
+        }
+    });
+});

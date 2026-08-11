@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import multer from "multer";
@@ -101,6 +101,37 @@ function cleanupTempFiles(filePaths: string[]): () => void {
             }
         }
     };
+}
+
+/**
+ * Collects the temp-uploads paths multer wrote for this request. Both /extract
+ * and /submit write with the same disk storage engine (UPLOAD_DIR), so every
+ * uploaded file present on the request at cleanup-registration time is covered.
+ */
+function collectUploadedTempPaths(req: Request): string[] {
+    const uploadedFiles: Express.Multer.File[] = [
+        ...((req.files as any)?.image ?? []),
+        ...((req.files as any)?.voice ?? []),
+    ];
+    return uploadedFiles
+        .filter((f): f is Express.Multer.File => !!f?.filename)
+        .map((f) => path.join(UPLOAD_DIR, path.basename(f.filename)));
+}
+
+/**
+ * Registers res.once("finish") / res.once("close") cleanup for every temp
+ * upload immediately after multer has written the files — BEFORE the
+ * idempotency middleware runs. The idempotency middleware short-circuits on
+ * several paths (missing key → 400, Redis replay → 200, completed key → 200,
+ * in-flight duplicate → 409) and returns before the /submit handler body ever
+ * executes. Cleanup registered only inside the handler therefore leaked every
+ * replayed/retried upload to disk. Issue #4243.
+ */
+function registerTempUploadCleanup(req: Request, res: Response, next: NextFunction): void {
+    const cleanup = cleanupTempFiles(collectUploadedTempPaths(req));
+    res.once("finish", cleanup);
+    res.once("close", cleanup);
+    next();
 }
 
 /**
@@ -638,24 +669,12 @@ router.post(
     uploadRateLimiter,
     validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
+    // Register temp-file cleanup immediately after multer so the files are
+    // removed even on idempotency short-circuit paths (400/200/409) that
+    // return before this handler body runs (issue #4243).
+    registerTempUploadCleanup,
     idempotencyMiddleware,
     async (req: AuthenticatedRequest, res: Response) => {
-        // ── Request-scoped temp-file cleanup ────────────────────────────────
-        // Collect every temp file multer may have written for this request so
-        // they are removed the moment the response is finished — reusing the
-        // same cleanup helper as /extract (issue #4112).
-        const uploadedFiles: Express.Multer.File[] = [
-            ...((req.files as any)?.image ?? []),
-            ...((req.files as any)?.voice ?? []),
-        ];
-        const tempFilePaths = uploadedFiles
-            .filter((f): f is Express.Multer.File => !!f?.filename)
-            .map((f) => path.join(UPLOAD_DIR, path.basename(f.filename)));
-
-        const cleanup = cleanupTempFiles(tempFilePaths);
-        res.once("finish", cleanup);
-        res.once("close", cleanup);
-
         const idempotencyKey = (req as any).idempotencyKey;
         const submitSchema = z
             .object({
@@ -744,7 +763,7 @@ router.post(
                 part_type,
                 status,
             }));
-            await supabase
+            await req.supabase!
                 .from("scan_submission_parts")
                 .upsert(rows, { onConflict: "scan_id,part_type" });
 
@@ -756,7 +775,7 @@ router.post(
                 });
             }
 
-            const { error: idemUpdateError } = await supabase
+            const { error: idemUpdateError } = await req.supabase!
                 .from("submission_idempotency")
                 .update({ scan_id: resolvedScanId })
                 .eq("idempotency_key", idempotencyKey);
@@ -781,7 +800,7 @@ router.post(
 
             if (idempotencyKey) {
                 try {
-                    await supabase
+                    await req.supabase!
                         .from("submission_idempotency")
                         .delete()
                         .eq("idempotency_key", idempotencyKey);
