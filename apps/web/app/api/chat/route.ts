@@ -12,6 +12,7 @@ import { trimHistoryByTokens } from "@/lib/chatUtils";
 import { redis } from "@/lib/redis";
 import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
 import Groq from "groq-sdk";
+import { supabase } from "@/lib/supabase";
 
 // Allow up to 60 s on Vercel/serverless so Groq fallback has time to respond
 // after Gemini retries are exhausted. Without this, the default 10-s platform
@@ -652,7 +653,58 @@ export async function POST(req: Request) {
             sa: "Sanskrit",
         };
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
-        const systemPrompt = BASE_PROMPT.replace("{language}", language);
+        let systemPrompt = BASE_PROMPT.replace("{language}", language);
+
+        if (mode !== "voice-triage" && latestMessageText.length < 100) {
+            try {
+                // Check if it matches a medicine
+                const { data: medicines } = await supabase
+                    .from("medicines")
+                    .select("id, brand_name, mrp, manufacturer, composition, cdsco_approval_status")
+                    .ilike("brand_name", `%${latestMessageText}%`)
+                    .limit(1);
+
+                if (medicines && medicines.length > 0) {
+                    const med = medicines[0];
+                    const { data: alternatives } = await supabase
+                        .from("generic_alternatives")
+                        .select("*")
+                        .eq("brand_medicine_id", med.id)
+                        .limit(5);
+
+                    if (alternatives && alternatives.length > 0) {
+                        const cheapest = [...alternatives].sort(
+                            (a, b) => (a.jan_aushadhi_price || 0) - (b.jan_aushadhi_price || 0)
+                        )[0];
+                        const altsString = alternatives
+                            .map(
+                                (a, i) =>
+                                    `${i + 1}. ${a.generic_name} (By: Jan Aushadhi) - Rs.${a.jan_aushadhi_price}`
+                            )
+                            .join("\n");
+                        const contextStr = `
+[MEDICINE CONTEXT]
+Medicine Name: ${med.brand_name}
+Salt: ${med.composition || "Unknown"}
+MRP: ${med.mrp || "N/A"}
+By: ${med.manufacturer || "Unknown"}
+
+Cheapest Generic: ${cheapest.generic_name}
+Price: ${cheapest.jan_aushadhi_price}
+Savings Percentage: ${cheapest.savings_percentage || 0}%
+
+Top Alternatives:
+${altsString}
+
+Ceiling Price: ${cheapest.jan_aushadhi_price}
+`;
+                        systemPrompt += "\n\n" + contextStr;
+                    }
+                }
+            } catch (ragError) {
+                console.error("[chat/route] RAG fetch failed:", ragError);
+            }
+        }
 
         let responseStream: AsyncIterable<TextStreamChunk> | undefined;
         let responseIterator: AsyncIterator<TextStreamChunk> | undefined;

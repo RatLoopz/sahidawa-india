@@ -496,7 +496,11 @@ export default function PharmacyMapPage() {
         const delayDebounce = setTimeout(async () => {
             setIsSearchingLocation(true);
             try {
-                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&countrycodes=in&format=json&limit=3`;
+                const queryText = searchQuery.trim();
+                const isPincode = /^\d{6}$/.test(queryText);
+                const url = isPincode
+                    ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=3`
+                    : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=3`;
                 const res = await fetch(url, {
                     headers: { "Accept-Language": "en", "User-Agent": "SahiDawaApp/1.0" },
                 });
@@ -507,7 +511,9 @@ export default function PharmacyMapPage() {
                             data.map((item: any) => ({
                                 lat: parseFloat(item.lat),
                                 lng: parseFloat(item.lon),
-                                label: item.display_name,
+                                label:
+                                    item.display_name ||
+                                    `PIN Code ${queryText} (${item.lat}, ${item.lon})`,
                             }))
                         );
                     }
@@ -614,7 +620,14 @@ export default function PharmacyMapPage() {
                 const dedupedOsm = deduplicateOsm(verified, osm);
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const verifiedLoadFailed = verifiedResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (livePharmacyLoadFailed && verifiedLoadFailed) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
@@ -764,7 +777,14 @@ export default function PharmacyMapPage() {
                 const dedupedOsm = deduplicateOsm(verified, osm);
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const verifiedLoadFailed = verifiedResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (livePharmacyLoadFailed && verifiedLoadFailed) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
@@ -1050,6 +1070,52 @@ export default function PharmacyMapPage() {
                             placeholder="Search verified pharmacies..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={async (e) => {
+                                if (e.key === "Enter" && searchQuery.trim()) {
+                                    const queryText = searchQuery.trim();
+                                    // If there are already suggestions, select the first one
+                                    if (locationSuggestions.length > 0) {
+                                        const suggestion = locationSuggestions[0];
+                                        const loc = { lat: suggestion.lat, lng: suggestion.lng };
+                                        setUserLocation(loc);
+                                        fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
+                                        setSearchQuery("");
+                                        setLocationSuggestions([]);
+                                    } else {
+                                        // Otherwise perform immediate geocoding
+                                        const isPincode = /^\d{6}$/.test(queryText);
+                                        const url = isPincode
+                                            ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=1`
+                                            : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=1`;
+                                        try {
+                                            setIsLoading(true);
+                                            const res = await fetch(url, {
+                                                headers: {
+                                                    "Accept-Language": "en",
+                                                    "User-Agent": "SahiDawaApp/1.0",
+                                                },
+                                            });
+                                            if (res.ok) {
+                                                const data = await res.json();
+                                                if (Array.isArray(data) && data.length > 0) {
+                                                    const loc = {
+                                                        lat: parseFloat(data[0].lat),
+                                                        lng: parseFloat(data[0].lon),
+                                                    };
+                                                    setUserLocation(loc);
+                                                    fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
+                                                    setSearchQuery("");
+                                                    setLocationSuggestions([]);
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error("Direct geocoding on Enter failed:", err);
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
+                                    }
+                                }
+                            }}
                             className="min-w-0 flex-1 border-none bg-transparent px-3 py-1 text-sm font-medium text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
                             aria-label="Search verified pharmacies"
                         />

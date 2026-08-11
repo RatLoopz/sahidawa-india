@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { routing } from "../../i18n/routing";
 import { getSiteUrl } from "@/lib/env";
+import { headers } from "next/headers";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -91,11 +92,15 @@ export default async function LocaleLayout({
     const t = await getTranslations("VoicePage");
     const isRtl = ["ur", "ks"].includes(locale);
 
+    const headersList = await headers();
+    const nonce = headersList.get("x-nonce") || undefined;
+
     return (
         <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
             <head>
                 <script
                     type="application/ld+json"
+                    nonce={nonce}
                     dangerouslySetInnerHTML={{
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
