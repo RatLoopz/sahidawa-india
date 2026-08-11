@@ -14,6 +14,144 @@ import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
 import Groq from "groq-sdk";
 import { supabase } from "@/lib/supabase";
 
+const GOVT_KEYWORDS = [
+    "jan aushadhi",
+    "janaushadhi",
+    "pmbjp",
+    "pradhan mantri",
+    "government",
+    "govt",
+    "sarkari",
+    "civil hospital",
+    "district hospital",
+    "phc",
+    "chc",
+    "primary health",
+    "community health",
+];
+
+async function geocodePincodeServer(
+    pincode: string
+): Promise<{ lat: number; lng: number; city?: string; state?: string } | null> {
+    try {
+        const url =
+            `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pincode)}` +
+            `&country=IN&format=json&addressdetails=1&limit=1`;
+        const r = await fetch(url, {
+            headers: {
+                "Accept-Language": "en",
+                "User-Agent": "SahiDawaApp/1.0 (https://sahidawa.org; contact@sahidawa.org)",
+            },
+        });
+        if (!r.ok) return null;
+        const arr = (await r.json()) as any[];
+        if (!arr.length) return null;
+        const entry = arr[0];
+        const lat = parseFloat(entry.lat);
+        const lng = parseFloat(entry.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+        const city =
+            entry.address?.city ??
+            entry.address?.town ??
+            entry.address?.village ??
+            entry.address?.county;
+        const state = entry.address?.state;
+        return { lat, lng, city, state };
+    } catch (e) {
+        console.error("[chat] Nominatim geocoding failed:", e);
+        return null;
+    }
+}
+
+async function fetchOverpassPharmacies(
+    lat: number,
+    lng: number,
+    radiusMeters = 15000
+): Promise<any[]> {
+    const query = `
+    [out:json][timeout:15];
+    (
+      nwr["amenity"="pharmacy"](around:${radiusMeters},${lat},${lng});
+      nwr["healthcare"="pharmacy"](around:${radiusMeters},${lat},${lng});
+      nwr["shop"="chemist"](around:${radiusMeters},${lat},${lng});
+    );
+    out center;
+    `;
+    const OVERPASS_MIRRORS = [
+        "https://overpass.osm.ch/api/interpreter",
+        "https://lz4.overpass-api.de/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter",
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://z.overpass-api.de/api/interpreter",
+    ];
+    const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        try {
+            const response = await fetch(mirror, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    Accept: "application/json",
+                    "User-Agent": "SahiDawaApp/1.0 (https://sahidawa.org; contact@sahidawa.org)",
+                },
+                body: `data=${encodeURIComponent(query)}`,
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error("status " + response.status);
+            const data = await response.json();
+            if (data && Array.isArray(data.elements)) return data.elements;
+            throw new Error("invalid data");
+        } catch (err) {
+            clearTimeout(timeoutId);
+            throw err;
+        }
+    });
+
+    try {
+        return await Promise.any(fetchPromises);
+    } catch {
+        console.warn("[chat] All Overpass mirrors failed");
+        return [];
+    }
+}
+
+function isGovStore(el: any): boolean {
+    const tags = el.tags || {};
+    const text = [
+        tags.name,
+        tags["name:en"],
+        tags["name:hi"],
+        tags.operator,
+        tags.brand,
+        tags.description,
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+    return GOVT_KEYWORDS.some((kw) => text.includes(kw));
+}
+
+function formatStoreName(name: string): { title: string; subtitle?: string } {
+    const match = name.match(/(PMBJK\d+|PMBJP\d+)/i);
+    if (match) {
+        const code = match[0].toUpperCase();
+        const cleanName = name
+            .replace(match[0], "")
+            .replace(/[\(\)\-\:\,]/g, "")
+            .trim();
+        return {
+            title: code,
+            subtitle: cleanName || "Jan Aushadhi Kendra",
+        };
+    }
+    return {
+        title: name,
+    };
+}
+
 // Allow up to 60 s on Vercel/serverless so Groq fallback has time to respond
 // after Gemini retries are exhausted. Without this, the default 10-s platform
 // timeout kills the request before the fallback can return a response.
@@ -362,6 +500,147 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Message text is required" }, { status: 400 });
         }
 
+        const pinRegex = /\b([1-9][0-9]{5})\b/;
+        const pinMatch = latestMessageText.match(pinRegex);
+        if (pinMatch && mode !== "voice-triage") {
+            const pincode = pinMatch[1];
+            const coords = await geocodePincodeServer(pincode);
+            if (!coords) {
+                const encoder = new TextEncoder();
+                const stream = new ReadableStream<Uint8Array>({
+                    start(controller) {
+                        controller.enqueue(
+                            encoder.encode(
+                                `[INFO] Could not geocode pincode ${pincode}. Please verify the pincode and try again.`
+                            )
+                        );
+                        controller.close();
+                    },
+                });
+                return new Response(stream, {
+                    headers: {
+                        "Content-Type": "text/plain; charset=utf-8",
+                        "Cache-Control": "no-cache, no-transform",
+                        "X-Session-ID": session_id ?? "",
+                    },
+                });
+            }
+
+            if (session_id) {
+                try {
+                    await redis.set(`user_location:${session_id}`, JSON.stringify(coords), {
+                        ex: 86400,
+                    });
+                } catch (redisErr) {
+                    console.error("Failed to set user location in Redis:", redisErr);
+                }
+            }
+
+            let dbStores: any[] = [];
+            try {
+                const { data } = await supabase.rpc("get_nearest_pharmacies", {
+                    query_lat: coords.lat,
+                    query_lng: coords.lng,
+                    search_radius_km: 15,
+                });
+                if (data) dbStores = data;
+            } catch (dbErr) {
+                console.error("Failed to query get_nearest_pharmacies RPC:", dbErr);
+            }
+
+            const osmElements = await fetchOverpassPharmacies(coords.lat, coords.lng);
+
+            const formattedDb = dbStores.map((p: any) => ({
+                name: p.name || "Jan Aushadhi Kendra",
+                address: p.address || "Address not available",
+                district: p.district || "",
+                state: p.state || "",
+                phone: p.phone_number || "",
+                isGov: true,
+            }));
+
+            const formattedOverpass = osmElements.map((el: any) => {
+                const tags = el.tags || {};
+                const name =
+                    tags.name || tags["name:en"] || tags["name:hi"] || tags.brand || "Pharmacy";
+                const buildAddress = (t: any) => {
+                    if (t["addr:full"]) return t["addr:full"];
+                    const parts = [
+                        t["addr:street"],
+                        t["addr:city"] || t["addr:district"],
+                        t["addr:state"],
+                    ].filter(Boolean);
+                    return parts.length > 0 ? parts.join(", ") : undefined;
+                };
+                return {
+                    name,
+                    address: buildAddress(tags) || "Address not available",
+                    district: tags["addr:district"] || tags["addr:city"] || "",
+                    state: tags["addr:state"] || "",
+                    phone: tags.phone || tags["contact:phone"] || "",
+                    isGov: isGovStore(el),
+                };
+            });
+
+            const allStores = [...formattedDb, ...formattedOverpass];
+            const uniqueStores: any[] = [];
+            const seen = new Set();
+            for (const s of allStores) {
+                const key = `${s.name.toLowerCase().trim()}_${s.address.toLowerCase().trim()}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueStores.push(s);
+                }
+            }
+
+            let govtStores = uniqueStores.filter((s) => s.isGov);
+            const storesToShow =
+                govtStores.length > 0 ? govtStores.slice(0, 5) : uniqueStores.slice(0, 5);
+            const isGovHeading = govtStores.length > 0;
+
+            let responseText = `[INFO] Found ${storesToShow.length} ${isGovHeading ? "Jan Aushadhi" : "nearby"} store(s) near ${pincode}:\n\n`;
+            if (storesToShow.length === 0) {
+                responseText = `[INFO] Found 0 Jan Aushadhi store(s) near ${pincode}.\n\n`;
+            } else {
+                storesToShow.forEach((store, idx) => {
+                    const formatted = formatStoreName(store.name);
+                    responseText += `${idx + 1}. ${formatted.title}\n`;
+                    if (formatted.subtitle) {
+                        responseText += `${formatted.subtitle}\n`;
+                    }
+                    if (store.address) {
+                        responseText += `${store.address}\n`;
+                    }
+                    const region = [store.district, store.state].filter(Boolean).join(", ");
+                    if (region) {
+                        responseText += `${region}\n`;
+                    }
+                    if (store.phone) {
+                        responseText += `Phone: ${store.phone}\n`;
+                    }
+                    responseText += `\n`;
+                });
+            }
+
+            responseText += `Your location is saved. Future medicine queries will show nearby stores.\n`;
+            responseText += `Send any medicine name to search!`;
+
+            const encoder = new TextEncoder();
+            const stream = new ReadableStream<Uint8Array>({
+                start(controller) {
+                    controller.enqueue(encoder.encode(responseText));
+                    controller.close();
+                },
+            });
+            return new Response(stream, {
+                headers: {
+                    "Content-Type": "text/plain; charset=utf-8",
+                    "Cache-Control": "no-cache, no-transform",
+                    "X-Session-ID": session_id ?? "",
+                },
+            });
+        }
+
         if (mode === "voice-triage") {
             const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
 
@@ -682,6 +961,100 @@ export async function POST(req: Request) {
                                     `${i + 1}. ${a.generic_name} (By: Jan Aushadhi) - Rs.${a.jan_aushadhi_price}`
                             )
                             .join("\n");
+
+                        // Fetch saved location from Redis
+                        let savedLocation = null;
+                        if (session_id) {
+                            try {
+                                const val = await redis.get(`user_location:${session_id}`);
+                                if (val) {
+                                    savedLocation = typeof val === "string" ? JSON.parse(val) : val;
+                                }
+                            } catch (redisErr) {
+                                console.error("Failed to read user location from Redis:", redisErr);
+                            }
+                        }
+
+                        let nearbyStoresContext = "";
+                        if (savedLocation && savedLocation.lat && savedLocation.lng) {
+                            let dbStores: any[] = [];
+                            try {
+                                const { data } = await supabase.rpc("get_nearest_pharmacies", {
+                                    query_lat: savedLocation.lat,
+                                    query_lng: savedLocation.lng,
+                                    search_radius_km: 15,
+                                });
+                                if (data) dbStores = data;
+                            } catch (dbErr) {
+                                console.error("Failed to query get_nearest_pharmacies RPC:", dbErr);
+                            }
+
+                            const osmElements = await fetchOverpassPharmacies(
+                                savedLocation.lat,
+                                savedLocation.lng
+                            );
+
+                            const formattedDb = dbStores.map((p: any) => ({
+                                name: p.name || "Jan Aushadhi Kendra",
+                                address: p.address || "Address not available",
+                                phone: p.phone_number || "",
+                                isGov: true,
+                            }));
+
+                            const formattedOverpass = osmElements.map((el: any) => {
+                                const tags = el.tags || {};
+                                const name =
+                                    tags.name ||
+                                    tags["name:en"] ||
+                                    tags["name:hi"] ||
+                                    tags.brand ||
+                                    "Pharmacy";
+                                const buildAddress = (t: any) => {
+                                    if (t["addr:full"]) return t["addr:full"];
+                                    const parts = [
+                                        t["addr:street"],
+                                        t["addr:city"] || t["addr:district"],
+                                        t["addr:state"],
+                                    ].filter(Boolean);
+                                    return parts.length > 0 ? parts.join(", ") : undefined;
+                                };
+                                return {
+                                    name,
+                                    address: buildAddress(tags) || "Address not available",
+                                    phone: tags.phone || tags["contact:phone"] || "",
+                                    isGov: isGovStore(el),
+                                };
+                            });
+
+                            const allStores = [...formattedDb, ...formattedOverpass];
+                            const uniqueStores: any[] = [];
+                            const seen = new Set();
+                            for (const s of allStores) {
+                                const key = `${s.name.toLowerCase().trim()}_${s.address.toLowerCase().trim()}`;
+                                if (!seen.has(key)) {
+                                    seen.add(key);
+                                    uniqueStores.push(s);
+                                }
+                            }
+
+                            const govtStores = uniqueStores.filter((s) => s.isGov).slice(0, 3);
+                            if (govtStores.length > 0) {
+                                nearbyStoresContext =
+                                    `\n[NEARBY JAN AUSHADHI STORES]\n` +
+                                    govtStores
+                                        .map((s, idx) => {
+                                            const formatted = formatStoreName(s.name);
+                                            const phoneStr = s.phone ? ` (Phone: ${s.phone})` : "";
+                                            return `${idx + 1}. ${formatted.title}${formatted.subtitle ? ` (${formatted.subtitle})` : ""} - ${s.address}${phoneStr}`;
+                                        })
+                                        .join("\n");
+
+                                // Append instruction to systemPrompt to list the stores in the exact format
+                                systemPrompt +=
+                                    "\n\nCRITICAL: Since [NEARBY JAN AUSHADHI STORES] is provided in the [MEDICINE CONTEXT], you MUST replace the line '📍 *Send your PIN code to find Jan Aushadhi kendras near you.*' with the actual list of nearby stores under the heading '📍 **Nearby Jan Aushadhi stores where you can find this medicine:**'. Do NOT show the prompt to send the PIN code.";
+                            }
+                        }
+
                         const contextStr = `
 [MEDICINE CONTEXT]
 Medicine Name: ${med.brand_name}
@@ -697,6 +1070,7 @@ Top Alternatives:
 ${altsString}
 
 Ceiling Price: ${cheapest.jan_aushadhi_price}
+${nearbyStoresContext}
 `;
                         systemPrompt += "\n\n" + contextStr;
                     }
