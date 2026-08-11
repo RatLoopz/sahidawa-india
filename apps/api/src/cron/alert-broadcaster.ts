@@ -10,8 +10,16 @@ const CHECK_INTERVAL_MS = process.env.NODE_ENV === "test" ? 1000 : 30000; // 30 
 const PAGE_SIZE = 1000;
 const NOTIFICATION_CHUNK_SIZE = 50;
 const LOCK_KEY = "alert-broadcaster:lock";
-const LOCK_TTL_MS = 25_000; // slightly under the 30-second interval
+const LOCK_TTL_MS = 25_000; // 25s TTL, replenished by renewLock() so it outlives long runs
+// Heartbeat cadence is well under the TTL so a busy RPC/sms/whatsapp provider
+// call can never let the distributed lock expire mid-broadcast.
+const LOCK_RENEW_INTERVAL_MS = process.env.NODE_ENV === "test" ? 50 : Math.floor(LOCK_TTL_MS / 2);
 const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
+
+// In-process run guard: without it a single instance can overlap its own ticks
+// when a broadcast run outlives the 30s scheduler interval and the distributed
+// lock has already expired mid-run.
+let isBroadcasting = false;
 
 export const broadcastConfig = {
     MARK_BROADCASTED_CHUNK_SIZE: 500,
@@ -157,6 +165,28 @@ async function releaseLock(): Promise<void> {
         await redisClient.eval(script, { keys: [LOCK_KEY], arguments: [LOCK_VALUE] });
     } catch (err) {
         logger.error({ message: "Failed to release broadcaster lock", error: err });
+    }
+}
+
+/**
+ * Replenishes the lock TTL so a slow broadcast run can never exceed the
+ * original lock expiry and hand the lock over to the next scheduler tick or
+ * another pod. Atomic Lua script: the TTL is extended only while this process
+ * still owns the lock.
+ */
+async function renewLock(): Promise<void> {
+    if (!redisClient.isOpen) return;
+    try {
+        const script = `
+            if redis.call("get", KEYS[1]) == ARGV[1] then
+                return redis.call("pexpire", KEYS[1], ARGV[2])
+            else
+                return 0
+            end
+        `;
+        await redisClient.eval(script, { keys: [LOCK_KEY], arguments: [LOCK_VALUE, LOCK_TTL_MS] });
+    } catch (err) {
+        logger.error({ message: "Failed to renew broadcaster lock", error: err });
     }
 }
 
@@ -330,7 +360,8 @@ export async function broadcastDrugAlerts(): Promise<void> {
         const { data: alerts, error: alertsError } = await supabase
             .from("drug_alerts")
             .select("*")
-            .eq("broadcasted", false);
+            .eq("broadcasted", false)
+            .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`);
 
         if (alertsError) {
             logger.error({
@@ -711,17 +742,37 @@ export async function checkAndBroadcastAll(): Promise<void> {
         return;
     }
 
+    // In-process run guard: never start a second broadcast in this process
+    // while one is still in flight, even if the distributed lock has expired.
+    if (isBroadcasting) {
+        logger.info("Alert broadcaster already running in this process — skipping this tick.");
+        return;
+    }
+
     const acquired = await acquireLock();
     if (!acquired) {
         logger.info("Alert broadcaster lock held by another instance — skipping this tick.");
         return;
     }
 
+    isBroadcasting = true;
+
+    // Heartbeat: keep replenishing the lock TTL for the whole duration of the
+    // run so slow SMS/WhatsApp provider calls can never let it expire.
+    const renewalId = setInterval(() => {
+        renewLock().catch((err) => {
+            logger.error("Alert broadcaster: failed to renew lock", { error: err });
+        });
+    }, LOCK_RENEW_INTERVAL_MS);
+    renewalId.unref?.();
+
     try {
         await broadcastDistrictAlerts();
         await broadcastDrugAlerts();
         await broadcastExpiryAlerts();
     } finally {
+        clearInterval(renewalId);
+        isBroadcasting = false;
         await releaseLock();
     }
 }

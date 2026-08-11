@@ -35,7 +35,6 @@ from supabase import Client, create_client
 
 from src.utils.logger import logger
 
-
 # ── Environment ────────────────────────────────────────────────────────────────
 
 load_dotenv(Path(__file__).resolve().parents[4] / ".env")
@@ -59,6 +58,8 @@ def _resolve_nppa_csv_path(nppa_csv: "Path | str | None" = None) -> Path:
         return csv_path
 
     return REPO_ROOT / csv_path
+
+
 DELAY_SEC = 0.5
 
 # Postgres RPC (supabase/migrations) for atomic Jan Aushadhi price back-fill.
@@ -79,6 +80,10 @@ CONFLICT_COLUMNS = {
         "brand_name",
         "manufacturer",
         "barcode_id",
+    ),
+    "pharmacies": (
+        "name",
+        "address",
     ),
 }
 
@@ -110,6 +115,19 @@ ALLOWED_COLUMNS = {
         "created_at",
         "updated_at",
     },
+    "pharmacies": {
+        "name",
+        "address",
+        "district",
+        "state",
+        "phone_number",
+        "is_verified",
+        "status",
+        "is_active",
+        "lat",
+        "lng",
+        "source",
+    },
     "etl_failed_rows": {
         "id",
         "pipeline_name",
@@ -126,7 +144,7 @@ ALLOWED_COLUMNS = {
         "last_attempt_at",
         "created_at",
         "updated_at",
-    }
+    },
 }
 
 TRANSIENT_UPSERT_ERROR_KEYWORDS = (
@@ -161,8 +179,11 @@ TRANSIENT_UPSERT_EXCEPTION_NAME_KEYWORDS = (
     "writeerror",
 )
 
+PRESERVE_EXISTING_NULL_COLUMNS = {"jan_aushadhi_price"}
+
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
+
 
 class SupabaseLoader:
     """
@@ -232,7 +253,7 @@ class SupabaseLoader:
 
         writable_total = len(records_to_write)
         for batch_start in range(0, writable_total, BATCH_SIZE):
-            batch = records_to_write[batch_start: batch_start + BATCH_SIZE]
+            batch = records_to_write[batch_start : batch_start + BATCH_SIZE]
             batch_end = batch_start + len(batch)
             try:
                 self._upsert_batch_payloads_with_retries(
@@ -245,7 +266,9 @@ class SupabaseLoader:
                     f"({inserted}/{writable_total} writes, {inserted + skipped_unchanged}/{total} processed)"
                 )
             except Exception as e:
-                logger.warning(f"[Loader] Batch {batch_start}–{batch_end} ❌ {e} — retrying row-by-row")
+                logger.warning(
+                    f"[Loader] Batch {batch_start}–{batch_end} ❌ {e} — retrying row-by-row"
+                )
                 bi, bf = self._load_batch_row_by_row(batch, table)
                 inserted += bi
                 failures.extend(bf)
@@ -386,10 +409,29 @@ class SupabaseLoader:
         if not payloads:
             return
         conflict_columns = CONFLICT_COLUMNS.get(table)
+        existing_by_key = (
+            self._load_existing_rows_by_key(payloads, table) if conflict_columns else {}
+        )
+        payloads = [
+            self._omit_null_updates(
+                payload, existing_by_key.get(self._cache_key(payload, table))
+            )
+            for payload in payloads
+        ]
         self.client.table(table).upsert(
             payloads,
             on_conflict=",".join(conflict_columns) if conflict_columns else None,
         ).execute()
+
+    def _omit_null_updates(self, payload: dict, existing: dict | None) -> dict:
+        if not existing:
+            return payload
+
+        cleaned_payload = dict(payload)
+        for column in PRESERVE_EXISTING_NULL_COLUMNS:
+            if cleaned_payload.get(column) is None and existing.get(column) is not None:
+                cleaned_payload.pop(column, None)
+        return cleaned_payload
 
     @staticmethod
     def _is_transient_upsert_error(error: Exception) -> bool:
@@ -440,18 +482,23 @@ class SupabaseLoader:
         for item in records:
             cache_key = self._cache_key(item["write_payload"], table)
             existing = existing_by_key.get(cache_key)
-            if existing and self._payload_matches_existing(item["write_payload"], existing):
+            if existing and self._payload_matches_existing(
+                item["write_payload"], existing
+            ):
                 skipped += 1
                 continue
             changed.append(item)
         return changed, skipped
 
-    def _load_existing_rows_by_key(self, records: list[dict], table: str) -> dict[str, dict]:
+    def _load_existing_rows_by_key(
+        self, records: list[dict], table: str
+    ) -> dict[str, dict]:
         if not records or table not in CONFLICT_COLUMNS:
             return {}
 
         conflict_cols = CONFLICT_COLUMNS[table]
-        selected_columns = ",".join([*conflict_cols, "fingerprint"])
+        allowed_columns = ALLOWED_COLUMNS.get(table, ())
+        selected_columns = ",".join(sorted(set([*conflict_cols, *allowed_columns])))
         existing_by_key: dict[str, dict] = {}
         page_size = 1000
         offset = 0
@@ -485,11 +532,19 @@ class SupabaseLoader:
             key_payload = {column: payload.get(column) for column in key_columns}
         else:
             key_payload = payload
-        encoded = json.dumps(key_payload, default=str, separators=(",", ":"), sort_keys=True)
+        encoded = json.dumps(
+            key_payload, default=str, separators=(",", ":"), sort_keys=True
+        )
         return sha256(encoded.encode("utf-8")).hexdigest()
 
     def _payload_matches_existing(self, payload: dict, existing: dict) -> bool:
         existing_subset = {key: existing.get(key) for key in payload}
+        if (
+            payload.get("jan_aushadhi_price") is None
+            and existing_subset.get("jan_aushadhi_price") is not None
+        ):
+            payload = {k: v for k, v in payload.items() if k != "jan_aushadhi_price"}
+            existing_subset.pop("jan_aushadhi_price", None)
         return self._row_fingerprint(payload) == self._row_fingerprint(existing_subset)
 
     def _build_failure(self, payload: dict, row_index: int, error: Exception) -> dict:
@@ -515,7 +570,9 @@ class SupabaseLoader:
     def _persist_failure(self, failure: dict, source_table: str) -> None:
         try:
             existing = self._find_retry_row(failure, source_table)
-            attempt_count = int(existing.get("attempt_count") or 0) + 1 if existing else 1
+            attempt_count = (
+                int(existing.get("attempt_count") or 0) + 1 if existing else 1
+            )
             payload = {
                 "pipeline_name": self.pipeline_name,
                 "source_table": source_table,
@@ -572,15 +629,17 @@ class SupabaseLoader:
         rows = []
         for f in failures:
             row = dict(f["row_payload"])
-            row.update({
-                "row_index": f["row_index"],
-                "medicine_name": f["medicine_name"],
-                "unresolved_value": f["unresolved_value"],
-                "db_error_code": f["db_error_code"],
-                "error_category": f["error_category"],
-                "error_message": f["error_message"],
-                "row_fingerprint": f["row_fingerprint"],
-            })
+            row.update(
+                {
+                    "row_index": f["row_index"],
+                    "medicine_name": f["medicine_name"],
+                    "unresolved_value": f["unresolved_value"],
+                    "db_error_code": f["db_error_code"],
+                    "error_category": f["error_category"],
+                    "error_message": f["error_message"],
+                    "row_fingerprint": f["row_fingerprint"],
+                }
+            )
             rows.append(row)
         pd.DataFrame(rows).to_csv(output_path, index=False)
         return str(output_path)
@@ -628,7 +687,14 @@ class SupabaseLoader:
         return None
 
     def _extract_unresolved_value(self, payload: dict) -> str | None:
-        for key in ("strength", "mrp", "price", "dosage_form", "generic_name", "brand_name"):
+        for key in (
+            "strength",
+            "mrp",
+            "price",
+            "dosage_form",
+            "generic_name",
+            "brand_name",
+        ):
             if payload.get(key) is not None:
                 return str(payload[key])
         return None
@@ -638,7 +704,9 @@ class SupabaseLoader:
         return match.group(1) if match else None
 
     def _row_fingerprint(self, payload: dict) -> str:
-        encoded = json.dumps(payload, default=str, separators=(",", ":"), sort_keys=True)
+        encoded = json.dumps(
+            payload, default=str, separators=(",", ":"), sort_keys=True
+        )
         return sha256(encoded.encode("utf-8")).hexdigest()
 
     def _categorize_error(self, msg: str, db_code: str | None) -> str:
@@ -778,7 +846,9 @@ class SupabaseLoader:
                     ja_lookup.setdefault((name, None), price)  # fallback key
 
         if not ja_lookup:
-            logger.warning("[Loader] merge_jan_aushadhi_price: NPPA CSV loaded but produced no entries.")
+            logger.warning(
+                "[Loader] merge_jan_aushadhi_price: NPPA CSV loaded but produced no entries."
+            )
             return {"checked": 0, "updated": 0, "skipped": 0, "failed": 0}
 
         logger.info(
@@ -815,8 +885,7 @@ class SupabaseLoader:
                 name_lower = str(record.get("generic_name") or "").strip().lower()
                 strength_raw = record.get("strength")
                 strength_lower = (
-                    str(strength_raw).strip().lower()
-                    if strength_raw else None
+                    str(strength_raw).strip().lower() if strength_raw else None
                 )
 
                 # Prefer (name, strength) then fall back to (name, None)
@@ -846,7 +915,12 @@ class SupabaseLoader:
             f"[Loader] merge_jan_aushadhi_price — checked: {checked}, "
             f"updated: {updated}, skipped: {skipped}, failed: {failed}"
         )
-        return {"checked": checked, "updated": updated, "skipped": skipped, "failed": failed}
+        return {
+            "checked": checked,
+            "updated": updated,
+            "skipped": skipped,
+            "failed": failed,
+        }
 
     def _upsert_ja_price_update_batches(
         self,
@@ -864,12 +938,14 @@ class SupabaseLoader:
         total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
 
         for batch_start in range(0, total, BATCH_SIZE):
-            batch = updates[batch_start: batch_start + BATCH_SIZE]
+            batch = updates[batch_start : batch_start + BATCH_SIZE]
             batch_number = (batch_start // BATCH_SIZE) + 1
             batch_end = batch_start + len(batch)
 
             try:
-                response = self._bulk_update_ja_price(batch, batch_number, total_batches)
+                response = self._bulk_update_ja_price(
+                    batch, batch_number, total_batches
+                )
                 rpc_count = self._coerce_rpc_updated_count(response)
                 if rpc_count is None:
                     # RPC committed (no exception → no INSERT, NOT NULL never hit)

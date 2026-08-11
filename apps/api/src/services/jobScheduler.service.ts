@@ -4,9 +4,10 @@ import { startTempCleanupJob } from "../cron/tempCleanup";
 import { initExpiryCron } from "../cron/expiry-check";
 import { initDistrictAlertSyncCron } from "../cron/districtAlertSync";
 import { startPgCronMonitor } from "../cron/pgCronMonitor";
+import { startSmsWorker } from "../workers/smsWorker";
 
 interface StoppableJob {
-    stop: () => void;
+    stop: () => void | Promise<void>;
 }
 
 class JobScheduler {
@@ -23,11 +24,12 @@ class JobScheduler {
         this.jobs.push(initExpiryCron());
         this.jobs.push(initDistrictAlertSyncCron());
         this.jobs.push(startPgCronMonitor());
+        this.jobs.push(startSmsWorker());
         logger.info("All background jobs have been started.");
     }
 
-    public shutdown(): void {
-        this.jobs.forEach((job) => job.stop());
+    public async shutdown(): Promise<void> {
+        await Promise.all(this.jobs.map((job) => job.stop()));
         logger.info("All background jobs have been stopped.");
         this.jobs = [];
     }

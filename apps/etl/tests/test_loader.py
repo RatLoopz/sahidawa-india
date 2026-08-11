@@ -46,6 +46,7 @@ class FakeTable:
 
     def select(self, *_args):
         self.operation = "select"
+        self.client.last_select_args = _args
         return self
 
     def update(self, payload):
@@ -74,14 +75,18 @@ class FakeTable:
                 rows = rows[: self.limit_value]
             if self.range_bounds is not None:
                 start, end = self.range_bounds
-                rows = rows[start: end + 1]
+                rows = rows[start : end + 1]
             return FakeExecuteResponse(rows)
 
         if self.operation == "update":
-            row_id = next((value for column, value in self.eq_filters if column == "id"), None)
+            row_id = next(
+                (value for column, value in self.eq_filters if column == "id"), None
+            )
             if row_id in self.client.update_fail_ids:
                 raise Exception("503: retry metadata update failed")
-            self.client.update_calls.append((self.name, self.pending_update, self.eq_filters))
+            self.client.update_calls.append(
+                (self.name, self.pending_update, self.eq_filters)
+            )
             for row in self.client.retry_rows:
                 if row.get("id") == row_id:
                     row.update(self.pending_update)
@@ -103,14 +108,22 @@ class FakeTable:
                     <= self.client.transient_batch_failures
                 ):
                     raise TimeoutError("connection timed out during batch upsert")
-            if isinstance(payload, list) and len(payload) > 1 and self.client.fail_batches:
+            if (
+                isinstance(payload, list)
+                and len(payload) > 1
+                and self.client.fail_batches
+            ):
                 raise Exception("22P02: invalid input syntax for type double precision")
             rows = payload if isinstance(payload, list) else [payload]
             for row in rows:
                 if row.get("generic_name") in self.client.errors_by_generic_name:
-                    raise Exception(self.client.errors_by_generic_name[row.get("generic_name")])
+                    raise Exception(
+                        self.client.errors_by_generic_name[row.get("generic_name")]
+                    )
                 if row.get("generic_name") in self.client.fail_generic_names:
-                    raise Exception("23505: duplicate key value violates unique constraint")
+                    raise Exception(
+                        "23505: duplicate key value violates unique constraint"
+                    )
             for row in rows:
                 self.client.upsert_table_row(self.name, row)
             return FakeExecuteResponse()
@@ -141,6 +154,7 @@ class FakeSupabaseClient:
         self.upsert_calls = []
         self.insert_calls = []
         self.update_calls = []
+        self.last_select_args = None
 
     def table(self, name):
         return FakeTable(name, self)
@@ -148,13 +162,20 @@ class FakeSupabaseClient:
     def upsert_table_row(self, table, row):
         rows = self.table_rows.setdefault(table, [])
         if table == "medicines":
-            conflict_columns = ("generic_name", "brand_name", "manufacturer", "barcode_id")
+            conflict_columns = (
+                "generic_name",
+                "brand_name",
+                "manufacturer",
+                "barcode_id",
+            )
         else:
             rows.append(dict(row))
             return
 
         for existing in rows:
-            if all(existing.get(column) == row.get(column) for column in conflict_columns):
+            if all(
+                existing.get(column) == row.get(column) for column in conflict_columns
+            ):
                 existing.update(row)
                 return
         rows.append(dict(row))
@@ -173,7 +194,11 @@ def test_batch_success_returns_summary_without_failed_rows_csv(tmp_path):
     loader = make_loader(client, tmp_path)
     df = pd.DataFrame(
         [
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
+            {
+                "generic_name": "Paracetamol",
+                "strength": "500mg",
+                "dosage_form": "Tablet",
+            },
             {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
         ]
     )
@@ -200,7 +225,11 @@ def test_transient_batch_upsert_retries_with_exponential_backoff(tmp_path, monke
     )
     df = pd.DataFrame(
         [
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
+            {
+                "generic_name": "Paracetamol",
+                "strength": "500mg",
+                "dosage_form": "Tablet",
+            },
             {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
         ]
     )
@@ -230,7 +259,11 @@ def test_transient_batch_upsert_falls_back_after_retries(tmp_path, monkeypatch):
     )
     df = pd.DataFrame(
         [
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
+            {
+                "generic_name": "Paracetamol",
+                "strength": "500mg",
+                "dosage_form": "Tablet",
+            },
             {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
         ]
     )
@@ -306,6 +339,64 @@ def test_load_skips_unchanged_rows_already_present_in_target_db(tmp_path):
     assert len(second_client.upsert_calls) == 1
     _, payload, _ = second_client.upsert_calls[0]
     assert [row["cdsco_match_score"] for row in payload] == [88.1, 90.4]
+
+
+def test_load_does_not_request_invalid_fingerprint_column(tmp_path):
+    client = FakeSupabaseClient(table_rows={"medicines": []})
+    loader = make_loader(client, tmp_path)
+    df = pd.DataFrame(
+        [
+            {
+                "generic_name": "Paracetamol",
+                "brand_name": "Dolo",
+                "manufacturer": "Micro Labs",
+                "strength": "500mg",
+                "dosage_form": "Tablet",
+                "source": "commercial",
+                "barcode_id": "8900000000012",
+                "mrp": 18.5,
+            }
+        ]
+    )
+
+    loader.load(df)
+
+    assert client.last_select_args is not None
+    assert all("fingerprint" not in str(arg) for arg in client.last_select_args)
+
+
+def test_load_preserves_existing_jan_aushadhi_price_when_payload_has_null(tmp_path):
+    existing_row = {
+        "generic_name": "Paracetamol",
+        "brand_name": "Dolo",
+        "manufacturer": "Micro Labs",
+        "strength": "500mg",
+        "dosage_form": "Tablet",
+        "source": "commercial",
+        "barcode_id": "8900000000012",
+        "mrp": 18.5,
+        "jan_aushadhi_price": 42.0,
+    }
+    client = FakeSupabaseClient(table_rows={"medicines": [existing_row.copy()]})
+    loader = make_loader(client, tmp_path)
+    df = pd.DataFrame(
+        [
+            {
+                **existing_row,
+                "mrp": 18.5,
+                "jan_aushadhi_price": None,
+            }
+        ]
+    )
+
+    stats = loader.load(df)
+
+    assert stats["total"] == 1
+    assert stats["inserted"] == 0
+    assert stats["failed"] == 0
+    assert stats["skipped_unchanged"] == 1
+    assert len(client.upsert_calls) == 0
+    assert client.table_rows["medicines"][0]["jan_aushadhi_price"] == 42.0
 
 
 def test_load_persists_cdsco_validation_evidence_fields(tmp_path):
@@ -524,6 +615,7 @@ def test_load_treats_manufacturer_as_part_of_medicine_identity(tmp_path):
 def _write_nppa_csv(path, rows):
     """Helper: write a minimal NPPA CSV to a temp file for testing."""
     import csv
+
     path.mkdir(parents=True, exist_ok=True)
     csv_path = path / "nppa_ceiling_prices.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
@@ -602,7 +694,10 @@ class MergeFakeSupabaseClient:
                 # can hit a transient error before succeeding on a later attempt.
                 if len(updates) > 1:
                     client.transient_batch_attempts += 1
-                    if client.transient_batch_attempts <= client.transient_batch_failures:
+                    if (
+                        client.transient_batch_attempts
+                        <= client.transient_batch_failures
+                    ):
                         raise TimeoutError(
                             "connection timed out during Jan Aushadhi price bulk RPC"
                         )
@@ -670,7 +765,10 @@ def test_resolve_nppa_csv_path_is_cwd_independent(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     assert _resolve_nppa_csv_path() == NPPA_CEILING_PRICES_CSV
-    assert _resolve_nppa_csv_path("data/seeds/nppa_ceiling_prices.csv") == NPPA_CEILING_PRICES_CSV
+    assert (
+        _resolve_nppa_csv_path("data/seeds/nppa_ceiling_prices.csv")
+        == NPPA_CEILING_PRICES_CSV
+    )
     assert _resolve_nppa_csv_path("apps/etl/data/seeds/nppa_ceiling_prices.csv") == (
         REPO_ROOT / "apps" / "etl" / "data" / "seeds" / "nppa_ceiling_prices.csv"
     )
@@ -685,15 +783,28 @@ def test_resolve_nppa_csv_path_preserves_absolute_paths(tmp_path):
 def test_ja_backfill_updates_null_jan_aushadhi_price_rows(tmp_path):
     """Basic case: rows with jan_aushadhi_price=None get backfilled from NPPA CSV."""
     medicines = [
-        {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
-         "source": "commercial", "jan_aushadhi_price": None},
-        {"id": "m2", "generic_name": "Cetirizine", "strength": "10mg",
-         "source": "commercial", "jan_aushadhi_price": None},
+        {
+            "id": "m1",
+            "generic_name": "Paracetamol",
+            "strength": "500mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
+        {
+            "id": "m2",
+            "generic_name": "Cetirizine",
+            "strength": "10mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
     ]
-    nppa_csv = _write_nppa_csv(tmp_path, [
-        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
-        {"generic_name": "cetirizine",  "strength": "10mg",  "mrp": "25.00"},
-    ])
+    nppa_csv = _write_nppa_csv(
+        tmp_path,
+        [
+            {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+            {"generic_name": "cetirizine", "strength": "10mg", "mrp": "25.00"},
+        ],
+    )
     client = MergeFakeSupabaseClient(medicines=medicines)
     loader = make_merge_loader(client, tmp_path)
 
@@ -712,12 +823,20 @@ def test_ja_backfill_uses_bulk_rpc_with_id_and_price_only(tmp_path):
     fail the medicines.generic_name NOT NULL constraint and fall back to slow
     row-by-row PATCHes)."""
     medicines = [
-        {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
-         "source": "commercial", "jan_aushadhi_price": None},
+        {
+            "id": "m1",
+            "generic_name": "Paracetamol",
+            "strength": "500mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
     ]
-    nppa_csv = _write_nppa_csv(tmp_path, [
-        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
-    ])
+    nppa_csv = _write_nppa_csv(
+        tmp_path,
+        [
+            {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+        ],
+    )
     client = MergeFakeSupabaseClient(medicines=medicines)
     loader = make_merge_loader(client, tmp_path)
 
@@ -808,7 +927,9 @@ def test_ja_backfill_does_not_warn_for_single_key_rpc_count(tmp_path, monkeypatc
     assert not any("unrecognized count shape" in message for message in error_messages)
 
 
-def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path, monkeypatch):
+def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(
+    tmp_path, monkeypatch
+):
     """An unrecognized RPC count shape is assumed to be a full success (the RPC
     committed without raising) rather than miscounted as failed."""
     medicines = [
@@ -835,15 +956,28 @@ def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path, monk
 
 def test_ja_backfill_retries_transient_batch_rpc_before_fallback(tmp_path, monkeypatch):
     medicines = [
-        {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
-         "source": "commercial", "jan_aushadhi_price": None},
-        {"id": "m2", "generic_name": "Cetirizine", "strength": "10mg",
-         "source": "commercial", "jan_aushadhi_price": None},
+        {
+            "id": "m1",
+            "generic_name": "Paracetamol",
+            "strength": "500mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
+        {
+            "id": "m2",
+            "generic_name": "Cetirizine",
+            "strength": "10mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
     ]
-    nppa_csv = _write_nppa_csv(tmp_path, [
-        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
-        {"generic_name": "cetirizine", "strength": "10mg", "mrp": "25.00"},
-    ])
+    nppa_csv = _write_nppa_csv(
+        tmp_path,
+        [
+            {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+            {"generic_name": "cetirizine", "strength": "10mg", "mrp": "25.00"},
+        ],
+    )
     client = MergeFakeSupabaseClient(
         medicines=medicines,
         transient_batch_failures=2,
@@ -873,14 +1007,27 @@ def test_ja_backfill_retries_transient_batch_rpc_before_fallback(tmp_path, monke
 def test_ja_backfill_does_not_match_iron_against_spironolactone(tmp_path):
     """Exact-match must prevent 'iron' substring matching 'spironolactone'."""
     medicines = [
-        {"id": "m1", "generic_name": "Spironolactone", "strength": "25mg",
-         "source": "commercial", "jan_aushadhi_price": None},
-        {"id": "m2", "generic_name": "Iron", "strength": "100mg",
-         "source": "commercial", "jan_aushadhi_price": None},
+        {
+            "id": "m1",
+            "generic_name": "Spironolactone",
+            "strength": "25mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
+        {
+            "id": "m2",
+            "generic_name": "Iron",
+            "strength": "100mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
     ]
-    nppa_csv = _write_nppa_csv(tmp_path, [
-        {"generic_name": "iron", "strength": "100mg", "mrp": "32.00"},
-    ])
+    nppa_csv = _write_nppa_csv(
+        tmp_path,
+        [
+            {"generic_name": "iron", "strength": "100mg", "mrp": "32.00"},
+        ],
+    )
     client = MergeFakeSupabaseClient(medicines=medicines)
     loader = make_merge_loader(client, tmp_path)
 
@@ -888,8 +1035,8 @@ def test_ja_backfill_does_not_match_iron_against_spironolactone(tmp_path):
 
     spiro = next(m for m in medicines if m["id"] == "m1")
     iron = next(m for m in medicines if m["id"] == "m2")
-    assert spiro["jan_aushadhi_price"] is None   # NOT updated
-    assert iron["jan_aushadhi_price"] == 32.00   # correctly updated
+    assert spiro["jan_aushadhi_price"] is None  # NOT updated
+    assert iron["jan_aushadhi_price"] == 32.00  # correctly updated
     assert stats["updated"] == 1
     assert stats["skipped"] == 1
 
@@ -897,35 +1044,62 @@ def test_ja_backfill_does_not_match_iron_against_spironolactone(tmp_path):
 def test_ja_backfill_uses_strength_specific_price(tmp_path):
     """Strength-specific rows override the generic fallback."""
     medicines = [
-        {"id": "para-500", "generic_name": "Paracetamol", "strength": "500mg",
-         "source": "commercial", "jan_aushadhi_price": None},
-        {"id": "para-650", "generic_name": "Paracetamol", "strength": "650mg",
-         "source": "commercial", "jan_aushadhi_price": None},
+        {
+            "id": "para-500",
+            "generic_name": "Paracetamol",
+            "strength": "500mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
+        {
+            "id": "para-650",
+            "generic_name": "Paracetamol",
+            "strength": "650mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
     ]
-    nppa_csv = _write_nppa_csv(tmp_path, [
-        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
-        {"generic_name": "paracetamol", "strength": "650mg", "mrp": "22.00"},
-    ])
+    nppa_csv = _write_nppa_csv(
+        tmp_path,
+        [
+            {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+            {"generic_name": "paracetamol", "strength": "650mg", "mrp": "22.00"},
+        ],
+    )
     client = MergeFakeSupabaseClient(medicines=medicines)
     loader = make_merge_loader(client, tmp_path)
 
     stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
 
-    assert next(m["jan_aushadhi_price"] for m in medicines if m["id"] == "para-500") == 18.50
-    assert next(m["jan_aushadhi_price"] for m in medicines if m["id"] == "para-650") == 22.00
+    assert (
+        next(m["jan_aushadhi_price"] for m in medicines if m["id"] == "para-500")
+        == 18.50
+    )
+    assert (
+        next(m["jan_aushadhi_price"] for m in medicines if m["id"] == "para-650")
+        == 22.00
+    )
     assert stats["updated"] == 2
 
 
 def test_ja_backfill_uses_fallback_when_no_strength_match(tmp_path):
     """If no strength-specific row exists, use the strength-less fallback."""
     medicines = [
-        {"id": "m1", "generic_name": "Amoxicillin", "strength": "875mg",
-         "source": "commercial", "jan_aushadhi_price": None},
+        {
+            "id": "m1",
+            "generic_name": "Amoxicillin",
+            "strength": "875mg",
+            "source": "commercial",
+            "jan_aushadhi_price": None,
+        },
     ]
     # CSV only has 500mg specific — the None-key fallback should be used
-    nppa_csv = _write_nppa_csv(tmp_path, [
-        {"generic_name": "amoxicillin", "strength": "500mg", "mrp": "85.00"},
-    ])
+    nppa_csv = _write_nppa_csv(
+        tmp_path,
+        [
+            {"generic_name": "amoxicillin", "strength": "500mg", "mrp": "85.00"},
+        ],
+    )
     client = MergeFakeSupabaseClient(medicines=medicines)
     loader = make_merge_loader(client, tmp_path)
 

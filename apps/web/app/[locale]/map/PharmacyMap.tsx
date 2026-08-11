@@ -108,22 +108,25 @@ export default function PharmacyMap({
     const [mapError, setMapError] = useState(false);
     const [isMapReady, setIsMapReady] = useState(false);
 
-    const isProgrammaticRef = useRef(false);
+    const programmaticMovesRef = useRef<number>(0);
 
     const performProgrammaticMove = (moveFn: () => void) => {
         if (!map.current) return;
+        programmaticMovesRef.current += 1;
+
         let started = false;
         const onMoveStart = () => {
             started = true;
         };
         map.current.once("movestart", onMoveStart);
-        isProgrammaticRef.current = true;
 
         moveFn();
 
         setTimeout(() => {
             if (!started) {
-                isProgrammaticRef.current = false;
+                if (programmaticMovesRef.current > 0) {
+                    programmaticMovesRef.current -= 1;
+                }
                 if (map.current) {
                     map.current.off("movestart", onMoveStart);
                 }
@@ -219,8 +222,8 @@ export default function PharmacyMap({
                     };
 
                     map.current.on("moveend", () => {
-                        if (isProgrammaticRef.current) {
-                            isProgrammaticRef.current = false;
+                        if (programmaticMovesRef.current > 0) {
+                            programmaticMovesRef.current -= 1;
                             return;
                         }
                         if (moveEndDebounceRef.current) {

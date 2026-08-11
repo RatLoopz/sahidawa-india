@@ -4,11 +4,12 @@ import wishlistRouter, { mergeGuestWishlist } from "../src/routes/wishlist";
 
 jest.mock("../src/middleware/auth", () => ({
     requireAuth: (
-        req: { user?: { id: string; role: string } },
+        req: { user?: { id: string; role: string }; supabase?: any },
         _res: unknown,
         next: () => void
     ) => {
         req.user = { id: "user-1", role: "user" };
+        req.supabase = require("../src/db/client").supabase;
         next();
     },
 }));
@@ -57,11 +58,7 @@ describe("GET /api/v1/wishlist — pagination", () => {
         }));
     }
 
-    function mockWishlistPage(
-        items: object[],
-        totalCount: number,
-        error: object | null = null
-    ) {
+    function mockWishlistPage(items: object[], totalCount: number, error: object | null = null) {
         const rangeMock = jest.fn().mockResolvedValue({
             data: error ? null : items,
             error,
@@ -237,7 +234,7 @@ describe("mergeGuestWishlist", () => {
             return {};
         });
 
-        const result = await mergeGuestWishlist(userId, [validId, invalidId]);
+        const result = await mergeGuestWishlist(mockedSupabase, userId, [validId, invalidId]);
 
         expect(result).toEqual([validId]);
         expect(wishlistsSelectEqMock).toHaveBeenCalledWith("user_id", userId);
@@ -269,7 +266,7 @@ describe("mergeGuestWishlist", () => {
             return {};
         });
 
-        const result = await mergeGuestWishlist(userId, [invalidId]);
+        const result = await mergeGuestWishlist(mockedSupabase, userId, [invalidId]);
 
         expect(result).toEqual([]);
         expect(wishlistsSelectEqMock).toHaveBeenCalledWith("user_id", userId);
@@ -286,7 +283,9 @@ describe("mergeGuestWishlist", () => {
             select: jest.fn().mockReturnValue({ eq: wishlistsSelectEqMock }),
         } as never);
 
-        await expect(mergeGuestWishlist("user-1", [productId])).resolves.toEqual([]);
+        await expect(mergeGuestWishlist(mockedSupabase, "user-1", [productId])).resolves.toEqual(
+            []
+        );
         expect(mockedSupabase.from).toHaveBeenCalledTimes(1);
     });
 

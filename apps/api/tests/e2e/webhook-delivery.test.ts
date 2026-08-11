@@ -1,7 +1,10 @@
 import { supabase } from "../../src/db/client";
 import crypto from "crypto";
 
-describe("E2E Webhook Delivery Verification", () => {
+const runTest =
+    process.env.CI === "true" || !process.env.SUPABASE_SERVICE_ROLE_KEY ? describe.skip : describe;
+
+runTest("E2E Webhook Delivery Verification", () => {
     const testUUID = crypto.randomUUID();
     const schemeName = `E2E_Test_Scheme_${testUUID}`;
     let insertedSchemeId: string | null = null;

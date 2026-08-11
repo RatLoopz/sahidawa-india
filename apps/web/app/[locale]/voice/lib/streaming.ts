@@ -3,6 +3,7 @@ import {
     type VoiceTranscriptionPayload,
 } from "./transcription";
 import { API_BASE } from "@/lib/apiConfig";
+import { getSessionAccessToken } from "@/lib/accessToken";
 
 type VoiceStreamingCallback = (payload: VoiceTranscriptionPayload) => void;
 
@@ -43,7 +44,7 @@ export function getVoiceStreamingUrl(baseUrl?: string, ticket?: string) {
  * which lets the caller fall back to recorded upload.
  */
 export async function fetchVoiceStreamTicket(): Promise<string | null> {
-    const token = typeof window === "undefined" ? "" : localStorage.getItem("sb-access-token");
+    const token = getSessionAccessToken();
     if (!token) {
         return null;
     }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Tesseract from "tesseract.js";
 import { toast } from "sonner";
 import imageCompression from "browser-image-compression";
@@ -6,12 +6,14 @@ import {
     extractMedicineName,
     extractBatchNumber,
     extractExpiryDate,
+    resolveToGeneric,
 } from "@/lib/sync/medicineParser";
 import { verifyMedicine, verifyMedicineByBrand, VerifyResult, fuzzyMatchBrand } from "@/lib/api";
 import { structuredLog } from "@/lib/structuredLogger";
 import { saveScanHistory } from "@/lib/db/scanHistory";
 import { expiryToIso } from "@/lib/medicineDateUtils";
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
+import { validateMedicineImage } from "@/lib/imageValidation";
 
 type UseMedicineImageUploadProps = {
     handleVerify: (batch: string) => Promise<void>;
@@ -48,15 +50,6 @@ export function useMedicineImageUpload({
     const ocrCancelledRef = useRef(false);
     const preprocessWorkerRef = useRef<Worker | null>(null);
 
-    useEffect(() => {
-        const worker = new Worker("/workers/imageEnhancer.worker.js");
-        preprocessWorkerRef.current = worker;
-        return () => {
-            worker.terminate();
-            preprocessWorkerRef.current = null;
-        };
-    }, []);
-
     const reset = () => {
         setUploadedImage(null);
         setOcrText(null);
@@ -68,30 +61,34 @@ export function useMedicineImageUpload({
         setIsScanning(false);
     };
 
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
     const COMPRESSION_THRESHOLD = 2 * 1024 * 1024;
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        let processedFile = file;
+        // Validate the original image before compression, preprocessing,
+        // barcode detection, or OCR processing.
+        const validation = await validateMedicineImage(file);
 
-        if (file.size > MAX_FILE_SIZE) {
-            toast.error("File exceeds 10MB limit");
+        if (!validation.valid) {
+            toast.error(validation.error);
             e.target.value = "";
             return;
         }
 
+        let processedFile = file;
+
         if (file.size > COMPRESSION_THRESHOLD) {
             try {
                 processedFile = (await imageCompression(file, {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 2,
+                    maxWidthOrHeight: 2400,
                     useWebWorker: true,
-                })) as File; // using 'as File' since typescript might infer Blob from compression
+                })) as File;
             } catch {
                 toast.error("Failed to compress image");
+                e.target.value = "";
                 return;
             }
         }
@@ -101,8 +98,9 @@ export function useMedicineImageUpload({
                 processedFile,
                 preprocessWorkerRef.current
             );
+
             if (typeof enhancedResult !== "string") {
-                processedFile = enhancedResult as File; // maintaining type compatibility
+                processedFile = enhancedResult as File;
             }
         } catch (error) {
             console.warn("Image enhancement failed, falling back to original", error);
@@ -110,6 +108,7 @@ export function useMedicineImageUpload({
 
         const reader = new FileReader();
         let dataUrl: string;
+
         try {
             dataUrl = await new Promise<string>((resolve, reject) => {
                 reader.onloadend = () => resolve(reader.result as string);
@@ -121,12 +120,14 @@ export function useMedicineImageUpload({
             e.target.value = "";
             return;
         }
+
         setUploadedImage(dataUrl);
         e.target.value = "";
 
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
+
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
@@ -165,12 +166,16 @@ export function useMedicineImageUpload({
                 const reader = new BrowserMultiFormatReader(hints);
                 const zxingResult = await reader.decodeFromImageUrl(dataUrl);
                 const barcodeText = zxingResult.getText().trim();
+
                 if (barcodeText) {
                     barcodeFound = true;
+
                     if (!isMountedRef.current || controller.signal.aborted) return;
+
                     setBatchInput(barcodeText);
                     setOcrStatus("done");
                     toast.success(`Barcode detected: ${barcodeText} — verifying…`);
+
                     await handleVerify(barcodeText);
                     return;
                 }
@@ -193,12 +198,19 @@ export function useMedicineImageUpload({
 
             if (!ocrWorkerRef.current) {
                 const initPromise = Tesseract.createWorker("eng");
+
                 const timeoutPromise = new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error("OCR initialization timed out")), 20000)
+                    setTimeout(() => reject(new Error("OCR initialization timed out")), 120000)
                 );
 
                 try {
-                    ocrWorkerRef.current = await Promise.race([initPromise, timeoutPromise]);
+                    const worker = await Promise.race([initPromise, timeoutPromise]);
+
+                    await worker.setParameters({
+                        tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
+                    });
+
+                    ocrWorkerRef.current = worker;
                 } catch (err) {
                     throw new Error(
                         err instanceof Error && err.message === "OCR initialization timed out"
@@ -208,16 +220,20 @@ export function useMedicineImageUpload({
                 }
             }
 
-            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) {
                 return;
+            }
 
             let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
             const timeoutPromise = new Promise<never>((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 30000);
+                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 120000);
             });
 
             const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
+
             let raceResult;
+
             try {
                 raceResult = await Promise.race([ocrPromise, timeoutPromise]);
             } finally {
@@ -225,16 +241,22 @@ export function useMedicineImageUpload({
                     clearTimeout(timeoutId);
                 }
             }
+
             const { data } = raceResult;
 
-            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) {
                 return;
+            }
 
             const rawText = data.text;
+            const confidence = data.confidence / 100;
+
             if (!rawText || !rawText.trim()) {
-                toast.warning("No clear text found in image.");
+                toast.warning(
+                    "No text found in image. Please photograph the printed text side of the medicine."
+                );
                 setVerifyError(
-                    "Failed to read medicine text. Please ensure the image is clear or upload another one."
+                    "Could not read any text from this image. Please photograph the side of the package that shows the medicine name and batch number."
                 );
                 setOcrStatus("error");
                 setShowResult(true);
@@ -243,9 +265,8 @@ export function useMedicineImageUpload({
             }
 
             setOcrText(rawText);
-            setOcrConfidence(data.confidence / 100);
+            setOcrConfidence(confidence);
             setOcrStatus("done");
-            toast.success("OCR extraction complete!");
 
             // Parse OCR Text using utility regex
             const parsedBatchNum = extractBatchNumber(rawText);
@@ -254,11 +275,30 @@ export function useMedicineImageUpload({
 
             if (parsedBatchNum) setParsedBatch(parsedBatchNum);
             if (parsedExpiryStr) setParsedExpiry(parsedExpiryStr);
-            if (medName) setParsedBrand(medName);
+
+            // Resolve brand name to generic for better knowledge-base lookup
+            const resolvedName = medName ? resolveToGeneric(medName) : null;
+            const displayName = medName || resolvedName || undefined;
+            if (displayName) setParsedBrand(displayName);
 
             if (parsedBatchNum) {
                 setBatchInput(parsedBatchNum);
             }
+
+            // If OCR confidence is very low, the image side is probably the tablet/barcode side.
+            // Skip CDSCO lookup (it would fail on garbage text) but still show the knowledge card.
+            if (confidence < 0.3) {
+                toast.warning(
+                    "Image text is unclear (low quality scan). Showing info based on what was detected. For better results, photograph the printed text side."
+                );
+                await processVerificationResult(
+                    { verified: false, message: "Low confidence OCR — CDSCO lookup skipped" },
+                    displayName
+                );
+                return;
+            }
+
+            toast.success("Text extracted successfully!");
 
             // Database Lookup Strategy
             let finalResult: VerifyResult | null = null;
@@ -266,6 +306,7 @@ export function useMedicineImageUpload({
             if (parsedBatchNum) {
                 try {
                     const batchRes = await verifyMedicine(parsedBatchNum, controller.signal);
+
                     if (batchRes.verified) {
                         finalResult = batchRes;
                     }
@@ -287,14 +328,18 @@ export function useMedicineImageUpload({
             if (!finalResult && medName) {
                 try {
                     const matchRes = await fuzzyMatchBrand(medName, controller.signal);
+
                     if (matchRes && matchRes.length > 0) {
                         const topMatch = matchRes[0];
+
                         if (topMatch.score >= 60) {
                             setParsedBrand(topMatch.name);
+
                             const brandRes = await verifyMedicineByBrand(
                                 topMatch.name,
                                 controller.signal
                             );
+
                             if (brandRes.verified) {
                                 finalResult = brandRes;
                             }
@@ -317,14 +362,20 @@ export function useMedicineImageUpload({
 
             if (finalResult && finalResult.verified) {
                 const updatedMedicine = { ...finalResult.medicine };
+
                 if (parsedBatchNum) {
                     updatedMedicine.batch_number = parsedBatchNum;
                 }
+
                 if (parsedExpiryStr) {
                     updatedMedicine.expiry_date = expiryToIso(parsedExpiryStr);
                 }
+
                 await processVerificationResult(
-                    { verified: true, medicine: updatedMedicine },
+                    {
+                        verified: true,
+                        medicine: updatedMedicine,
+                    },
                     parsedBrand
                 );
             } else {
@@ -334,14 +385,16 @@ export function useMedicineImageUpload({
                         verified: false,
                         message: "No match found in CDSCO Database",
                     } satisfies VerifyResult);
+
                 await processVerificationResult(
                     unverifiedResult,
                     parsedBrand || medName || undefined
                 );
             }
         } catch (err) {
-            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) {
                 return;
+            }
 
             if (ocrWorkerRef.current) {
                 await ocrWorkerRef.current.terminate();
@@ -349,11 +402,16 @@ export function useMedicineImageUpload({
             }
 
             const errorMsg = err instanceof Error ? err.message : String(err);
-            if (errorMsg === "OCR timed out") {
-                toast.error("OCR timed out. Please try again with a clearer image.");
-                setVerifyError(
-                    "The scan took too long. Please ensure the image is clear and try again."
+
+            if (errorMsg === "OCR timed out" || errorMsg === "OCR initialization timed out") {
+                toast.error(
+                    "OCR timed out. Please check your internet connection or try a clearer image."
                 );
+
+                setVerifyError(
+                    "The scan took too long. This may be due to a slow internet connection or a complex image. Please check your connection and try again."
+                );
+
                 void saveScanHistory({
                     id: crypto.randomUUID(),
                     timestamp: Date.now(),
@@ -364,9 +422,11 @@ export function useMedicineImageUpload({
                 });
             } else {
                 toast.error("Failed to extract text from image.");
+
                 setVerifyError(
                     "Unable to read text from this image. Please try a clearer photo or enter the batch number manually."
                 );
+
                 void saveScanHistory({
                     id: crypto.randomUUID(),
                     timestamp: Date.now(),
@@ -376,6 +436,7 @@ export function useMedicineImageUpload({
                     console.error("Failed to save scan history:", error);
                 });
             }
+
             setOcrStatus("error");
         } finally {
             if (isMountedRef.current && !controller.signal.aborted && !ocrCancelledRef.current) {

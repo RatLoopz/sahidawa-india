@@ -39,8 +39,8 @@ const SAFETY_OVERLAY_FIELDS = [
  * serving a stale "safe" result indefinitely. Falls back to the cached values
  * if the live read fails so the endpoint degrades gracefully.
  */
-async function refreshLiveSafety(data: any): Promise<void> {
-    const { data: live, error } = await supabase
+async function refreshLiveSafety(client: any, data: any): Promise<void> {
+    const { data: live, error } = await client
         .from("medicines")
         .select(SAFETY_OVERLAY_FIELDS.join(", "))
         .eq("id", data.id)
@@ -306,17 +306,17 @@ router.post(
             // Always overlay the live safety-critical fields so a stale cache entry
             // can never serve an outdated "safe" verdict after the CDSCO/database
             // record has been updated (e.g. newly flagged recall or counterfeit alert).
-            await refreshLiveSafety(data);
+            await refreshLiveSafety(req.supabase!, data);
 
             // Look up batch recall status from batches table
-            const { data: batchData } = await supabase
+            const { data: batchData } = await req.supabase!
                 .from("batches")
                 .select("recall_status")
                 .eq("batch_number", batchNumber)
                 .maybeSingle();
             const batch_status = getBatchStatus(batchData?.recall_status);
 
-            const { data: counts, error: countError } = await supabase
+            const { data: counts, error: countError } = await req.supabase!
                 .rpc("get_scan_counts", { p_batch_number: data.batch_number })
                 .maybeSingle();
 
@@ -354,7 +354,7 @@ router.post(
 
             setImmediate(async () => {
                 try {
-                    const { error: insertError } = await supabase.from("scan_history").insert([
+                    const { error: insertError } = await req.supabase!.from("scan_history").insert([
                         {
                             batch_number: data.batch_number,
                             medicine_id: data.id,

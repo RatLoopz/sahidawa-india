@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
+import { getSessionAccessToken } from "@/lib/accessToken";
 
 function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
+    return getSessionAccessToken();
 }
 
 interface CacheStats {

@@ -192,7 +192,7 @@ export default function Chatbot() {
                     msg.id === typingMessage.id ? { id: msg.id, text: finalText, isBot: true } : msg
                 );
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (isAbortError(error)) return;
 
             console.error("Chatbot API Error:", error);
@@ -202,7 +202,7 @@ export default function Chatbot() {
                     ...withoutTyping,
                     createMessage({
                         text:
-                            error.message ||
+                            (error instanceof Error ? error.message : "") ||
                             "Sorry, I am having trouble connecting to the AI. Please make sure the GEMINI_API_KEY environment variable is set.",
                         isBot: true,
                     }),

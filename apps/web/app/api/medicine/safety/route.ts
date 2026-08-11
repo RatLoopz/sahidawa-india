@@ -24,7 +24,7 @@ import { rateLimit } from "@/lib/rateLimit";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const MAX_QUERY_LENGTH = 100;
+const MAX_QUERY_LENGTH = 2000;
 
 // ── OpenFDA ───────────────────────────────────────────────────────────────────
 async function fetchOpenFdaContext(genericName: string): Promise<string> {
@@ -62,7 +62,15 @@ const SYSTEM_PROMPT = `You are a senior clinical pharmacologist with expertise i
 Generate a comprehensive medicine safety profile as a single valid JSON object.
 Output ONLY the JSON — no markdown fences, no explanation, no preamble.
 
-Rules:
+Validation Rule (CRITICAL):
+- First, determine if the drug name represents a REAL medicine, active pharmaceutical ingredient (API), chemical drug compound, or known brand name.
+- If the name is gibberish, a household object, or NOT a medicine (e.g., "luffy", "manga", "anime", "table", random text), you MUST set "isMedicine": false.
+- If "isMedicine" is false, you MUST set "activeIngredient" and "genericName" to "", and all arrays to []. Do NOT hallucinate a default medicine like Amoxicillin!
+- Only set "isMedicine": true if you are confident the query is a real pharmaceutical product.
+
+Rules for valid medicines:
+- description: provide a brief, 1-2 sentence description of what the medicine is.
+- commonUses: include 2-4 common conditions this medicine treats.
 - sideEffects: include 4-8 entries mixing common and severe effects.
 - ageBasedDosage: always include all three groups (children, adults, elderly).
   For contraindicated groups, set dose to "Not recommended" and add a warning.
@@ -73,6 +81,7 @@ Rules:
 
 Required JSON shape:
 {
+  "isMedicine": boolean,
   "activeIngredient": "string — INN generic name",
   "genericName": "string — display name",
   "brandAliases": ["array of common brand names"],
@@ -87,6 +96,7 @@ Required JSON shape:
 const GEMINI_SCHEMA: Schema = {
     type: SchemaType.OBJECT,
     properties: {
+        isMedicine: { type: SchemaType.BOOLEAN },
         activeIngredient: { type: SchemaType.STRING },
         genericName: { type: SchemaType.STRING },
         brandAliases: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
@@ -135,6 +145,7 @@ const GEMINI_SCHEMA: Schema = {
         pregnancyCategory: { type: SchemaType.STRING },
     },
     required: [
+        "isMedicine",
         "activeIngredient",
         "genericName",
         "brandAliases",
@@ -240,7 +251,7 @@ export async function GET(request: NextRequest) {
 
     if (q.length > MAX_QUERY_LENGTH) {
         return NextResponse.json(
-            { error: "Query parameter 'q' must be 100 characters or fewer." },
+            { error: "Query parameter 'q' must be 2000 characters or fewer." },
             { status: 400 }
         );
     }
@@ -261,6 +272,20 @@ export async function GET(request: NextRequest) {
                 .maybeSingle();
 
             if (data?.profile_json) {
+                const cachedProfile = data.profile_json as any;
+                if (
+                    cachedProfile &&
+                    "isMedicine" in cachedProfile &&
+                    cachedProfile.isMedicine === false
+                ) {
+                    return NextResponse.json(
+                        {
+                            error: "This name does not appear to be a recognized medicine. Please scan the text side of a valid medicine strip or packet.",
+                            code: "NOT_A_MEDICINE",
+                        },
+                        { status: 404 }
+                    );
+                }
                 return NextResponse.json(data.profile_json, {
                     headers: {
                         "X-Cache": "HIT",
@@ -304,6 +329,45 @@ export async function GET(request: NextRequest) {
                 { status: 503 }
             );
         }
+    }
+
+    // ── 3.3 Validate LLM output semantic correctness ─────────────────────────
+    if (profile && typeof profile === "object") {
+        const p = profile as any;
+        if (
+            !p.genericName?.trim() ||
+            !p.activeIngredient?.trim() ||
+            p.genericName.toLowerCase() === "unknown" ||
+            p.activeIngredient.toLowerCase() === "unknown"
+        ) {
+            p.isMedicine = false;
+        }
+    }
+
+    // ── 3.5 Check if LLM determined it's NOT a medicine ──────────────────────
+    if (profile && "isMedicine" in profile && (profile as any).isMedicine === false) {
+        if (db) {
+            try {
+                await db.from("medicine_safety_profiles").upsert(
+                    {
+                        generic_name: genericName,
+                        profile_json: profile,
+                        updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: "generic_name" }
+                );
+            } catch {
+                // non-fatal
+            }
+        }
+
+        return NextResponse.json(
+            {
+                error: "This name does not appear to be a recognized medicine. Please scan the text side of a valid medicine strip or packet.",
+                code: "NOT_A_MEDICINE",
+            },
+            { status: 404 }
+        );
     }
 
     // ── 4. Persist to Supabase (best-effort, optional) ────────────────────────

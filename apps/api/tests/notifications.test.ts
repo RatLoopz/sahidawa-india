@@ -150,6 +150,7 @@ jest.mock("../src/utils/redis", () => ({
 import express from "express";
 import request from "supertest";
 import notificationsRouter from "../src/routes/notifications";
+import { escapeXml } from "../src/routes/notifications";
 import { computeTwilioSignature } from "../src/middleware/twilioSignature";
 import { signGuestToken, verifyGuestPhone } from "../src/utils/guestToken";
 import { Request, Response, NextFunction } from "express";
@@ -380,6 +381,79 @@ describe("notifications routes", () => {
         expect(response.status).toBe(200);
         expect(response.headers["content-type"]).toContain("text/xml");
         expect(response.text).toContain("unsubscribed");
+    });
+
+    it("returns well-formed TwiML for opt-out with <Response> root element", async () => {
+        const params = { From: "+919876543210", Body: "STOP" };
+        const signature = computeTwilioSignature(
+            "test-auth-token",
+            "http://localhost/api/notifications/twilio-webhook",
+            params
+        );
+
+        const response = await request(app)
+            .post("/api/notifications/twilio-webhook")
+            .type("form")
+            .set("X-Twilio-Signature", signature)
+            .send(params);
+
+        expect(response.status).toBe(200);
+        expect(response.text).toMatch(/<\?xml version="1\.0" encoding="UTF-8"\?>/);
+        expect(response.text).toContain("<Response>");
+        expect(response.text).toContain("</Response>");
+        expect(response.text).toContain("<Message>");
+        expect(response.text).toContain("</Message>");
+    });
+
+    it("returns well-formed TwiML for opt-in (START command)", async () => {
+        const params = { From: "+919876543210", Body: "START" };
+        const signature = computeTwilioSignature(
+            "test-auth-token",
+            "http://localhost/api/notifications/twilio-webhook",
+            params
+        );
+
+        const response = await request(app)
+            .post("/api/notifications/twilio-webhook")
+            .type("form")
+            .set("X-Twilio-Signature", signature)
+            .send(params);
+
+        expect(response.status).toBe(200);
+        expect(response.text).toContain("<Response>");
+        expect(response.text).toContain("<Message>");
+        expect(response.text).toContain("Welcome back");
+    });
+
+    it("returns well-formed TwiML for unrecognized command (default reply)", async () => {
+        const params = { From: "+919876543210", Body: "HELLO" };
+        const signature = computeTwilioSignature(
+            "test-auth-token",
+            "http://localhost/api/notifications/twilio-webhook",
+            params
+        );
+
+        const response = await request(app)
+            .post("/api/notifications/twilio-webhook")
+            .type("form")
+            .set("X-Twilio-Signature", signature)
+            .send(params);
+
+        expect(response.status).toBe(200);
+        expect(response.text).toContain("<Response>");
+        expect(response.text).toContain("<Message>");
+        expect(response.text).toContain("Reply STOP to unsubscribe");
+    });
+
+    it("escapes XML-sensitive characters in reply messages (defensive test)", async () => {
+        expect(escapeXml("STOP & START")).toBe("STOP &amp; START");
+        expect(escapeXml("A < B")).toBe("A &lt; B");
+        expect(escapeXml("A > B")).toBe("A &gt; B");
+        expect(escapeXml('"quoted"')).toBe("&quot;quoted&quot;");
+        expect(escapeXml("it's")).toBe("it&apos;s");
+        expect(escapeXml("</Message><XSS>injected</XSS>")).toBe(
+            "&lt;/Message&gt;&lt;XSS&gt;injected&lt;/XSS&gt;"
+        );
     });
 
     it("broadcasts messages to subscribers", async () => {

@@ -268,9 +268,9 @@ export async function fetchPmjayEligibility(
                 how_to_apply: s.how_to_apply,
                 link: s.link,
             }));
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error("Error evaluating eligibility: ", err);
-            const errName = err?.name;
+            const errName = err instanceof Error ? err.name : (err as any)?.name || null;
             if (
                 err instanceof PmjayAuthError ||
                 errName === "PmjayAuthError" ||
@@ -302,7 +302,9 @@ export async function fetchPmjayEligibility(
                 });
                 continue;
             }
-            throw new PmjayNetworkError(`Network request failed: ${err.message || String(err)}`);
+            throw new PmjayNetworkError(
+                `Network request failed: ${err instanceof Error ? err.message : String(err)}`
+            );
         }
     }
 

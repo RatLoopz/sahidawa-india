@@ -89,6 +89,7 @@ router.get(
                 mrp?: number;
                 brand_price?: number;
                 jan_aushadhi_price?: number;
+                composition?: string;
             }
 
             // 1. Look up medicine in medicines table by ID, barcode, or brand name
@@ -100,7 +101,7 @@ router.get(
             if (uuidRegex.test(medicine_id)) {
                 const { data } = await supabase
                     .from("medicines")
-                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price")
+                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price, composition")
                     .eq("id", medicine_id)
                     .maybeSingle();
                 medicine = data;
@@ -110,7 +111,7 @@ router.get(
             if (!medicine) {
                 const { data } = await supabase
                     .from("medicines")
-                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price")
+                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price, composition")
                     .eq("barcode_id", medicine_id)
                     .maybeSingle();
                 medicine = data;
@@ -120,7 +121,7 @@ router.get(
             if (!medicine) {
                 const { data } = await supabase
                     .from("medicines")
-                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price")
+                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price, composition")
                     .ilike("brand_name", medicine_id)
                     .limit(1)
                     .maybeSingle();
@@ -238,6 +239,9 @@ router.get(
                         ? `${medicine.generic_name} (Generic)`
                         : "Atorvastatin 10mg (Generic)"),
                 nearest_store: nearestStore,
+                usage:
+                    medicine?.composition ||
+                    "Used for treatment as prescribed by your healthcare provider.",
             };
 
             try {
