@@ -121,9 +121,9 @@ const nextConfig = {
                         value: [
                             "default-src 'self'",
                             // 'wasm-unsafe-eval' allows WebAssembly (Tesseract OCR WASM engine) without
-                            // allowing arbitrary eval(). Unlike 'unsafe-eval', Next.js nonce middleware
-                            // does NOT strip this directive. Both are included for broad browser support.
-                            "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+                            // allowing arbitrary eval(). Both are included for broad browser support,
+                            // but 'unsafe-eval' is strictly disabled in production.
+                            `script-src 'self' ${process.env.NODE_ENV === "production" ? "" : "'unsafe-eval'"} 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com`,
                             // blob: is required so the Tesseract CDN worker can spawn a Blob Worker.
                             "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com",
                             "style-src 'self' 'unsafe-inline'",
