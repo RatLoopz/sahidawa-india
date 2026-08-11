@@ -51,6 +51,7 @@ export default async function middleware(req: NextRequest) {
                 "https://overpass.kumi.systems",
                 "https://lz4.overpass-api.de",
                 "https://z.overpass-api.de",
+                "https://nominatim.openstreetmap.org",
                 "https://unpkg.com",
                 "https://cdn.jsdelivr.net",
                 "https://tessdata.projectnaptha.com",
@@ -89,6 +90,9 @@ export default async function middleware(req: NextRequest) {
 
     // 3. Set CSP on the response
     res.headers.set("Content-Security-Policy", csp);
+    // Crucial for Next.js 13+ App Router to read the nonce and apply it to its inline scripts
+    res.headers.set("x-middleware-request-x-nonce", nonce);
+    res.headers.set("x-middleware-request-content-security-policy", csp);
 
     // 4. Supabase auth and Admin route protection
     const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
