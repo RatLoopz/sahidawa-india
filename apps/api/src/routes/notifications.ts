@@ -333,6 +333,7 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
         // which stops one guest from reading another's subscription just by
         // knowing their number.
         let guestPhone: string | undefined;
+        const client = req.supabase || supabase;
         if (!req.user) {
             const verified = verifyGuestPhone(getGuestToken(req));
             if (!verified) {
@@ -344,7 +345,7 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
             guestPhone = verified;
         }
 
-        let query = req.supabase!
+        let query = client
             .from("notification_subscribers")
             .select("phone, channels, language, district, is_active");
 
@@ -432,6 +433,7 @@ router.post(
         const targetStatus = isOwner ? "active" : "pending";
         const otp = isOwner ? null : randomInt(100000, 1000000).toString();
         const otpExpires = isOwner ? null : new Date(Date.now() + 10 * 60 * 1000).toISOString();
+        const client = req.supabase || supabase;
 
         try {
             let existing = null;
@@ -439,7 +441,7 @@ router.post(
 
             if (!dbFailed) {
                 try {
-                    const { data, error: findError } = await req.supabase!
+                    const { data, error: findError } = await client
                         .from("notification_subscribers")
                         .select("*")
                         .eq("phone", formattedPhone)
@@ -547,7 +549,7 @@ router.post(
                     updatePayload.status = "active";
                 }
 
-                const { data: updated, error: updateError } = await req.supabase!
+                const { data: updated, error: updateError } = await client
                     .from("notification_subscribers")
                     .update(updatePayload)
                     .eq("id", existing.id)
@@ -567,7 +569,7 @@ router.post(
                 if (!isOwner && otp && otpExpires) {
                     await otpStore.store(formattedPhone, otp, otpExpires);
                 }
-                const { data: created, error: insertError } = await req.supabase!
+                const { data: created, error: insertError } = await client
                     .from("notification_subscribers")
                     .insert({
                         user_id: req.user?.id || null,
@@ -675,10 +677,11 @@ router.post(
         try {
             let dbFailed = dbConfig?.isSupabaseOffline;
             let subscriber = null;
+            const client = req.supabase || supabase;
 
             if (!dbFailed) {
                 try {
-                    const { data, error } = await req.supabase!
+                    const { data, error } = await client
                         .from("notification_subscribers")
                         .select("*")
                         .eq("phone", formattedPhone)
@@ -749,7 +752,7 @@ router.post(
                     await clearPendingPhoneChange(req.user.id);
 
                     if (!dbFailed) {
-                        const { error: updateError } = await req.supabase!
+                        const { error: updateError } = await client
                             .from("notification_subscribers")
                             .update({ phone: formattedPhone })
                             .eq("user_id", req.user.id);
@@ -778,7 +781,7 @@ router.post(
             }
 
             if (!dbFailed) {
-                const { error: updateError } = await req.supabase!
+                const { error: updateError } = await client
                     .from("notification_subscribers")
                     .update({ status: "active" })
                     .eq("id", subscriber.id);
@@ -876,9 +879,10 @@ router.patch(
         // compatibility with existing clients that expect subscriber in the body.
         if (req.user && formattedNewPhone) {
             let currentSubscriber = null;
+            const client = req.supabase || supabase;
             if (!dbConfig?.isSupabaseOffline) {
                 try {
-                    const { data } = await supabase
+                    const { data } = await client
                         .from("notification_subscribers")
                         .select("phone, channels, language, district, is_active")
                         .eq("user_id", req.user.id)
@@ -960,10 +964,11 @@ router.patch(
         try {
             let data = null;
             let dbFailed = dbConfig?.isSupabaseOffline;
+            const client = req.supabase || supabase;
 
             if (!dbFailed) {
                 try {
-                    let query = supabase.from("notification_subscribers").update(updateData);
+                    let query = client.from("notification_subscribers").update(updateData);
                     query = req.user
                         ? query.eq("user_id", req.user.id)
                         : query.eq("phone", guestPhone!);
@@ -1043,10 +1048,11 @@ router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest,
     try {
         let data = null;
         let dbFailed = dbConfig?.isSupabaseOffline;
+        const client = req.supabase || supabase;
 
         if (!dbFailed) {
             try {
-                let query = supabase.from("notification_subscribers").delete();
+                let query = client.from("notification_subscribers").delete();
                 query = req.user
                     ? query.eq("user_id", req.user.id)
                     : query.eq("phone", guestPhone!);

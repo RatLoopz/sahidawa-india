@@ -369,9 +369,12 @@ router.post(
             const pharmacy = await pharmacyService.registerPharmacy(parsed.data, req.user.id);
             res.status(201).json({ pharmacy });
         } catch (err: unknown) {
-            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
             if (status) {
-                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -604,12 +607,17 @@ router.get(
             const result = await pharmacyService.searchByMedicine(rawQuery);
             res.json(result);
         } catch (err: unknown) {
-            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
             if (status) {
-                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
-            logger.error("Pharmacy medicine search failed", { error: err instanceof Error ? err.message : String(err) });
+            logger.error("Pharmacy medicine search failed", {
+                error: err instanceof Error ? err.message : String(err),
+            });
             res.status(500).json({ error: "Database query failed" });
         }
     }
@@ -904,8 +912,9 @@ router.post(
             const fileContent = rawFileContent.replace(/^\uFEFF/, "");
 
             const pharmacyId = req.body.pharmacyId || req.query.pharmacyId;
+            const client = req.supabase || supabase;
 
-            let query = req.supabase!.from("pharmacies").select("id").eq("created_by", req.user.id);
+            let query = client.from("pharmacies").select("id").eq("created_by", req.user.id);
 
             if (pharmacyId) {
                 query = query.eq("id", pharmacyId);
@@ -936,7 +945,7 @@ router.post(
 
             // Incremental parsing using the reusable helper (pharmacyId is already known)
             const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
-                req.supabase!,
+                client,
                 fileContent,
                 pharmacy.id,
                 (stats) => {
@@ -1023,9 +1032,12 @@ router.put(
             );
             res.status(200).json({ pharmacy });
         } catch (err: unknown) {
-            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
             if (status) {
-                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -1051,9 +1063,12 @@ router.delete(
             await pharmacyService.deletePharmacy(pharmacyId, req.user!.id, req.user!.role);
             res.status(200).json({ message: "Pharmacy deleted successfully" });
         } catch (err: unknown) {
-            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
             if (status) {
-                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -1086,12 +1101,17 @@ router.post(
             );
             res.status(200).json(result);
         } catch (err: unknown) {
-            const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
             if (status) {
-                res.status(status).json({ error: err instanceof Error ? err.message : String(err) });
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
-            logger.error(`Exception in specific pharmacy upload handler: ${err instanceof Error ? err.message : String(err)}`);
+            logger.error(
+                `Exception in specific pharmacy upload handler: ${err instanceof Error ? err.message : String(err)}`
+            );
             next(err);
         }
     }
