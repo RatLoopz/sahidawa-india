@@ -1433,7 +1433,9 @@
         "abhaSetup": "ABHA ସେଟଅପ୍",
         "abhaRecords": "ABHA ରେକର୍ଡ",
         "notificationSettings": "ବିଜ୍ଞପ୍ତି ସେଟିଂସ୍",
-        "privacySecurity": "ଗୋପନୀୟତା ଏବଂ ସୁରକ୍ଷା"
+        "privacySecurity": "ଗୋପନୀୟତା ଏବଂ ସୁରକ୍ଷା",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
