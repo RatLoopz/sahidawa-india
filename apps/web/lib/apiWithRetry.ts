@@ -57,6 +57,19 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
     },
 };
 
+function parseRetryAfter(headerValue: string | null): number | null {
+    if (!headerValue) return null;
+    const trimmed = headerValue.trim();
+    if (/^\d+$/.test(trimmed)) {
+        return parseInt(trimmed, 10) * 1000;
+    }
+    const date = new Date(trimmed);
+    if (!Number.isNaN(date.getTime())) {
+        return Math.max(0, date.getTime() - Date.now());
+    }
+    return null;
+}
+
 function getBackoffDelay(attemptNumber: number, config: Required<RetryConfig>): number {
     const exponentialDelay = Math.min(
         config.initialDelayMs * Math.pow(config.backoffMultiplier, attemptNumber - 1),
@@ -166,8 +179,15 @@ export async function fetchWithRetry(
                 }
 
                 if (attempt <= config.maxRetries && config.shouldRetry(response, attempt)) {
-                    const delay = getBackoffDelay(attempt, config);
-                    await sleep(delay);
+                    let delay = getBackoffDelay(attempt, config);
+                    if (response.status === 429 || response.status === 503) {
+                        const retryAfterHeader = response.headers.get("Retry-After");
+                        const parsedDelay = parseRetryAfter(retryAfterHeader);
+                        if (parsedDelay !== null) {
+                            delay = parsedDelay;
+                        }
+                    }
+                    await sleep(delay, options.signal);
                     continue;
                 }
                 return response;
@@ -218,15 +238,37 @@ export async function fetchWithRetry(
                 );
             }
 
-            await sleep(delay);
+            await sleep(delay, options.signal);
         }
     }
 
     throw lastError || new Error("All retry attempts failed");
 }
 
-function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (signal?.aborted) {
+            return reject(signal.reason || new Error("Request was cancelled."));
+        }
+        
+        let timeoutId: ReturnType<typeof setTimeout>;
+        
+        const abortHandler = () => {
+            clearTimeout(timeoutId);
+            reject(signal!.reason || new Error("Request was cancelled."));
+        };
+        
+        if (signal) {
+            signal.addEventListener("abort", abortHandler);
+        }
+        
+        timeoutId = setTimeout(() => {
+            if (signal) {
+                signal.removeEventListener("abort", abortHandler);
+            }
+            resolve();
+        }, ms);
+    });
 }
 
 const OFFLINE_QUEUE_STORAGE_KEY = "offline-request-queue";
