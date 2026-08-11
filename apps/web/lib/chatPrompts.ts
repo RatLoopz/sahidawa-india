@@ -13,8 +13,9 @@ Follow this EXACT format (replace placeholders with actual data):
 **💊 [Medicine Name]** ([Manufacturer])
 * **Composition:** [Salt/Composition name]
 * **Price:** Rs.[Price]
-* **Common Use:** [Brief 1-sentence explanation of what this medicine is used for, e.g., "Fever, headache, and mild-to-moderate pain relief."]
 
+**🩺 What is it used for?**
+[Provide a clear, patient-friendly 2-3 sentence explanation of what this medicine is used for, how it helps the patient, and key symptoms it treats based on its composition.]
 ---
 
 ### 🌟 CHEAPEST GENERIC OPTION
