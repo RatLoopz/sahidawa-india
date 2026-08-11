@@ -16,6 +16,16 @@ export { API_BASE, getCsrfToken, refreshCsrfToken };
 const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000); // 60s TTL
 const verifyBrandCache = createSWRCache<VerifyResult>(300_000); // 5min TTL
 
+export class ApiHttpError extends Error {
+    readonly status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.name = "ApiHttpError";
+        this.status = status;
+    }
+}
+
 export async function fetchWithCsrf<T>(
     url: string,
     options: Omit<import("./apiWithRetry").FetchOptions, "headers"> & {
@@ -47,7 +57,7 @@ export async function fetchWithCsrf<T>(
             error?: { message?: string } | string;
         };
         const errorMessage = typeof body.error === "object" ? body.error.message : body.error;
-        throw new Error(errorMessage ?? "Server error occurred. Please retry.");
+        throw new ApiHttpError(errorMessage ?? "Server error occurred. Please retry.", res.status);
     }
 
     return res.json() as Promise<T>;
@@ -382,8 +392,9 @@ export async function verifyMedicine(
                 };
             }
             if (endpoint) {
-                throw new Error(
-                    "Stored ML verification endpoint returned an unsuccessful response"
+                throw new ApiHttpError(
+                    "Stored ML verification endpoint returned an unsuccessful response",
+                    mlRes.status
                 );
             }
         } catch (error) {

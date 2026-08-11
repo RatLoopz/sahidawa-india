@@ -1,7 +1,22 @@
-import { verifyMedicine } from "@/lib/api";
+import { verifyMedicine, ApiHttpError } from "@/lib/api";
 import { getSyncQueue, removeFromSyncQueue } from "@/lib/db/syncQueue";
 import { recordSyncScanHistory } from "@/lib/scanHistoryUtils";
 import { toast } from "sonner";
+
+function extractHttpStatus(error: unknown): number | undefined {
+    if (error instanceof ApiHttpError) {
+        return error.status;
+    }
+    if (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status?: unknown }).status === "number"
+    ) {
+        return (error as { status: number }).status;
+    }
+    return undefined;
+}
 
 export function isNetworkFailure(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
@@ -13,6 +28,32 @@ export function isNetworkFailure(error: unknown): boolean {
         message.includes("aborted") ||
         message.includes("timeout")
     );
+}
+
+export function isRetryableSyncFailure(error: unknown): boolean {
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && !navigator.onLine) {
+        return true;
+    }
+    if (isNetworkFailure(error)) {
+        return true;
+    }
+    const status = extractHttpStatus(error);
+    if (status !== undefined) {
+        if (status === 408 || status === 429 || (status >= 500 && status <= 599)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export function isKnownPermanentFailure(error: unknown): boolean {
+    const status = extractHttpStatus(error);
+    if (status !== undefined) {
+        if (status >= 400 && status < 500 && status !== 408 && status !== 429) {
+            return true;
+        }
+    }
+    return false;
 }
 
 export async function syncPendingScans(onSynced?: (count: number) => void): Promise<number> {
@@ -80,10 +121,15 @@ export async function syncPendingScans(onSynced?: (count: number) => void): Prom
                     );
                 }
             } catch (error) {
-                if (!navigator.onLine || isNetworkFailure(error)) {
+                if (isRetryableSyncFailure(error)) {
                     break;
                 }
-                await removeFromSyncQueue(item.id);
+                if (isKnownPermanentFailure(error)) {
+                    await removeFromSyncQueue(item.id);
+                    continue;
+                }
+                console.error(`[scanQueueSync] Unknown error syncing scan item ${item.id}:`, error);
+                break;
             }
         }
     } finally {

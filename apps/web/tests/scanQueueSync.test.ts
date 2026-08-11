@@ -40,9 +40,20 @@ jest.mock("sonner", () => ({
     },
 }));
 
-jest.mock("../lib/api", () => ({
-    verifyMedicine: jest.fn(),
-}));
+jest.mock("../lib/api", () => {
+    class ApiHttpError extends Error {
+        readonly status: number;
+        constructor(message: string, status: number) {
+            super(message);
+            this.name = "ApiHttpError";
+            this.status = status;
+        }
+    }
+    return {
+        verifyMedicine: jest.fn(),
+        ApiHttpError,
+    };
+});
 
 jest.mock("../lib/scanHistoryUtils", () => ({
     recordScanHistory: jest.fn(),
@@ -55,8 +66,13 @@ import {
     removeFromSyncQueue,
     clearSyncQueue,
 } from "../lib/db/syncQueue";
-import { syncPendingScans, isNetworkFailure } from "../lib/scanQueueSync";
-import { verifyMedicine } from "../lib/api";
+import {
+    syncPendingScans,
+    isNetworkFailure,
+    isRetryableSyncFailure,
+    isKnownPermanentFailure,
+} from "../lib/scanQueueSync";
+import { verifyMedicine, ApiHttpError } from "../lib/api";
 import { recordScanHistory, recordSyncScanHistory } from "../lib/scanHistoryUtils";
 
 describe("syncQueue", () => {
@@ -214,5 +230,107 @@ describe("scanQueueSync", () => {
         expect(second).toBe(0);
         expect(mockedVerify).toHaveBeenCalledTimes(1);
         expect(await getSyncQueue()).toHaveLength(0);
+    });
+
+    it("keeps queued item when verifyMedicine throws HTTP 500", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new ApiHttpError("Internal Server Error", 500));
+
+        await addToSyncQueue("BATCH-500", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(1);
+    });
+
+    it("keeps queued item when verifyMedicine throws HTTP 502", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new ApiHttpError("Bad Gateway", 502));
+
+        await addToSyncQueue("BATCH-502", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(1);
+    });
+
+    it("keeps queued item when verifyMedicine throws HTTP 503", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new ApiHttpError("Service Unavailable", 503));
+
+        await addToSyncQueue("BATCH-503", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(1);
+    });
+
+    it("keeps queued item when verifyMedicine throws HTTP 504", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new ApiHttpError("Gateway Timeout", 504));
+
+        await addToSyncQueue("BATCH-504", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(1);
+    });
+
+    it("keeps queued item when verifyMedicine throws network failure", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new Error("Failed to fetch"));
+
+        await addToSyncQueue("BATCH-NET", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(1);
+    });
+
+    it("removes scan from queue on successful verification", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockResolvedValue({
+            verified: true,
+            medicine: {
+                brand_name: "GenuineMed",
+                generic_name: "Gen",
+                manufacturer: "Maker",
+                batch_number: "BATCH-OK",
+                expiry_date: "2028-01-01",
+                cdsco_approval_status: "approved",
+                is_counterfeit_alert: false,
+            },
+        } as any);
+
+        await addToSyncQueue("BATCH-OK", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(1);
+        expect(await getSyncQueue()).toHaveLength(0);
+    });
+
+    it("removes scan from queue on known permanent failure (e.g. HTTP 400 Bad Request)", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new ApiHttpError("Bad Request", 400));
+
+        await addToSyncQueue("BATCH-400", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(0);
+    });
+
+    it("keeps queued item and logs error on unknown/unclassified error", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockRejectedValue(new Error("Unclassified error message"));
+        const spyError = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        await addToSyncQueue("BATCH-UNKNOWN", "en");
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(0);
+        expect(await getSyncQueue()).toHaveLength(1);
+        expect(spyError).toHaveBeenCalled();
+        spyError.mockRestore();
     });
 });
