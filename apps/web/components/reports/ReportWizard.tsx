@@ -455,6 +455,7 @@ function Step2({
 }) {
     const {
         setValue,
+        getValues,
         formState: { errors },
     } = useFormContext<FormValues>();
     const t = useTranslations("Report");
@@ -484,9 +485,11 @@ function Step2({
             { shouldValidate: true }
         );
 
+        const medicineId = getValues("medicineId");
+
         // Run AI analysis asynchronously in the background
         setBusy(true);
-        void analyzeMedicineImage(url)
+        void analyzeMedicineImage(url, medicineId)
             .then((analysis) => {
                 setImages((currentImages) =>
                     currentImages.map((img) => (img.cloudUrl === url ? { ...img, analysis } : img))
@@ -1053,7 +1056,7 @@ export default function ReportWizard() {
             {/* Semantic form wrapper — enables Enter-to-submit and screen reader identification */}
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
                 {/* Card */}
-                <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-col overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) font-sans shadow-xl dark:shadow-none">
+                <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) font-sans shadow-xl dark:shadow-none">
                     {/* ── Header band ── */}
                     <div className="relative overflow-hidden bg-slate-900 px-8 pt-8 pb-7">
                         {/* Decorative blur */}
@@ -1075,7 +1078,9 @@ export default function ReportWizard() {
                             )}
                         </div>
                         <h2 className="relative z-10 text-3xl leading-tight font-extrabold tracking-tight text-white">
-                            {done ? t("wizard.header.receivedTitle") : t(`wizard.steps.step${step}.title`)}
+                            {done
+                                ? t("wizard.header.receivedTitle")
+                                : t(`wizard.steps.step${step}.title`)}
                         </h2>
                         {!done && (
                             <p className="relative z-10 mt-2 text-base font-medium text-slate-400">
@@ -1085,7 +1090,7 @@ export default function ReportWizard() {
                     </div>
 
                     {/* ── Body ── */}
-                    <div className="flex-1 min-h-0 bg-(--color-surface-page) px-8 py-8">
+                    <div className="min-h-0 flex-1 bg-(--color-surface-page) px-8 py-8">
                         {done ? (
                             <Success
                                 onReset={handleReset}

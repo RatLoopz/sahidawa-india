@@ -45,4 +45,4 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/apps/etl:${{ github.workspace }}/apps/ml
         run: |
           cd apps/etl
-          python run_all.py
+          python run_all.py --backfill-ja-price
