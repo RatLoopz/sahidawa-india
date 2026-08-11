@@ -578,6 +578,8 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                 "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
             )
             .ilike("brand_name", `%${escapedBrand}%`)
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true })
             .limit(1)
             .maybeSingle();
 
@@ -597,6 +599,8 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                     "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
                 )
                 .ilike("generic_name", `%${escapedBrand}%`)
+                .order("created_at", { ascending: false })
+                .order("id", { ascending: true })
                 .limit(1)
                 .maybeSingle();
 
@@ -763,8 +767,8 @@ router.post(
                 part_type,
                 status,
             }));
-            await req.supabase!
-                .from("scan_submission_parts")
+            await req
+                .supabase!.from("scan_submission_parts")
                 .upsert(rows, { onConflict: "scan_id,part_type" });
 
             const result = { scanId: resolvedScanId, parts };
@@ -775,8 +779,8 @@ router.post(
                 });
             }
 
-            const { error: idemUpdateError } = await req.supabase!
-                .from("submission_idempotency")
+            const { error: idemUpdateError } = await req
+                .supabase!.from("submission_idempotency")
                 .update({ scan_id: resolvedScanId })
                 .eq("idempotency_key", idempotencyKey);
 
@@ -800,8 +804,8 @@ router.post(
 
             if (idempotencyKey) {
                 try {
-                    await req.supabase!
-                        .from("submission_idempotency")
+                    await req
+                        .supabase!.from("submission_idempotency")
                         .delete()
                         .eq("idempotency_key", idempotencyKey);
                 } catch {
