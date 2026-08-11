@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "توهان جي صحت، تصديق ٿيل ۽ محفوظ.",
         "subtitle": "ڀارت جو اوپن سورس شهري پليٽفارم، جيڪو دوائن جي اصليت جي فوري تصديق، محفوظ فارميسي ڳولڻ، ۽ اهم صحت وارن اطلاعن جي سهولت فراهم ڪري ٿو.",
         "scan_button": "دوا اسڪين ڪريو",
