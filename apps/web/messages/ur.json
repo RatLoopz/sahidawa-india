@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "آپ کی صحت، تصدیق شدہ اور محفوظ۔",
         "subtitle": "ہندوستان کا اوپن سورس شہری پلیٹ فارم — ادویات کی اصلیت کی فوری تصدیق کریں، محفوظ فارمیسیاں تلاش کریں، اور اہم صحت کے انتباہات حاصل کریں۔",
         "scan_button": "دوا اسکین کریں",

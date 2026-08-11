@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "ਤੁਹਾਡੀ ਸਿਹਤ, ਪ੍ਰਮਾਣਿਤ ਅਤੇ ਸੁਰੱਖਿਅਤ।",
         "subtitle": "ਭਾਰਤ ਦਾ ਓਪਨ-ਸੋਰਸ ਪਲੇਟਫਾਰਮ ਜੋ ਦਵਾਈ ਦੀ ਅਸਲੀਅਤ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੈ, ਸੁਰੱਖਿਅਤ ਫਾਰਮੇਸੀ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ ਅਤੇ ਮਹੱਤਵਪੂਰਨ ਸਿਹਤ ਚੇਤਾਵਨੀਆਂ ਦਿੰਦਾ ਹੈ।",
         "scan_button": "ਦਵਾਈ ਸਕੈਨ ਕਰੋ",

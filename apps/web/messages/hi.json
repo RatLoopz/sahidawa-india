@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "आपका स्वास्थ्य, सत्यापित और सुरक्षित।",
         "subtitle": "भारत का ओपन-सोर्स नागरिक मंच जो तुरंत दवा की प्रामाणिकता जाँचता है, सुरक्षित फार्मेसी खोजता है और ज़रूरी स्वास्थ्य अलर्ट देता है।",
         "scan_button": "दवा स्कैन करें",
