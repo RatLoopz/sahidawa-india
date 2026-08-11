@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import createNextIntlPlugin from "next-intl/plugin";
 import withPWAInit, { runtimeCaching as defaultRuntimeCaching } from "@ducanh2912/next-pwa";
 import { createWorkboxRuntimeCaching } from "./worker/workboxRuntimeCaching.mjs";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin();
 const workboxRuntimeCaching = createWorkboxRuntimeCaching(defaultRuntimeCaching);
@@ -147,4 +148,19 @@ const nextConfig = {
     },
 };
 
-export default withPWA(withNextIntl(nextConfig));
+export default withSentryConfig(
+    withPWA(withNextIntl(nextConfig)),
+    {
+        org: "sahidawa-organization",
+        project: "sahidawa-web",
+        silent: !process.env.CI,
+        widenClientFileUpload: true,
+        reactComponentAnnotation: {
+            enabled: true,
+        },
+        tunnelRoute: "/monitoring",
+        hideSourceMaps: true,
+        disableLogger: true,
+        automaticVercelMonitors: true,
+    }
+);
