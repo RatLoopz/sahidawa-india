@@ -96,7 +96,11 @@ export async function lookupDrugByBatch(
             query = query.eq("brand_name", identifier.brand_name);
         }
 
-        const { data, error } = await query.limit(1).maybeSingle();
+        const { data, error } = await query
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true })
+            .limit(1)
+            .maybeSingle();
 
         if (error) {
             dbError = error;

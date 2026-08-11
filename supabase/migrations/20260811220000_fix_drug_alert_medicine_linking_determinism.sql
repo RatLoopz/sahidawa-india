@@ -1,4 +1,7 @@
--- 1. Create a function to auto-link medicine_id for drug_alerts based on batch and brand/manufacturer
+-- Fix non-deterministic medicine linking for drug_alerts.
+-- Prioritizes exact matches on both manufacturer and brand_name over single field matches,
+-- and tie-breaks deterministically with created_at DESC, id ASC.
+
 CREATE OR REPLACE FUNCTION public.link_drug_alert_to_medicine()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -28,7 +31,7 @@ BEGIN
 END;
 $$;
 
--- 2. Attach the trigger to drug_alerts
+-- Re-attach trigger
 DROP TRIGGER IF EXISTS trg_drug_alerts_link_medicine ON public.drug_alerts;
 CREATE TRIGGER trg_drug_alerts_link_medicine
   BEFORE INSERT OR UPDATE
@@ -36,7 +39,7 @@ CREATE TRIGGER trg_drug_alerts_link_medicine
   FOR EACH ROW
   EXECUTE FUNCTION public.link_drug_alert_to_medicine();
 
--- 3. Backfill existing records that have NULL medicine_id
+-- Deterministic backfill update for existing unlinked alerts
 UPDATE public.drug_alerts da
 SET medicine_id = (
   SELECT m.id
@@ -57,4 +60,3 @@ SET medicine_id = (
   LIMIT 1
 )
 WHERE da.medicine_id IS NULL;
-

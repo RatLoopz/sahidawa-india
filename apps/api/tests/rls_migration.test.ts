@@ -129,5 +129,39 @@ describe("RPC Security Migration — REVOKE PUBLIC EXECUTE and search_path harde
         expect(newMigration).toContain(
             "GRANT EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) TO service_role;"
         );
+describe("Drug Alerts Migration — Deterministic Medicine Linking Trigger", () => {
+    const migrationPath = join(MIGRATIONS_DIR, "20260720000000_fix_drug_alerts_medicine_id.sql");
+    const sql = readFileSync(migrationPath, "utf8");
+
+    it("includes ORDER BY match scoring and tie-breaker in link_drug_alert_to_medicine trigger", () => {
+        expect(sql).toContain("CREATE OR REPLACE FUNCTION public.link_drug_alert_to_medicine()");
+        expect(sql).toContain("ORDER BY");
+        expect(sql).toContain(
+            "WHEN (NEW.manufacturer IS NOT NULL AND manufacturer = NEW.manufacturer)"
+        );
+        expect(sql).toContain(
+            "AND (NEW.reported_brand_name IS NOT NULL AND brand_name = NEW.reported_brand_name) THEN 0"
+        );
+        expect(sql).toContain("created_at DESC");
+        expect(sql).toContain("id ASC");
+    });
+
+    it("includes deterministic ORDER BY in backfill UPDATE query", () => {
+        expect(sql).toContain("UPDATE public.drug_alerts da");
+        expect(sql).toContain("SET medicine_id = (");
+        expect(sql).toContain("m.created_at DESC");
+        expect(sql).toContain("m.id ASC");
+    });
+
+    it("includes new migration file with deterministic trigger and backfill", () => {
+        const newMigrationSql = readFileSync(
+            join(MIGRATIONS_DIR, "20260811220000_fix_drug_alert_medicine_linking_determinism.sql"),
+            "utf8"
+        );
+        expect(newMigrationSql).toContain(
+            "CREATE OR REPLACE FUNCTION public.link_drug_alert_to_medicine()"
+        );
+        expect(newMigrationSql).toContain("created_at DESC");
+        expect(newMigrationSql).toContain("id ASC");
     });
 });

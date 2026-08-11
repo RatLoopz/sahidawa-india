@@ -480,9 +480,10 @@ export default function PharmacyMap({
 
             const isVerified = pharmacy.isVerified === true;
             const isGovt = pharmacy.type === "govt";
-            const markerColor = isVerified
-                ? "var(--color-brand-primary-hover)"
-                : "var(--color-brand-primary-hover)";
+            const markerColor =
+                isVerified || isGovt
+                    ? "var(--color-brand-primary-hover)"
+                    : "var(--color-brand-secondary)";
             const markerShadowColor =
                 isVerified || isGovt ? "rgba(5,150,105,0.25)" : "rgba(59,130,246,0.25)";
 
