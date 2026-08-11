@@ -81,6 +81,10 @@ CONFLICT_COLUMNS = {
         "manufacturer",
         "barcode_id",
     ),
+    "pharmacies": (
+        "name",
+        "address",
+    ),
 }
 
 ALLOWED_COLUMNS = {
@@ -110,6 +114,19 @@ ALLOWED_COLUMNS = {
         "source",
         "created_at",
         "updated_at",
+    },
+    "pharmacies": {
+        "name",
+        "address",
+        "district",
+        "state",
+        "phone_number",
+        "is_verified",
+        "status",
+        "is_active",
+        "lat",
+        "lng",
+        "source",
     },
     "etl_failed_rows": {
         "id",

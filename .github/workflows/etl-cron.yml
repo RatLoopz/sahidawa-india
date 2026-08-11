@@ -1,14 +1,27 @@
-name: Daily ETL Pipeline
+name: ETL Pipeline (Medicines + Stores)
 
 on:
   schedule:
-    # Runs at 02:00 UTC (7:30 AM IST) every day
+    # Medicine prices: daily at 02:00 UTC (7:30 AM IST)
     - cron: '0 2 * * *'
+    # Store locations: weekly on Sunday at 03:00 UTC
+    - cron: '0 3 * * 0'
   workflow_dispatch:
-    # Allows manual triggering from the GitHub Actions tab
+    inputs:
+      run_stores:
+        description: 'Also run Jan Aushadhi store ETL (imports real PMBJK locations)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+      store_state:
+        description: 'Specific state for store ETL (leave empty for all India)'
+        required: false
+        default: ''
 
 jobs:
-  run-etl:
+  run-medicine-etl:
+    name: 'Medicine ETL (daily)'
     runs-on: ubuntu-latest
 
     steps:
@@ -31,9 +44,51 @@ jobs:
         working-directory: apps/etl
         run: uv run playwright install --with-deps chromium
 
-      - name: Run ETL pipeline
+      - name: Run medicine ETL pipeline
         working-directory: apps/etl
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          SUPABASE_WEBHOOK_SECRET: ${{ secrets.SUPABASE_WEBHOOK_SECRET }}
         run: uv run python run_all.py --backfill-ja-price
+
+  run-stores-etl:
+    name: 'Jan Aushadhi Store ETL (weekly)'
+    runs-on: ubuntu-latest
+    # Run on: Sunday cron, or manual dispatch with run_stores=true
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_stores == 'true' ||
+      github.event.schedule == '0 3 * * 0'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install ETL dependencies
+        working-directory: apps/etl
+        run: uv sync
+
+      - name: Install Playwright browsers
+        working-directory: apps/etl
+        run: uv run playwright install --with-deps chromium
+
+      - name: Run Jan Aushadhi store ETL
+        working-directory: apps/etl
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.store_state }}" ]; then
+            uv run python run_stores.py --state "${{ github.event.inputs.store_state }}"
+          else
+            uv run python run_stores.py
+          fi
