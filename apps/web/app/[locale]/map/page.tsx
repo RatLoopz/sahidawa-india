@@ -621,19 +621,21 @@ export default function PharmacyMapPage() {
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
                 const verifiedLoadFailed = verifiedResult.status === "rejected";
-                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
-
-                if (livePharmacyLoadFailed && verifiedLoadFailed) {
-                    setFetchError("Live search temporarily offline. Showing cached offline data.");
-                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
-                    return;
-                }
+                // Only try cache when BOTH sources failed and we have nothing to show
+                const shouldTryCache =
+                    merged.length === 0 && livePharmacyLoadFailed && verifiedLoadFailed;
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
                 }
 
-                if (livePharmacyLoadFailed) {
+                if (livePharmacyLoadFailed && verifiedLoadFailed && merged.length === 0) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
+
+                if (livePharmacyLoadFailed && merged.length > 0) {
                     setFetchError(
                         "Live search temporarily offline. Showing verified partners only."
                     );
@@ -778,19 +780,21 @@ export default function PharmacyMapPage() {
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
                 const verifiedLoadFailed = verifiedResult.status === "rejected";
-                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
-
-                if (livePharmacyLoadFailed && verifiedLoadFailed) {
-                    setFetchError("Live search temporarily offline. Showing cached offline data.");
-                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
-                    return;
-                }
+                // Only try cache if BOTH sources failed AND we have nothing to show
+                const shouldTryCache =
+                    merged.length === 0 && livePharmacyLoadFailed && verifiedLoadFailed;
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
                 }
 
-                if (livePharmacyLoadFailed) {
+                if (livePharmacyLoadFailed && verifiedLoadFailed && merged.length === 0) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
+
+                if (livePharmacyLoadFailed && merged.length > 0) {
                     setFetchError(
                         "Live search temporarily offline. Showing verified partners only."
                     );
@@ -867,9 +871,8 @@ export default function PharmacyMapPage() {
             if (initialFetchDone.current) {
                 pendingBoundsRef.current = bounds;
 
-                // Accurately reflect loading state during debounce delay
+                // Auto-fetch immediately on map pan/zoom (debounced)
                 setIsLoading(true);
-                setShowSearchArea(false);
 
                 if (debounceTimerRef.current) {
                     clearTimeout(debounceTimerRef.current);
@@ -1079,7 +1082,7 @@ export default function PharmacyMapPage() {
                                         const loc = { lat: suggestion.lat, lng: suggestion.lng };
                                         setUserLocation(loc);
                                         fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
-                                        setSearchQuery("");
+                                        // Keep searchQuery so user sees what they searched
                                         setLocationSuggestions([]);
                                     } else {
                                         // Otherwise perform immediate geocoding
@@ -1104,7 +1107,7 @@ export default function PharmacyMapPage() {
                                                     };
                                                     setUserLocation(loc);
                                                     fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
-                                                    setSearchQuery("");
+                                                    // Keep searchQuery so user sees what they searched
                                                     setLocationSuggestions([]);
                                                 }
                                             }
@@ -1145,7 +1148,7 @@ export default function PharmacyMapPage() {
                                             };
                                             setUserLocation(loc);
                                             fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
-                                            setSearchQuery("");
+                                            // Keep searchQuery — user should see what area they searched
                                             setLocationSuggestions([]);
                                         }}
                                         className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-(--color-text-primary) hover:bg-(--color-surface-muted)"
