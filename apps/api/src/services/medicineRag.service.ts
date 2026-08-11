@@ -35,20 +35,30 @@ export const MEDICINE_RAG_DISCLAIMER =
  * self-medicate. Kept intentionally small and language-light; the voice flow
  * already runs richer multilingual emergency detection on the client.
  */
-const EMERGENCY_KEYWORDS = [
-    "chest pain",
-    "heart attack",
-    "stroke",
-    "unconscious",
-    "not breathing",
-    "difficulty breathing",
-    "shortness of breath",
-    "severe bleeding",
-    "suicide",
-    "seizure",
-    "paralysis",
-    "fainting",
-    "high fever",
+// Each keyword pairs a canonical label (returned in `matched`, so consumers keep
+// seeing readable words rather than stems) with a word-boundary regex. Stems are
+// used where common inflected forms would otherwise be missed — e.g. "suicidal"
+// did not match a plain "suicide" substring, and "can't breathe" did not match
+// any breathing phrase. The leading \b avoids matching a stem inside an unrelated
+// word (e.g. "keystroke" no longer trips "stroke").
+const EMERGENCY_KEYWORDS: { keyword: string; pattern: RegExp }[] = [
+    { keyword: "chest pain", pattern: /\bchest pain/ },
+    { keyword: "heart attack", pattern: /\bheart attack/ },
+    { keyword: "stroke", pattern: /\bstroke/ },
+    { keyword: "unconscious", pattern: /\bunconscious/ },
+    // "breath" stem covers "not breathing", "difficulty breathing", "shortness of
+    // breath", and "can't"/"cannot"/"cant breathe" (all start with "breath").
+    { keyword: "difficulty breathing", pattern: /\bbreath/ },
+    { keyword: "severe bleeding", pattern: /\bsevere bleeding/ },
+    // "suicid" stem → suicidal, suicide(s), suicided.
+    { keyword: "suicide", pattern: /\bsuicid/ },
+    // "seizur" stem → seizure(s).
+    { keyword: "seizure", pattern: /\bseizur/ },
+    // "paraly" stem → paralysis, paralyzed, paralyzing.
+    { keyword: "paralysis", pattern: /\bparaly/ },
+    // "faint" stem → faint, fainted, fainting, faints.
+    { keyword: "fainting", pattern: /\bfaint/ },
+    { keyword: "high fever", pattern: /\bhigh fever/ },
 ];
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -180,7 +190,9 @@ export function formatMedicineMatch(row: MedicineRow): MedicineMatch {
  */
 export function assessUrgency(text: string): UrgencyAssessment {
     const normalized = text.toLowerCase();
-    const matched = EMERGENCY_KEYWORDS.filter((keyword) => normalized.includes(keyword));
+    const matched = EMERGENCY_KEYWORDS.filter(({ pattern }) => pattern.test(normalized)).map(
+        ({ keyword }) => keyword
+    );
     return { emergency: matched.length > 0, matched };
 }
 

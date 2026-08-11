@@ -78,5 +78,5 @@ ml_model_dev_pipeline/data
 
 # Scratch / Temporary Dev Scripts
 scratch/
-reports/
+/reports/
 .lighthouseci

@@ -4,7 +4,8 @@ process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key"
 // null so the deterministic pg_trgm fallback is exercised instead of network.
 delete process.env.GEMINI_API_KEY;
 
-(globalThis as unknown as { WebSocket: any }).WebSocket = (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
+(globalThis as unknown as { WebSocket: any }).WebSocket =
+    (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
 
 jest.mock("../src/db/client", () => ({
     supabase: {
@@ -79,6 +80,27 @@ describe("medicineRag pure helpers", () => {
     it("flags urgent-care keywords", () => {
         expect(assessUrgency("I have severe chest pain").emergency).toBe(true);
         expect(assessUrgency("mild headache and runny nose").emergency).toBe(false);
+    });
+
+    it("flags inflected variants of emergency keywords via stem matching", () => {
+        // Each of these previously slipped past exact-substring matching.
+        expect(assessUrgency("I feel suicidal").emergency).toBe(true);
+        expect(assessUrgency("can't breathe").emergency).toBe(true);
+        expect(assessUrgency("she fainted").emergency).toBe(true);
+        expect(assessUrgency("having a seizure right now").emergency).toBe(true);
+        expect(assessUrgency("left arm is paralyzed").emergency).toBe(true);
+    });
+
+    it("still returns readable canonical keywords in matched, not stems", () => {
+        expect(assessUrgency("I feel suicidal").matched).toContain("suicide");
+        expect(assessUrgency("cannot breathe").matched).toContain("difficulty breathing");
+        expect(assessUrgency("left arm is paralyzed").matched).toContain("paralysis");
+    });
+
+    it("does not flag ordinary, non-urgent phrasing", () => {
+        expect(assessUrgency("mild headache and runny nose").emergency).toBe(false);
+        // "keystroke" must not trip the "stroke" keyword now that \b guards it.
+        expect(assessUrgency("I pressed the wrong keystroke").emergency).toBe(false);
     });
 
     it("returns null from embedQuery when no API key is configured", async () => {

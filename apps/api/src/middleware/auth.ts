@@ -292,13 +292,14 @@ async function authenticateRequest(
     const cacheContext = required ? "requireAuth" : "optionalAuth";
 
     if (!token) {
+        req.supabase = typeof getAuthSupabase === "function" ? getAuthSupabase(null) : supabase;
         if (required) {
             return rejectUnauthorized(res, "Unauthorized: Missing access token");
         }
         return true;
     }
 
-    req.supabase = getAuthSupabase(token);
+    req.supabase = typeof getAuthSupabase === "function" ? getAuthSupabase(token) : supabase;
 
     if (dbConfig?.isSupabaseOffline) {
         return handleOfflineAuth(req, res, required);

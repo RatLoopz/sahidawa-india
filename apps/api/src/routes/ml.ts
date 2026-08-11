@@ -15,6 +15,7 @@ const router = Router();
 
 const analyzeRequestSchema = z.object({
     imageUrl: z.string().url().startsWith("https://", "imageUrl must be an HTTPS URL"),
+    medicineId: z.string().min(1).max(100).optional(),
 });
 
 const analyzeResponseSchema = z.object({
@@ -50,7 +51,11 @@ function isAllowedAnalyzeImageUrl(urlStr: string): boolean {
 
         const pathSegments = parsed.pathname.split("/").filter(Boolean);
         // Expected: /{cloud_name}/image/upload/...
-        if (pathSegments.length < 3 || pathSegments[1] !== "image" || pathSegments[2] !== "upload") {
+        if (
+            pathSegments.length < 3 ||
+            pathSegments[1] !== "image" ||
+            pathSegments[2] !== "upload"
+        ) {
             return false;
         }
         return true;
@@ -112,10 +117,15 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
     const timeout = setTimeout(() => controller.abort(), ML_ANALYSIS_TIMEOUT_MS);
 
     try {
+        const payload = {
+            imageUrl: parsed.data.imageUrl,
+            medicineId: parsed.data.medicineId || "dolo-650",
+        };
+
         const mlResponse = await fetch(`${mlServiceUrl}/analyze`, {
             method: "POST",
             headers: { "Content-Type": "application/json", ...getMlAuthHeaders() },
-            body: JSON.stringify(parsed.data),
+            body: JSON.stringify(payload),
             signal: controller.signal,
         });
 

@@ -96,11 +96,12 @@ export type MedicineImageAnalysis = {
 
 export async function analyzeMedicineImage(
     imageUrl: string,
+    medicineId?: string,
     signal?: AbortSignal
 ): Promise<MedicineImageAnalysis> {
     return fetchWithCsrf<MedicineImageAnalysis>(`${API_BASE}/api/ml/analyze`, {
         method: "POST",
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageUrl, medicineId }),
         timeout: 10000,
         signal,
     });

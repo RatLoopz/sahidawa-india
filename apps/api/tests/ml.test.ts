@@ -60,9 +60,13 @@ describe("ml routes", () => {
         assert.equal(response.status, 400);
     });
 
-    it("proxies valid Cloudinary URLs to the ML service", async () => {
-        global.fetch = async () =>
-            new globalThis.Response(
+    it("proxies valid Cloudinary URLs to the ML service and falls back to dolo-650 when medicineId is omitted", async () => {
+        let requestBody: any = null;
+        global.fetch = async (url, options) => {
+            if (options && options.body) {
+                requestBody = JSON.parse(options.body as string);
+            }
+            return new globalThis.Response(
                 JSON.stringify({
                     isFake: false,
                     confidence: 0.81,
@@ -71,6 +75,7 @@ describe("ml routes", () => {
                 }),
                 { status: 200, headers: { "Content-Type": "application/json" } }
             );
+        };
 
         const response = await request(buildApp())
             .post("/api/ml/analyze")
@@ -80,6 +85,34 @@ describe("ml routes", () => {
         assert.equal(response.status, 200);
         assert.equal(response.body.verdict, "likely_genuine");
         assert.equal(response.body.isFake, false);
+        assert.equal(requestBody.medicineId, "dolo-650");
+    });
+
+    it("proxies valid Cloudinary URLs to the ML service and forwards medicineId when provided", async () => {
+        let requestBody: any = null;
+        global.fetch = async (url, options) => {
+            if (options && options.body) {
+                requestBody = JSON.parse(options.body as string);
+            }
+            return new globalThis.Response(
+                JSON.stringify({
+                    isFake: false,
+                    confidence: 0.81,
+                    verdict: "likely_genuine",
+                    details: "Packaging photo passed the preliminary visual quality scan.",
+                }),
+                { status: 200, headers: { "Content-Type": "application/json" } }
+            );
+        };
+
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: VALID_CLOUDINARY_URL, medicineId: "crocin-500" });
+
+        assert.equal(response.status, 200);
+        assert.equal(response.body.verdict, "likely_genuine");
+        assert.equal(requestBody.medicineId, "crocin-500");
     });
 
     it("returns a configuration error when ML_SERVICE_URL is missing", async () => {
@@ -216,10 +249,7 @@ describe("ml routes", () => {
             .send({ imageUrl: "https://public-host.example.test/photo.jpg" });
 
         assert.equal(response.status, 400);
-        assert.match(
-            JSON.stringify(response.body.details),
-            /Cloudinary HTTPS image delivery URL/
-        );
+        assert.match(JSON.stringify(response.body.details), /Cloudinary HTTPS image delivery URL/);
     });
 
     it("rejects Cloudinary URLs with query strings", async () => {
