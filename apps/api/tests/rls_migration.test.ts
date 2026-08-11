@@ -82,3 +82,52 @@ describe("RLS Migration — tracked_medicines guest policy", () => {
         expect(sql).toContain("WITH CHECK (");
     });
 });
+
+describe("RPC Security Migration — REVOKE PUBLIC EXECUTE and search_path hardening", () => {
+    it("revokes execute on get_scan_counts from public and sets search_path in migration", () => {
+        const scanCountsMigration = readFileSync(
+            join(MIGRATIONS_DIR, "20260629000000_add_scan_history_idx_and_rpc.sql"),
+            "utf8"
+        );
+        expect(scanCountsMigration).toContain("SET search_path = public, pg_temp");
+        expect(scanCountsMigration).toContain(
+            "REVOKE EXECUTE ON FUNCTION public.get_scan_counts(text) FROM PUBLIC;"
+        );
+        expect(scanCountsMigration).toContain(
+            "GRANT EXECUTE ON FUNCTION public.get_scan_counts(text) TO service_role;"
+        );
+    });
+
+    it("revokes execute on get_failed_pg_cron_jobs from public and sets search_path in migration", () => {
+        const cronMonitorMigration = readFileSync(
+            join(MIGRATIONS_DIR, "20260711000000_create_pg_cron_monitor_rpc.sql"),
+            "utf8"
+        );
+        expect(cronMonitorMigration).toContain("SET search_path = public, pg_temp");
+        expect(cronMonitorMigration).toContain(
+            "REVOKE EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) FROM PUBLIC;"
+        );
+        expect(cronMonitorMigration).toContain(
+            "GRANT EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) TO service_role;"
+        );
+    });
+
+    it("includes latest migration revoking public execution for both RPCs", () => {
+        const newMigration = readFileSync(
+            join(MIGRATIONS_DIR, "20260811210000_revoke_anon_rpc_permissions.sql"),
+            "utf8"
+        );
+        expect(newMigration).toContain(
+            "REVOKE EXECUTE ON FUNCTION public.get_scan_counts(text) FROM PUBLIC;"
+        );
+        expect(newMigration).toContain(
+            "GRANT EXECUTE ON FUNCTION public.get_scan_counts(text) TO service_role;"
+        );
+        expect(newMigration).toContain(
+            "REVOKE EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) FROM PUBLIC;"
+        );
+        expect(newMigration).toContain(
+            "GRANT EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) TO service_role;"
+        );
+    });
+});
