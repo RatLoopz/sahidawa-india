@@ -124,9 +124,7 @@ ALLOWED_COLUMNS = {
         "is_verified",
         "status",
         "is_active",
-        "lat",
-        "lng",
-        "source",
+        "location",
     },
     "etl_failed_rows": {
         "id",
@@ -418,10 +416,16 @@ class SupabaseLoader:
             )
             for payload in payloads
         ]
-        self.client.table(table).upsert(
-            payloads,
-            on_conflict=",".join(conflict_columns) if conflict_columns else None,
-        ).execute()
+        if table == "pharmacies":
+            # Since the remote DB doesn't have a unique constraint on (name, address),
+            # we cannot use upsert(..., on_conflict). We perform an insert instead.
+            # Duplicates are already filtered out by _filter_unchanged_records.
+            self.client.table(table).insert(payloads).execute()
+        else:
+            self.client.table(table).upsert(
+                payloads,
+                on_conflict=",".join(conflict_columns) if conflict_columns else None,
+            ).execute()
 
     def _omit_null_updates(self, payload: dict, existing: dict | None) -> dict:
         if not existing:

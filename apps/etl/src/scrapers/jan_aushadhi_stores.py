@@ -203,6 +203,9 @@ class JanAushadhiStoreScraper:
         if df.empty:
             return df
 
+        # Create location WKT string for PostGIS ingestion via Supabase API
+        df["location"] = df.apply(lambda r: f"POINT({r['lng']} {r['lat']})", axis=1)
+
         # Map to pharmacies table schema
         result = pd.DataFrame({
             "name": (df.get("kendra_code", "") + " - " + df.get("name", "Jan Aushadhi Kendra").fillna("")).str.strip(" -"),
@@ -215,9 +218,7 @@ class JanAushadhiStoreScraper:
             "is_verified": True,
             "status": "approved",
             "is_active": True,
-            "lat": df["lat"].astype(float),
-            "lng": df["lng"].astype(float),
-            "source": "janaushadhi_scraper",
+            "location": df["location"],
         })
 
         # Apply state filtering if --state was provided
