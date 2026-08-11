@@ -620,7 +620,14 @@ export default function PharmacyMapPage() {
                 const dedupedOsm = deduplicateOsm(verified, osm);
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const verifiedLoadFailed = verifiedResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (livePharmacyLoadFailed && verifiedLoadFailed) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
@@ -770,7 +777,14 @@ export default function PharmacyMapPage() {
                 const dedupedOsm = deduplicateOsm(verified, osm);
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const verifiedLoadFailed = verifiedResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (livePharmacyLoadFailed && verifiedLoadFailed) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
