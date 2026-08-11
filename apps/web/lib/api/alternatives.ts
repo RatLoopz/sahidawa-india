@@ -25,6 +25,7 @@ export interface GenericAlternative {
     savings_percentage: number;
     alternative_name: string;
     nearest_store: NearestStore | null;
+    usage?: string;
 }
 
 export interface SchemeEligibilityPayload {

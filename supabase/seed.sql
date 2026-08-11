@@ -8,7 +8,12 @@ VALUES
   ('11111111-1111-1111-1111-111111111111', 'Pradhan Mantri Bhartiya Jan Aushadhi Kendra - Delhi', 'Connaught Place, New Delhi', 'New Delhi', 'Delhi', '9876543210', true, ST_SetSRID(ST_MakePoint(77.2177, 28.6304), 4326)),
   ('22222222-2222-2222-2222-222222222222', 'Jan Aushadhi Kendra - Mumbai', 'Andheri West, Mumbai', 'Mumbai Suburban', 'Maharashtra', '9876543211', true, ST_SetSRID(ST_MakePoint(72.8277, 19.1363), 4326)),
   ('33333333-3333-3333-3333-333333333333', 'Jan Aushadhi Kendra - Bangalore', 'Indiranagar, Bangalore', 'Bengaluru Urban', 'Karnataka', '9876543212', true, ST_SetSRID(ST_MakePoint(77.6408, 12.9784), 4326)),
-  ('44444444-4444-4444-4444-444444444444','Jan Aushadhi Kendra - Nagpur','Dharampeth, Nagpur','Nagpur','Maharashtra','9876543213',false,ST_SetSRID(ST_MakePoint(79.0882, 21.1458), 4326))
+  ('44444444-4444-4444-4444-444444444444','Jan Aushadhi Kendra - Nagpur','Dharampeth, Nagpur','Nagpur','Maharashtra','9876543213',false,ST_SetSRID(ST_MakePoint(79.0882, 21.1458), 4326)),
+  ('55555555-5555-5555-5555-555555555555', 'PMBJK00173', 'Girijananda Choudhary Institute Of Pharmaceutical Science, Azara, Guwahati-781001', 'Kamrup', 'Assam', '9854046526', true, ST_SetSRID(ST_MakePoint(91.6080622, 26.1157909), 4326)),
+  ('66666666-6666-6666-6666-666666666666', 'PMBJK00174', 'Kotahbari Road, Gorchuk, Guwahati-781001', 'Kamrup', 'Assam', '8638040602', true, ST_SetSRID(ST_MakePoint(91.7080622, 26.1257909), 4326)),
+  ('77777777-7777-7777-7777-777777777777', 'PMBJK00175', 'Netes Institute Of Pharmaceutical Science, Mirza, Kamrup, Guwahati, Assam 781125', 'Kamrup', 'Assam', '9577562881', true, ST_SetSRID(ST_MakePoint(91.5080622, 26.0757909), 4326)),
+  ('88888888-8888-8888-8888-888888888888', 'PMBJK00176', 'Saloi Market, 1St Floor, Opp. Ubi Chhaygaon Branch, Kamrup, Assam-781124', 'Kamrup', 'Assam', '8399942081', true, ST_SetSRID(ST_MakePoint(91.4080622, 26.0257909), 4326)),
+  ('99999999-9999-9999-9999-999999999999', 'PMBJK00177', 'Amingaon (Madhyam) Near S. B. I, Guwahati-31, Kamrup, Assam- 781031', 'Kamrup', 'Assam', '9864022600', true, ST_SetSRID(ST_MakePoint(91.6880622, 26.2057909), 4326))
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Insert Dummy Medicines
