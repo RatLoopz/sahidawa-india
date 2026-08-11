@@ -67,7 +67,7 @@ async function fetchOverpassPharmacies(
     lat: number,
     lng: number,
     radiusMeters = 15000
-): Promise<any[]> {
+): Promise<any[] | null> {
     const query = `
     [out:json][timeout:15];
     (
@@ -102,7 +102,12 @@ async function fetchOverpassPharmacies(
             clearTimeout(timeoutId);
             if (!response.ok) throw new Error("status " + response.status);
             const data = await response.json();
-            if (data && Array.isArray(data.elements)) return data.elements;
+            if (data && Array.isArray(data.elements)) {
+                if (data.elements.length === 0) {
+                    throw new Error(`Mirror ${mirror} returned 0 elements`);
+                }
+                return data.elements;
+            }
             throw new Error("invalid data");
         } catch (err) {
             clearTimeout(timeoutId);
@@ -112,9 +117,15 @@ async function fetchOverpassPharmacies(
 
     try {
         return await Promise.any(fetchPromises);
-    } catch {
-        console.warn("[chat] All Overpass mirrors failed");
-        return [];
+    } catch (aggregateError: any) {
+        console.warn("[chat] All Overpass mirrors failed or returned 0 elements");
+        const zeroElementErrors = (aggregateError.errors || []).filter(
+            (err: any) => err.message && err.message.includes("returned 0 elements")
+        );
+        if (zeroElementErrors.length > 0) {
+            return [];
+        }
+        return null;
     }
 }
 
@@ -559,7 +570,25 @@ export async function POST(req: Request) {
                 isGov: true,
             }));
 
-            const formattedOverpass = osmElements.map((el: any) => {
+            if (osmElements === null && formattedDb.length === 0) {
+                const responseText = `[INFO] Live search is temporarily offline. Please try again later or search for a medicine name.`;
+                const encoder = new TextEncoder();
+                const stream = new ReadableStream<Uint8Array>({
+                    start(controller) {
+                        controller.enqueue(encoder.encode(responseText));
+                        controller.close();
+                    },
+                });
+                return new Response(stream, {
+                    headers: {
+                        "Content-Type": "text/plain; charset=utf-8",
+                        "Cache-Control": "no-cache, no-transform",
+                        "X-Session-ID": session_id ?? "",
+                    },
+                });
+            }
+
+            const formattedOverpass = (osmElements || []).map((el: any) => {
                 const tags = el.tags || {};
                 const name =
                     tags.name || tags["name:en"] || tags["name:hi"] || tags.brand || "Pharmacy";
@@ -1001,7 +1030,7 @@ export async function POST(req: Request) {
                                 isGov: true,
                             }));
 
-                            const formattedOverpass = osmElements.map((el: any) => {
+                            const formattedOverpass = (osmElements || []).map((el: any) => {
                                 const tags = el.tags || {};
                                 const name =
                                     tags.name ||
