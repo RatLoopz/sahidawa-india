@@ -8,6 +8,15 @@ import { redisClient } from "../utils/redis";
 
 const router = Router();
 
+function cleanGenericName(name: string | null | undefined): string {
+    if (!name) return "";
+    return name
+        .replace(/\s*\(\s*\/\s*\)\s*/g, "") // removes " (/)"
+        .replace(/\s*\(\s*\)\s*/g, "") // removes " ()"
+        .replace(/\s*\(\s*NA\s*\)\s*/g, "") // removes " (NA)"
+        .trim();
+}
+
 /**
  * @openapi
  * /api/v1/alternatives/{medicine_id}:
@@ -182,6 +191,54 @@ router.get(
                 alternative = data;
             }
 
+            // Fallback: If generic_alternatives table is missing or empty, construct from medicines table directly
+            if (!alternative && medicine) {
+                const cleanedGenName = cleanGenericName(medicine.generic_name);
+
+                // Try to find a matching generic medicine from Jan Aushadhi
+                const { data: genericMed } = await supabase
+                    .from("medicines")
+                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price")
+                    .ilike("generic_name", `%${cleanedGenName}%`)
+                    .ilike("manufacturer", "%Jan Aushadhi%")
+                    .limit(1)
+                    .maybeSingle();
+
+                if (genericMed) {
+                    alternative = {
+                        brand_name: medicine.brand_name,
+                        generic_name: medicine.generic_name,
+                        brand_price: medicine.mrp,
+                        jan_aushadhi_price: genericMed.mrp || medicine.jan_aushadhi_price || 15.0,
+                        savings_percentage: medicine.mrp
+                            ? Math.round(
+                                  ((medicine.mrp -
+                                      (genericMed.mrp || medicine.jan_aushadhi_price || 15.0)) /
+                                      medicine.mrp) *
+                                      100
+                              )
+                            : 0,
+                        generic_name_display:
+                            genericMed.brand_name || `${medicine.generic_name} (Generic)`,
+                    };
+                } else if (medicine.jan_aushadhi_price) {
+                    // Create synthetic alternative using the prices stored directly on the commercial medicine row
+                    alternative = {
+                        brand_name: medicine.brand_name,
+                        generic_name: medicine.generic_name,
+                        brand_price: medicine.mrp,
+                        jan_aushadhi_price: medicine.jan_aushadhi_price,
+                        savings_percentage: medicine.mrp
+                            ? Math.round(
+                                  ((medicine.mrp - medicine.jan_aushadhi_price) / medicine.mrp) *
+                                      100
+                              )
+                            : 0,
+                        generic_name_display: `${medicine.generic_name} (Generic)`,
+                    };
+                }
+            }
+
             if (!alternative) {
                 res.status(404).json({
                     error: "No generic alternative found for this medicine",
@@ -228,16 +285,19 @@ router.get(
 
             const responseData = {
                 brand_name: alternative.brand_name || medicine?.brand_name || medicine_id,
-                generic_name: alternative.generic_name || medicine?.generic_name,
+                generic_name: cleanGenericName(alternative.generic_name || medicine?.generic_name),
                 brand_price: brandPrice,
                 jan_aushadhi_price: jaPrice,
                 savings_percentage: savingsPct,
-                alternative_name:
-                    alternative.generic_name_display ||
-                    alternative.generic_name ||
-                    (medicine?.generic_name
-                        ? `${medicine.generic_name} (Generic)`
-                        : "Atorvastatin 10mg (Generic)"),
+                alternative_name: alternative.generic_name_display
+                    ? alternative.generic_name_display.includes(" (Generic)")
+                        ? `${cleanGenericName(alternative.generic_name_display.replace(" (Generic)", ""))} (Generic)`
+                        : cleanGenericName(alternative.generic_name_display)
+                    : alternative.generic_name
+                      ? `${cleanGenericName(alternative.generic_name)} (Generic)`
+                      : medicine?.generic_name
+                        ? `${cleanGenericName(medicine.generic_name)} (Generic)`
+                        : "Atorvastatin 10mg (Generic)",
                 nearest_store: nearestStore,
                 usage:
                     medicine?.composition ||

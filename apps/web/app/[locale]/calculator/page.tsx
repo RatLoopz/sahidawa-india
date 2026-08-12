@@ -22,6 +22,15 @@ function formatINR(value: number): string {
     return INR_FORMATTER.format(value);
 }
 
+function cleanGenericName(name: string | null | undefined): string {
+    if (!name) return "";
+    return name
+        .replace(/\s*\(\s*\/\s*\)\s*/g, "") // removes " (/)"
+        .replace(/\s*\(\s*\)\s*/g, "") // removes " ()"
+        .replace(/\s*\(\s*NA\s*\)\s*/g, "") // removes " (NA)"
+        .trim();
+}
+
 async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
     if (q.length < 2) return [];
@@ -135,7 +144,7 @@ function CalculatorPageContent() {
                 const { data: genericAlts } = await supabase
                     .from("medicines")
                     .select("id, brand_name, generic_name, manufacturer, mrp")
-                    .eq("generic_name", medicine.generic_name)
+                    .ilike("generic_name", `%${cleanGenericName(medicine.generic_name)}%`)
                     .neq("id", medicine.id)
                     .not("manufacturer", "ilike", "Jan Aushadhi")
                     .not("brand_name", "ilike", "%generic%")
@@ -145,14 +154,15 @@ function CalculatorPageContent() {
 
                 if (genericAlts && genericAlts.length > 0) {
                     setGenericAlternative({
-                        brand_name: genericAlts[0].brand_name || medicine.generic_name,
+                        brand_name:
+                            genericAlts[0].brand_name || cleanGenericName(medicine.generic_name),
                         manufacturer: genericAlts[0].manufacturer || "Alternative Manufacturer",
                         mrp: Number(genericAlts[0].mrp),
                         isEstimated: false,
                     });
                 } else {
                     setGenericAlternative({
-                        brand_name: `${medicine.generic_name} (Commercial)`,
+                        brand_name: `${cleanGenericName(medicine.generic_name)} (Commercial)`,
                         manufacturer: "Commercial Generic",
                         mrp: Number((medicine.mrp || 120.0) * 0.6),
                         isEstimated: true,
@@ -202,7 +212,7 @@ function CalculatorPageContent() {
                 const med: Medicine = {
                     id: data.id,
                     brand_name: data.brand_name || "",
-                    generic_name: data.generic_name || "",
+                    generic_name: cleanGenericName(data.generic_name),
                     manufacturer: data.manufacturer || "",
                     mrp: data.mrp ? Number(data.mrp) : 0,
                     jan_aushadhi_price: data.jan_aushadhi_price

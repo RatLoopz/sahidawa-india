@@ -23,9 +23,18 @@ type Props = {
     placeholder?: string;
 };
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+function cleanGenericName(name: string | null | undefined): string {
+    if (!name) return "";
+    return name
+        .replace(/\s*\(\s*\/\s*\)\s*/g, "") // removes " (/)"
+        .replace(/\s*\(\s*\)\s*/g, "") // removes " ()"
+        .replace(/\s*\(\s*NA\s*\)\s*/g, "") // removes " (NA)"
+        .trim();
+}
+
 function labelFor(m: Medicine): string {
-    return m.brand_name?.trim() ? `${m.brand_name} · ${m.generic_name}` : m.generic_name;
+    const cleanGen = cleanGenericName(m.generic_name);
+    return m.brand_name?.trim() ? `${m.brand_name} · ${cleanGen}` : cleanGen;
 }
 
 function loadHistory(): HistoryEntry[] {
