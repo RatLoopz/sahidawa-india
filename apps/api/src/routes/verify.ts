@@ -306,11 +306,11 @@ router.post(
             // Always overlay the live safety-critical fields so a stale cache entry
             // can never serve an outdated "safe" verdict after the CDSCO/database
             // record has been updated (e.g. newly flagged recall or counterfeit alert).
-            await refreshLiveSafety(req.supabase!, data);
+            await refreshLiveSafety(supabase, data);
 
             // Look up batch recall status from batches table
-            const { data: batchData } = await req
-                .supabase!.from("batches")
+            const { data: batchData } = await supabase
+                .from("batches")
                 .select("recall_status")
                 .eq("batch_number", batchNumber)
                 .maybeSingle();

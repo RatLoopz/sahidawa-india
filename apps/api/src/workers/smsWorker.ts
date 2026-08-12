@@ -91,7 +91,7 @@ export function startSmsWorker(): { stop: () => Promise<void> } {
 
     worker.on("failed", (failedJob, error) => {
         logger.error(
-            `SMS Worker job failed for ${failedJob.id}: ${error?.message ?? error}`
+            `SMS Worker job failed for ${failedJob?.id ?? "unknown"}: ${error?.message ?? error}`
         );
     });
 
