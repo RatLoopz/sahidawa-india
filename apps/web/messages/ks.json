@@ -207,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "نَتیجہِ شیئر کَریو",
+            "whatsapp_button": "WhatsApp شیئر کَریو",
             "title": "صحیح دَوا تصدیق نَتیجہِ",
             "real_status": "تصدیق شُدہ اَصلی",
             "suspicious_status": "شَک دار مَشہُور",

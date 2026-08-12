@@ -263,6 +263,7 @@
         "uploadPhoto": "Upload Photo",
         "share": {
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "title": "SahiDawa Medicine Verification Result",
             "real_status": "Verified REAL",
             "suspicious_status": "Marked SUSPICIOUS",
