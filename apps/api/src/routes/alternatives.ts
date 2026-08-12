@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { barcodeLimiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
@@ -15,6 +16,51 @@ function cleanGenericName(name: string | null | undefined): string {
         .replace(/\s*\(\s*\)\s*/g, "") // removes " ()"
         .replace(/\s*\(\s*NA\s*\)\s*/g, "") // removes " (NA)"
         .trim();
+}
+
+async function generateAlternativeWithAI(
+    brandName: string,
+    genericName: string,
+    mrp: number
+): Promise<any> {
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) return null;
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        const prompt = `You are a clinical pharmacist assistant for SahiDawa.
+Given the medicine:
+Brand Name: "${brandName}"
+Generic Name: "${genericName}"
+Brand Price (MRP): ${mrp || 120}
+
+Please find or infer the most suitable Jan Aushadhi generic alternative medicine details.
+Provide a JSON object response with the following exact keys:
+{
+  "brand_name": "${brandName}",
+  "generic_name": "clean generic composition name (e.g. 'Paracetamol')",
+  "brand_price": ${mrp || 120},
+  "jan_aushadhi_price": estimated Jan Aushadhi price in INR (number, e.g. 15.0),
+  "savings_percentage": percentage savings as integer (number, e.g. 50),
+  "generic_name_display": "display name of Jan Aushadhi alternative (e.g. 'Paracetamol 650mg (Generic)')",
+  "usage": "1-2 sentence description of primary usage and how it works"
+}
+
+Output ONLY valid JSON. No markdown formatting blocks or fences.`;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text().trim();
+        const jsonStr = text
+            .replace(/^```json\s*/i, "")
+            .replace(/```$/, "")
+            .trim();
+        return JSON.parse(jsonStr);
+    } catch (err) {
+        logger.error("AI alternatives generation failed", { error: err });
+        return null;
+    }
 }
 
 /**
@@ -237,6 +283,42 @@ router.get(
                             : 0,
                         generic_name_display: `${medicine.generic_name} (Generic)`,
                     };
+                }
+            }
+
+            if (!alternative) {
+                const searchBrand = medicine?.brand_name || medicine_id;
+                const searchGeneric = medicine?.generic_name || "";
+                const searchMrp = medicine?.mrp || 0;
+
+                logger.info(
+                    `Alternatives DB lookup failed. Attempting AI generation for "${searchBrand}"`
+                );
+                const aiAlt = await generateAlternativeWithAI(
+                    searchBrand,
+                    searchGeneric,
+                    searchMrp
+                );
+                if (aiAlt) {
+                    alternative = {
+                        brand_name: aiAlt.brand_name,
+                        generic_name: aiAlt.generic_name,
+                        brand_price: aiAlt.brand_price,
+                        jan_aushadhi_price: aiAlt.jan_aushadhi_price,
+                        savings_percentage: aiAlt.savings_percentage,
+                        generic_name_display: aiAlt.generic_name_display,
+                    };
+                    if (medicine) {
+                        medicine.composition = aiAlt.usage;
+                    } else {
+                        medicine = {
+                            id: "ai-generated",
+                            brand_name: searchBrand,
+                            generic_name: searchGeneric,
+                            mrp: searchMrp,
+                            composition: aiAlt.usage,
+                        } as any;
+                    }
                 }
             }
 
