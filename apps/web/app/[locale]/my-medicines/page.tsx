@@ -383,7 +383,6 @@ export default function MyMedicinesPage() {
                     medicineName={selectedMedicine.medicine_name}
                 />
             )}
-            await sleep(delay, options.signal);
         </div>
     );
 }
