@@ -2,6 +2,7 @@ import logger from "../utils/logger";
 import { startAlertBroadcaster } from "../cron/alert-broadcaster";
 import { startTempCleanupJob } from "../cron/tempCleanup";
 import { initExpiryCron } from "../cron/expiry-check";
+import { initDosageReminderCron } from "../cron/dosage-reminder";
 import { initDistrictAlertSyncCron } from "../cron/districtAlertSync";
 import { startPgCronMonitor } from "../cron/pgCronMonitor";
 import { startSmsWorker } from "../workers/smsWorker";
@@ -22,6 +23,7 @@ class JobScheduler {
         this.jobs.push(startAlertBroadcaster());
         this.jobs.push(startTempCleanupJob());
         this.jobs.push(initExpiryCron());
+        this.jobs.push(initDosageReminderCron());
         this.jobs.push(initDistrictAlertSyncCron());
         this.jobs.push(startPgCronMonitor());
         this.jobs.push(startSmsWorker());
