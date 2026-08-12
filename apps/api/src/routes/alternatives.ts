@@ -48,7 +48,7 @@ async function generateAlternativeWithGemini(
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-3.5-flash",
         generationConfig: {
             responseMimeType: "application/json",
         },
@@ -57,7 +57,11 @@ async function generateAlternativeWithGemini(
 
     const userPrompt = `Brand Name: "${brandName}"\nGeneric Name: "${genericName}"\nBrand Price (MRP): ${mrp || 120}`;
     const result = await model.generateContent(userPrompt);
-    const text = result.response.text().trim();
+    let text = result.response.text().trim();
+    text = text
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
     return JSON.parse(text);
 }
 
@@ -83,7 +87,11 @@ async function generateAlternativeWithGroq(
         max_tokens: 1024,
     });
 
-    const text = completion.choices[0]?.message?.content ?? "";
+    let text = completion.choices[0]?.message?.content ?? "";
+    text = text
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
     return JSON.parse(text);
 }
 
@@ -105,7 +113,7 @@ async function generateAlternativeWithAI(
 ): Promise<any> {
     // Try Gemini first
     try {
-        logger.info(`[AI Alternatives] Generating for "${brandName}" via Gemini 2.0 Flash`);
+        logger.info(`[AI Alternatives] Generating for "${brandName}" via Gemini 3.5 Flash`);
         const result = await generateAlternativeWithGemini(brandName, genericName, mrp);
         logger.info(`[AI Alternatives] Gemini succeeded for "${brandName}"`);
         return result;
