@@ -268,7 +268,7 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
         process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
     cookieOptions: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production",
         path: "/",
     },
@@ -304,7 +304,7 @@ app.get("/api/csrf-token", (req: Request, res: Response) => {
 
         res.cookie(ANON_SESSION_COOKIE, anonId, {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             secure: process.env.NODE_ENV === "production",
             path: "/",
         });
