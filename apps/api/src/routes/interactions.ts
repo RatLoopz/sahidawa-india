@@ -11,6 +11,7 @@ import zlib from "zlib";
 import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 import { promises as fs } from "fs";
 import path from "path";
+import { markOfflineOnConnectionError } from "../utils/withDbFallback";
 
 const router = Router();
 
@@ -342,6 +343,7 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
 router.get(
     "/",
     interactionIdsLimiter,
+    cacheMiddleware(120, 300),
     redisCache(60, (req) => `interactions:ids:${(req.query.ids as string) ?? ""}`),
     async (req: Request, res: Response) => {
         const parsedIds = parseIdsParam(req.query.ids);
@@ -384,7 +386,7 @@ router.get(
             const interactionByPair = indexInteractions(
                 await loadInteractionsForGenerics(selectedGenerics)
             );
-            const isFallback = dbConfig?.isSupabaseOffline ?? true;
+            const isFallback = dbConfig?.isSupabaseOffline ?? false;
             const interactions = [];
 
             for (let i = 0; i < medicines.length; i++) {
@@ -474,13 +476,7 @@ async function resolveMedicinesToGenerics(
 
                 if (error) {
                     dbFailed = true;
-                    if (
-                        error.message?.includes("fetch failed") ||
-                        error.message?.includes("refused") ||
-                        error.message?.includes("timeout")
-                    ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
-                    }
+                    markOfflineOnConnectionError(error);
                     break;
                 }
 
@@ -495,13 +491,7 @@ async function resolveMedicinesToGenerics(
 
                     if (error) {
                         dbFailed = true;
-                        if (
-                            error.message?.includes("fetch failed") ||
-                            error.message?.includes("refused") ||
-                            error.message?.includes("timeout")
-                        ) {
-                            if (dbConfig) dbConfig.isSupabaseOffline = true;
-                        }
+                        markOfflineOnConnectionError(error);
                         break;
                     }
                 }
@@ -520,13 +510,7 @@ async function resolveMedicinesToGenerics(
         } catch (dbErr: unknown) {
             dbFailed = true;
             const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
-            if (
-                msg.includes("fetch failed") ||
-                msg.includes("refused") ||
-                msg.includes("timeout")
-            ) {
-                if (dbConfig) dbConfig.isSupabaseOffline = true;
-            }
+            markOfflineOnConnectionError(msg);
         }
     }
 
@@ -636,7 +620,7 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
         // 2. Fetch all potential interactions in one batched query
         const allInteractions = await loadInteractionsForGenerics(resolvedGenerics);
         const interactionByPair = indexInteractions(allInteractions);
-        const isFallback = dbConfig?.isSupabaseOffline ?? true;
+        const isFallback = dbConfig?.isSupabaseOffline ?? false;
 
         const matchedInteractions: MatchedInteraction[] = [];
 

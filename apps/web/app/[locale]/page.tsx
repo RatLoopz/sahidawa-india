@@ -2,14 +2,24 @@
 
 import dynamic from "next/dynamic";
 const MedicineSafetyPanel = dynamic(() =>
-    import("@/components/medicine").then((mod) => mod.MedicineSafetyPanel)
+    import("@/components/medicine")
+        .then((mod) => mod.MedicineSafetyPanel)
+        .catch((err) => {
+            console.error("[Home] MedicineSafetyPanel dynamic import failed:", err);
+            throw err;
+        })
 );
 import React, { useEffect, useState } from "react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { usePendingSearchQueue } from "@/hooks/usePendingSearchQueue";
 import { addToSearchQueue } from "@/lib/db/searchQueue";
 const PendingSearchQueue = dynamic(() =>
-    import("@/components/SearchBar/PendingSearchQueue").then((m) => m.PendingSearchQueue)
+    import("@/components/SearchBar/PendingSearchQueue")
+        .then((m) => m.PendingSearchQueue)
+        .catch((err) => {
+            console.error("[Home] PendingSearchQueue dynamic import failed:", err);
+            throw err;
+        })
 );
 import {
     Camera,
@@ -25,6 +35,8 @@ import {
     ArrowRight,
     Quote,
     Star,
+    Pause,
+    Play,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -97,6 +109,7 @@ export default function SahiDawaHome() {
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
+    const [isMarqueePaused, setIsMarqueePaused] = useState<boolean>(false);
 
     const { isOffline } = useOfflineStatus();
     const {
@@ -781,16 +794,35 @@ export default function SahiDawaHome() {
                                     {tHome("voices_title")}
                                 </h2>
                             </div>
-                            <p className="max-w-md text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
-                                {tHome("voices_description")}
-                            </p>
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                <p className="max-w-md text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
+                                    {tHome("voices_description")}
+                                </p>
+                                <button
+                                    onClick={() => setIsMarqueePaused(!isMarqueePaused)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setIsMarqueePaused(!isMarqueePaused);
+                                        }
+                                    }}
+                                    aria-label={isMarqueePaused ? tHome("play_testimonials") : tHome("pause_testimonials")}
+                                    className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:bg-slate-50 hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+                                >
+                                    {isMarqueePaused ? <Play size={18} aria-hidden="true" /> : <Pause size={18} aria-hidden="true" />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="testimonial-marquee relative flex overflow-hidden">
-                            <div className="testimonial-marquee-track flex min-w-full shrink-0 gap-5 px-5 sm:px-8">
+                            <div 
+                                className="testimonial-marquee-track flex min-w-full shrink-0 gap-5 px-5 sm:px-8"
+                                style={{ animationPlayState: isMarqueePaused ? 'paused' : undefined }}
+                            >
                                 {[...testimonials, ...testimonials].map((testimonial, index) => (
                                     <article
                                         key={`${testimonial.name}-${index}`}
+                                        aria-hidden={index >= testimonials.length ? "true" : undefined}
                                         className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md sm:w-[360px] dark:border-slate-800 dark:bg-slate-900"
                                     >
                                         <div>

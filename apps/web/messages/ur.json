@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "آپ کی صحت، تصدیق شدہ اور محفوظ۔",
         "subtitle": "ہندوستان کا اوپن سورس شہری پلیٹ فارم — ادویات کی اصلیت کی فوری تصدیق کریں، محفوظ فارمیسیاں تلاش کریں، اور اہم صحت کے انتباہات حاصل کریں۔",
         "scan_button": "دوا اسکین کریں",
@@ -319,6 +321,15 @@
         "description": "اس وقت آپ کا انٹرنیٹ کنکشن دستیاب نہیں ہے۔",
         "subtitle": "آف لائن ہونے کے دوران کچھ خصوصیات دستیاب نہیں ہوتیں۔ انٹرنیٹ سے منسلک ہونے کی کوشش کریں یا پہلے سے محفوظ مواد دیکھیں۔",
         "tryAgain": "دوبارہ کوشش کریں",
+
+        "syncFailedTitle": "قطار میں موجود اقدامات مسترد کر دیے گئے",
+
+        "syncFailedDescription": "سرور نے کچھ قطار میں موجود اقدامات مسترد کر دیے۔ دوبارہ جڑنے کے بعد دوبارہ کوشش کریں یا انہیں ہٹا دیں۔",
+
+        "syncRetry": "سب دوبارہ کوشش کریں",
+
+        "syncDiscard": "ہٹائیں",
+
         "goHome": "ہوم پیج پر جائیں",
         "footer": "کنکشن بحال ہونے پر SahiDawa خود بخود تبدیلیاں مطابقت پذیر کر دے گی۔",
         "cachedContent": "آپ پہلے سے لوڈ کردہ مواد تک رسائی حاصل کر سکتے ہیں",
@@ -1366,7 +1377,9 @@
         "abhaSetup": "ABHA سیٹ اپ",
         "abhaRecords": "ABHA ریکارڈز",
         "notificationSettings": "اطلاعی ترتیبات",
-        "privacySecurity": "رازداری اور تحفظ"
+        "privacySecurity": "رازداری اور تحفظ",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1671,6 +1684,8 @@
         "no_search_results": "کوئی دوا آپ کی تلاش سے مماثل نہیں ہے۔",
         "item_status_label": "حیثیت:",
         "item_delete_button": "حذف کریں۔",
+        "sync_auth_title": "اپنی تاریخ سنک کرنے کے لیے سائن ان کریں",
+        "sync_auth_action": "سائن ان",
         "item_copy_success": "دوا کا نام نقل کیا گیا!"
     },
     "MyReports": {

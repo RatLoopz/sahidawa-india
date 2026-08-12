@@ -18,6 +18,7 @@ export interface GenericAlternative {
     savings_percentage: number;
     alternative_name: string;
     nearest_store: NearestStore | null;
+    usage?: string;
 }
 
 interface GenericAlternativeCardProps {
@@ -79,6 +80,7 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                         <button
                             onClick={handleBookmark}
                             className={`rounded-full p-2 transition-all ${isBookmarked ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}
+                            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
                         >
                             <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} />
                         </button>
@@ -140,6 +142,17 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                         </div>
                     </div>
                 </div>
+
+                {alternative.usage && (
+                    <div className="rounded-2xl border border-blue-500/20 bg-blue-50/40 p-4 dark:border-blue-500/10 dark:bg-blue-900/10">
+                        <h5 className="mb-1 text-[10px] font-bold tracking-wider text-blue-600 uppercase dark:text-blue-400">
+                            Primary Usage / Composition
+                        </h5>
+                        <p className="text-sm leading-relaxed font-medium text-blue-800 dark:text-blue-300">
+                            {alternative.usage}
+                        </p>
+                    </div>
+                )}
 
                 {savingsAmount > 0 && (
                     <div className="rounded-2xl bg-linear-to-r from-emerald-500 to-teal-600 p-4 text-center text-white shadow-md shadow-emerald-500/10">

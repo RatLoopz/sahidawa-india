@@ -4,10 +4,10 @@ import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
 import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
 import { escapeIlike } from "../utils/db";
-import { requireApiKey, ApiKeyRequest } from "../middleware/apiKeyAuth";
+import { requireApiKey, requireApiKeyScope, ApiKeyRequest } from "../middleware/apiKeyAuth";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
-import { KEY_PREFIXES } from "../services/cache.service";
+import { KEY_PREFIXES, invalidateCacheByPattern } from "../services/cache.service";
 import { limiter, alertsReadLimiter } from "../middleware/rateLimit";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { uuidSchema } from "../utils/validation";
@@ -191,181 +191,196 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
  * POST /api/v1/alerts/ingest
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
-alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, res: Response) => {
-    const ingestSchema = z
-        .object({
-            alerts: AlertsArraySchema,
-        })
-        .strict();
-
-    const parseResult = ingestSchema.safeParse(req.body);
-    if (!parseResult.success) {
-        res.status(400).json({
-            error: "Invalid payload schema or unknown fields",
-            details: parseResult.error,
-        });
-        return;
-    }
-
-    const validatedAlerts = parseResult.data.alerts;
-
-    try {
-        // 2. Upsert alerts — ON CONFLICT DO NOTHING prevents duplicate rows
-        // when concurrent scraper instances race past the pre-check in deduplicate_alerts().
-        const { data: insertedAlerts, error: insertError } = await supabase
-            .from("drug_alerts")
-            .upsert(validatedAlerts, {
-                onConflict: "batch_number,source_url",
-                ignoreDuplicates: true,
+alertsRouter.post(
+    "/ingest",
+    requireApiKey,
+    requireApiKeyScope("alerts:ingest"),
+    limiter,
+    async (req: ApiKeyRequest, res: Response) => {
+        const ingestSchema = z
+            .object({
+                alerts: AlertsArraySchema,
             })
-            .select();
+            .strict();
 
-        if (insertError) {
-            logger.error("Error inserting alerts", { error: insertError });
-            res.status(500).json({ error: "Database error inserting alerts" });
-            return;
-        }
-
-        // 3. Update medicines table based on matched batches
-        const medicineStatus = "recalled";
-        if (!validateMedicineStatus(medicineStatus)) {
+        const parseResult = ingestSchema.safeParse(req.body);
+        if (!parseResult.success) {
             res.status(400).json({
-                error: `Invalid medicine status. Valid values are: ${getValidStatusList()}`,
+                error: "Invalid payload schema or unknown fields",
+                details: parseResult.error,
             });
             return;
         }
 
-        // Batch the medicine status updates to avoid O(N) individual UPDATE queries.
-        // Alerts are grouped into two buckets by their secondary discriminator:
-        //   - byManufacturer: alerts that have a manufacturer field
-        //   - byBrandName:    alerts that have only a brand name (no manufacturer)
-        // Each bucket is resolved in a single UPDATE ... WHERE batch_number IN (...)
-        // query, capping the total number of DB round-trips at 2 regardless of N.
-        const byManufacturer = new Map<string, string[]>(); // manufacturer -> batch_numbers[]
-        const byBrandName = new Map<string, string[]>(); // brand_name -> batch_numbers[]
-        const noBatchAlerts: typeof validatedAlerts = [];
+        const validatedAlerts = parseResult.data.alerts;
 
-        for (const alert of validatedAlerts) {
-            if (!alert.batch_number) {
-                noBatchAlerts.push(alert);
-                continue;
+        try {
+            // 2. Upsert alerts — ON CONFLICT DO NOTHING prevents duplicate rows
+            // when concurrent scraper instances race past the pre-check in deduplicate_alerts().
+            const { data: insertedAlerts, error: insertError } = await supabase
+                .from("drug_alerts")
+                .upsert(validatedAlerts, {
+                    onConflict: "batch_number,source_url",
+                    ignoreDuplicates: true,
+                })
+                .select();
+
+            if (insertError) {
+                logger.error("Error inserting alerts", { error: insertError });
+                res.status(500).json({ error: "Database error inserting alerts" });
+                return;
             }
-            if (alert.manufacturer) {
-                if (!byManufacturer.has(alert.manufacturer)) {
-                    byManufacturer.set(alert.manufacturer, []);
-                }
-                byManufacturer.get(alert.manufacturer)!.push(alert.batch_number);
-            } else if (alert.reported_brand_name) {
-                if (!byBrandName.has(alert.reported_brand_name)) {
-                    byBrandName.set(alert.reported_brand_name, []);
-                }
-                byBrandName.get(alert.reported_brand_name)!.push(alert.batch_number);
-            }
-        }
 
-        const batchUpdatePromises: Promise<unknown>[] = [];
-
-        for (const [manufacturer, batchNumbers] of byManufacturer) {
-            batchUpdatePromises.push(
-                Promise.resolve(
-                    supabase
-                        .from("medicines")
-                        .update({ status: medicineStatus, is_counterfeit_alert: true })
-                        .in("batch_number", batchNumbers)
-                        .eq("manufacturer", manufacturer)
-                )
-            );
-        }
-
-        for (const [brandName, batchNumbers] of byBrandName) {
-            batchUpdatePromises.push(
-                Promise.resolve(
-                    supabase
-                        .from("medicines")
-                        .update({ status: medicineStatus, is_counterfeit_alert: true })
-                        .in("batch_number", batchNumbers)
-                        .eq("brand_name", brandName)
-                )
-            );
-        }
-
-        await Promise.all(batchUpdatePromises);
-
-        // 3.5 Invalidate the cache for the updated batch numbers
-        const batchNumbersToInvalidate = validatedAlerts
-            .map((alert) => alert.batch_number)
-            .filter(Boolean) as string[];
-
-        if (batchNumbersToInvalidate.length > 0 && redisClient.isOpen) {
-            try {
-                const keys = batchNumbersToInvalidate.map(
-                    (batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`
-                );
-                await redisClient.del(keys);
-            } catch (err) {
-                logger.error({
-                    message: "Failed to invalidate cache for alert batches",
-                    error: err,
+            // 3. Update medicines table based on matched batches
+            const medicineStatus = "recalled";
+            if (!validateMedicineStatus(medicineStatus)) {
+                res.status(400).json({
+                    error: `Invalid medicine status. Valid values are: ${getValidStatusList()}`,
                 });
+                return;
             }
-        }
 
-        // NEW: Invalidate all paginated list caches since new alerts change page 1 results
-        if (redisClient.isOpen) {
-            try {
-                const listKeys: string[] = [];
-                for await (const key of redisClient.scanIterator({
-                    MATCH: "alerts:list:*",
-                })) {
-                    if (Array.isArray(key)) {
-                        listKeys.push(...(key as string[]));
-                    } else {
-                        listKeys.push(key as unknown as string);
+            // Batch the medicine status updates to avoid O(N) individual UPDATE queries.
+            // Alerts are grouped into two buckets by their secondary discriminator:
+            //   - byManufacturer: alerts that have a manufacturer field
+            //   - byBrandName:    alerts that have only a brand name (no manufacturer)
+            // Each bucket is resolved in a single UPDATE ... WHERE batch_number IN (...)
+            // query, capping the total number of DB round-trips at 2 regardless of N.
+            const byManufacturerCounterfeit = new Map<string, string[]>();
+            const byManufacturerNSQ = new Map<string, string[]>();
+            const byBrandNameCounterfeit = new Map<string, string[]>();
+            const byBrandNameNSQ = new Map<string, string[]>();
+            const noBatchAlerts: typeof validatedAlerts = [];
+
+            for (const alert of validatedAlerts) {
+                if (!alert.batch_number) {
+                    noBatchAlerts.push(alert);
+                    continue;
+                }
+                
+                const typeStr = (alert.alert_type || "").toLowerCase();
+                const isCounterfeit = typeStr.includes("counterfeit") || typeStr.includes("spurious");
+                
+                if (alert.manufacturer) {
+                    const map = isCounterfeit ? byManufacturerCounterfeit : byManufacturerNSQ;
+                    if (!map.has(alert.manufacturer)) {
+                        map.set(alert.manufacturer, []);
                     }
+                    map.get(alert.manufacturer)!.push(alert.batch_number);
+                } else if (alert.reported_brand_name) {
+                    const map = isCounterfeit ? byBrandNameCounterfeit : byBrandNameNSQ;
+                    if (!map.has(alert.reported_brand_name)) {
+                        map.set(alert.reported_brand_name, []);
+                    }
+                    map.get(alert.reported_brand_name)!.push(alert.batch_number);
                 }
-                if (listKeys.length > 0) {
-                    await redisClient.del(listKeys);
-                }
-            } catch (err) {
-                logger.error({
-                    message: "Failed to invalidate alerts:list cache",
-                    error: err,
-                });
             }
-        }
 
-        // 4. Dispatch Web Push Notifications using shared service
-        if (insertedAlerts && insertedAlerts.length > 0) {
-            const pushPromises = insertedAlerts.map((alert) => {
-                return triggerRecallAlert({
-                    id: alert.id ? String(alert.id) : "unknown",
-                    medicineName: alert.reported_brand_name || "Unknown Medicine",
-                    batchNumber: alert.batch_number,
-                    manufacturer: alert.manufacturer,
-                    reason: `Alert of type ${alert.alert_type || "NSQ"} in ${alert.state || "Unknown region"}`,
-                    severity: "high",
-                    source: "CDSCO Live Feed",
-                    recalledAt: alert.reported_at || new Date().toISOString(),
+            const batchUpdatePromises: Promise<unknown>[] = [];
+
+            const pushUpdates = (
+                map: Map<string, string[]>, 
+                isCounterfeit: boolean, 
+                field: "manufacturer" | "brand_name"
+            ) => {
+                for (const [key, batchNumbers] of map) {
+                    batchUpdatePromises.push(
+                        Promise.resolve(
+                            supabase
+                                .from("medicines")
+                                .update({ status: medicineStatus, is_counterfeit_alert: isCounterfeit })
+                                .in("batch_number", batchNumbers)
+                                .eq(field === "brand_name" ? "brand_name" : "manufacturer", key)
+                        )
+                    );
+                }
+            };
+
+            pushUpdates(byManufacturerCounterfeit, true, "manufacturer");
+            pushUpdates(byManufacturerNSQ, false, "manufacturer");
+            pushUpdates(byBrandNameCounterfeit, true, "brand_name");
+            pushUpdates(byBrandNameNSQ, false, "brand_name");
+
+            await Promise.all(batchUpdatePromises);
+
+            // 3.5 Invalidate the cache for the updated batch numbers
+            // Use pattern-based invalidation (drug:batch:<batch>*) to delete both batch-only
+            // and composite keys (drug:batch:<batch>|<barcode>|<brand>). This prevents stale
+            // counterfeit/recall data from being served from cache after an alert is ingested.
+            const batchNumbersToInvalidate = validatedAlerts
+                .map((alert) => alert.batch_number)
+                .filter(Boolean) as string[];
+
+            if (batchNumbersToInvalidate.length > 0 && redisClient.isOpen) {
+                try {
+                    for (const batch of batchNumbersToInvalidate) {
+                        await invalidateCacheByPattern(`${KEY_PREFIXES.DRUG_CACHE}${batch}*`);
+                    }
+                } catch (err) {
+                    logger.error({
+                        message: "Failed to invalidate cache for alert batches",
+                        error: err,
+                    });
+                }
+            }
+
+            // NEW: Invalidate all paginated list caches since new alerts change page 1 results
+            if (redisClient.isOpen) {
+                try {
+                    const listKeys: string[] = [];
+                    for await (const key of redisClient.scanIterator({
+                        MATCH: "alerts:list:*",
+                    })) {
+                        if (Array.isArray(key)) {
+                            listKeys.push(...(key as string[]));
+                        } else {
+                            listKeys.push(key as unknown as string);
+                        }
+                    }
+                    if (listKeys.length > 0) {
+                        await redisClient.del(listKeys);
+                    }
+                } catch (err) {
+                    logger.error({
+                        message: "Failed to invalidate alerts:list cache",
+                        error: err,
+                    });
+                }
+            }
+
+            // 4. Dispatch Web Push Notifications using shared service
+            if (insertedAlerts && insertedAlerts.length > 0) {
+                const pushPromises = insertedAlerts.map((alert) => {
+                    return triggerRecallAlert({
+                        id: alert.id ? String(alert.id) : "unknown",
+                        medicineName: alert.reported_brand_name || "Unknown Medicine",
+                        batchNumber: alert.batch_number,
+                        manufacturer: alert.manufacturer,
+                        reason: `Alert of type ${alert.alert_type || "NSQ"} in ${alert.state || "Unknown region"}`,
+                        severity: "high",
+                        source: "CDSCO Live Feed",
+                        recalledAt: alert.reported_at || new Date().toISOString(),
+                    });
                 });
+                await Promise.all(pushPromises);
+            }
+
+            logger.info("Alerts ingested successfully", {
+                caller: req.apiKey?.userId,
+                count: insertedAlerts?.length,
             });
-            await Promise.all(pushPromises);
+
+            res.status(200).json({
+                success: true,
+                message: "Alerts ingested and notifications dispatched",
+                inserted: insertedAlerts?.length,
+            });
+        } catch (error) {
+            logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.userId });
+            res.status(500).json({ error: "Internal server error" });
         }
-
-        logger.info("Alerts ingested successfully", {
-            caller: req.apiKey?.userId,
-            count: insertedAlerts?.length,
-        });
-
-        res.status(200).json({
-            success: true,
-            message: "Alerts ingested and notifications dispatched",
-            inserted: insertedAlerts?.length,
-        });
-    } catch (error) {
-        logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.userId });
-        res.status(500).json({ error: "Internal server error" });
     }
-});
+);
 
 /**
  * PATCH /api/v1/alerts/:id/snooze

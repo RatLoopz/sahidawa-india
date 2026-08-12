@@ -1,4 +1,5 @@
 import { API_BASE, getCsrfToken } from "./api";
+import { getSessionAccessToken } from "./accessToken";
 import { fetchWithRetry, offlineRequestQueue, DoseQueuedOfflineError } from "./apiWithRetry";
 import { readCacheGet, readCachePut } from "./offline/db";
 
@@ -47,8 +48,7 @@ export interface AdherenceStats {
 }
 
 function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
+    return getSessionAccessToken();
 }
 
 /**
@@ -268,11 +268,13 @@ export async function logDose(
         return json.dose;
     } catch (err) {
         const isOffline = typeof window !== "undefined" && !window.navigator.onLine;
+        const errMessage = err ? (err as any).message || String(err) : "";
+        const errName = err ? (err as any).name || "" : "";
         const isNetworkError =
-            err instanceof Error &&
-            (err.message.toLowerCase().includes("offline") ||
-                err.message.toLowerCase().includes("failed to fetch") ||
-                err.name === "TypeError");
+            errMessage.toLowerCase().includes("offline") ||
+            errMessage.toLowerCase().includes("failed to fetch") ||
+            errName === "TypeError" ||
+            errMessage.includes("TypeError");
 
         // Only queue genuine connectivity failures — not validation/auth errors (400/401/403/404)
         if (isOffline || isNetworkError) {

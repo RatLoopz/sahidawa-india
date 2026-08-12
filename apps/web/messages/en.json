@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "Your Health, Verified & Protected.",
         "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",
         "scan_button": "Scan Medicine",
@@ -406,6 +408,10 @@
         "description": "You don't have an internet connection right now.",
         "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
         "tryAgain": "Try Again",
+        "syncFailedTitle": "Queued actions were rejected",
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+        "syncRetry": "Retry all",
+        "syncDiscard": "Discard",
         "goHome": "Go to Home",
         "footer": "SahiDawa will automatically sync when your connection returns.",
         "cachedContent": "You can still access previously loaded content",
@@ -1023,10 +1029,18 @@
         "areaSpecific": "Area Specific",
         "exportToCalendar": "Export to Calendar",
         "stages": {
-            "birth": { "label": "Birth" },
-            "infant": { "label": "Infant" },
-            "child": { "label": "Child" },
-            "adolescent": { "label": "Adolescent" }
+            "birth": {
+                "label": "Birth"
+            },
+            "infant": {
+                "label": "Infant"
+            },
+            "child": {
+                "label": "Child"
+            },
+            "adolescent": {
+                "label": "Adolescent"
+            }
         },
         "nis": {
             "bcg": {
@@ -1420,6 +1434,8 @@
         "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
+        "sync_auth_title": "Sign in to sync your history",
+        "sync_auth_action": "Sign in",
         "item_copy_success": "Medicine name copied!"
     },
     "MyReports": {
@@ -1697,7 +1713,9 @@
         "abhaSetup": "ABHA Setup",
         "abhaRecords": "ABHA Records",
         "notificationSettings": "Notification Settings",
-        "privacySecurity": "Privacy & Security"
+        "privacySecurity": "Privacy & Security",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Navbar": {
         "logo_alt": "SahiDawa Logo"
@@ -1855,5 +1873,29 @@
         "statTaken": "Taken",
         "statSkipped": "Skipped",
         "statExpected": "Expected"
+    },
+    "Scanner": {
+        "title": "Smart Prescription Scanner",
+        "description": "Upload a picture of your handwritten prescription, and our AI will extract the medicines and instructions for you.",
+        "uploadTitle": "Upload Prescription",
+        "uploadDescription": "Drag & drop or click to upload a clear picture of your prescription (JPEG/PNG)",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection."
+        }
     }
 }

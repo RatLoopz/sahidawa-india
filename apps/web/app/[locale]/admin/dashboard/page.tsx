@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { LiveMessage } from "@/components/ui/LiveMessage";
-import { canMutateAdminData, getAdminRoleFromSession, type AdminRole } from "@/lib/adminAuth";
+import { canMutateAdminData, getAdminRoleFromUser, type AdminRole } from "@/lib/adminAuth";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
 import { useSession } from "@/src/components/AuthProvider";
 
@@ -132,8 +132,8 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setMedicines(data.medicines ?? []);
             }
-        } catch {
-            /* silently fail, table will be empty */
+        } catch (err) {
+            console.warn("Failed to fetch medicines for admin dashboard:", err);
         }
     }, []);
 
@@ -145,8 +145,8 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setAuditLogs(data.logs ?? []);
             }
-        } catch {
-            /* silently fail, list will be empty */
+        } catch (err) {
+            console.warn("Failed to fetch audit logs for admin dashboard:", err);
         } finally {
             setLogsLoading(false);
         }
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         if (authLoading) return;
-        setAdminRole(getAdminRoleFromSession(session));
+        setAdminRole(getAdminRoleFromUser(session?.user));
     }, [authLoading, token]);
 
     useEffect(() => {
@@ -196,7 +196,8 @@ export default function AdminDashboard() {
                 ),
                 status !== "verified_fake"
             );
-        } catch {
+        } catch (err) {
+            console.warn("Failed to update report status:", err);
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" /> {t("toasts.reportUpdateFailed")}
@@ -233,7 +234,8 @@ export default function AdminDashboard() {
                     <CheckCircle className="mr-1 inline h-4 w-4" /> {t("toasts.medicineAdded")}
                 </>
             );
-        } catch {
+        } catch (err) {
+            console.warn("Failed to add medicine:", err);
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" /> {t("toasts.medicineAddFailed")}
@@ -260,11 +262,11 @@ export default function AdminDashboard() {
                     keys!
                 </>
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" />{" "}
-                    {err.message || "Cache flush failed"}
+                    {err instanceof Error ? err.message : "Cache flush failed"}
                 </>,
                 false
             );
@@ -366,6 +368,7 @@ export default function AdminDashboard() {
                             onClick={fetchReports}
                             className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                             title={t("actions.refresh")}
+                            aria-label={t("actions.refresh")}
                         >
                             <RefreshCw className="h-4 w-4" />
                         </button>

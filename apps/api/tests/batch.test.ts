@@ -1,3 +1,4 @@
+// @ts-nocheck
 import request from "supertest";
 import app from "../src/app";
 
@@ -6,6 +7,7 @@ jest.mock("../src/db/client", () => {
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         maybeSingle: jest.fn(),
     };

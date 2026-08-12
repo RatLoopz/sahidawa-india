@@ -1,3 +1,7 @@
+// @ts-nocheck
+// Force the test branch of module constants (LOCK_RENEW_INTERVAL_MS, etc.)
+process.env.NODE_ENV = "test";
+
 // Fix: Mock WebSocket for Node.js versions < 22 to prevent Supabase Realtime client crash during test imports
 if (typeof globalThis.WebSocket === "undefined") {
     globalThis.WebSocket = class {} as any;
@@ -24,6 +28,10 @@ const mockRedisClient = {
             const [key] = keys;
             const [expected] = args;
             if (lockStore.get(key) === expected) {
+                if (args.length > 1) {
+                    // renew script: PEXPIRE — keep the lock alive
+                    return 1;
+                }
                 lockStore.delete(key);
                 return 1;
             }
@@ -32,15 +40,50 @@ const mockRedisClient = {
     ),
 };
 
+// When set, every supabase query awaits this gate before resolving so a test
+// can keep a broadcast run "in progress" on demand.
+let supabaseGate: Promise<void> | null = null;
+
+const dbState: Record<string, Array<Record<string, unknown>>> = {
+    district_alerts: [],
+    drug_alerts: [],
+    notification_subscribers: [],
+    batches: [],
+    expiry_digest_deliveries: [],
+    medicines: [],
+};
+
+function makeNextQuery() {
+    const builder: any = {
+        select: () => builder,
+        eq: () => builder,
+        ilike: () => builder,
+        range: () => builder,
+        gte: () => builder,
+        lte: () => builder,
+        not: () => builder,
+        in: () => builder,
+        update: () => builder,
+        upsert: () => builder,
+    };
+    builder.then = async (resolve: (value: unknown) => void) => {
+        if (supabaseGate) await supabaseGate;
+        const rows = dbState[builder.table] ?? [];
+        resolve({ data: rows, error: null });
+    };
+    return builder;
+}
+
 // ── Module mocks ───────────────────────────────────────────────────────────
 mock.module("../utils/redis", () => ({ redisClient: mockRedisClient }));
 
 mock.module("../db/client", () => ({
     supabase: {
-        from: () => ({
-            select: () => ({ eq: () => ({ data: [], error: null }) }),
-            update: () => ({ eq: () => ({ error: null }) }),
-        }),
+        from: (table: string) => {
+            const query = makeNextQuery();
+            query.table = table;
+            return query;
+        },
     },
     dbConfig: { isSupabaseOffline: false },
 }));
@@ -58,6 +101,8 @@ import { checkAndBroadcastAll } from "./alert-broadcaster";
 describe("checkAndBroadcastAll — distributed lock", () => {
     beforeEach(() => {
         lockStore.clear();
+        supabaseGate = null;
+        for (const table of Object.keys(dbState)) dbState[table] = [];
         mockRedisClient.set.mock.resetCalls();
         mockRedisClient.eval.mock.resetCalls();
     });
@@ -113,5 +158,54 @@ describe("checkAndBroadcastAll — distributed lock", () => {
         } finally {
             mockRedisClient.isOpen = true;
         }
+    });
+
+    it("skips broadcasting when a run is already in progress in this process", async () => {
+        // Hold the first broadcast pending so isBroadcasting stays true
+        let releaseGate!: () => void;
+        supabaseGate = new Promise((resolve) => (releaseGate = resolve));
+
+        const firstRun = checkAndBroadcastAll();
+
+        // Give the first run time to acquire the lock (NX) and enter its loop.
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        // A second tick fires while the first is mid-broadcast: the in-process
+        // guard must skip it *before* even trying to acquire the distributed lock.
+        await checkAndBroadcastAll();
+
+        // The second invocation never attempted to acquire the lock again.
+        assert.equal(mockRedisClient.set.mock.calls.length, 1, "lock acquired exactly once");
+        assert.equal(lockStore.size, 1, "first run still holds the lock");
+
+        releaseGate();
+        await firstRun;
+
+        assert.ok(mockRedisClient.eval.mock.calls.length >= 1, "renewal + final release");
+        assert.equal(lockStore.size, 0, "lock released once the run finished");
+    });
+
+    it("renews the lock TTL throughout a run that outlives the original TTL", async () => {
+        // Renewal cadence is 50ms in test; keep a run pending past several heartbeats.
+        let releaseGate!: () => void;
+        supabaseGate = new Promise((resolve) => (releaseGate = resolve));
+
+        const run = checkAndBroadcastAll();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        assert.equal(lockStore.size, 1, "lock acquired before the slow broadcast");
+
+        // Let the heartbeat refresh the lock several times while the broadcast
+        // is still stuck on the (idle) SMS/WhatsApp provider calls.
+        await new Promise((resolve) => setTimeout(resolve, 160));
+        assert.equal(lockStore.size, 1, "lock is still held after its original TTL window");
+        assert.ok(
+            mockRedisClient.eval.mock.calls.length >= 2,
+            "lock TTL was refreshed at least twice during the run"
+        );
+
+        releaseGate();
+        await run;
+
+        assert.equal(lockStore.size, 0, "lock finally released on completion");
     });
 });

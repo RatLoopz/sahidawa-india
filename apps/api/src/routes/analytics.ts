@@ -96,7 +96,7 @@ function summarizePushNotificationEvents(rows: PushNotificationEventRow[]) {
     };
 }
 
-router.get("/heatmap", requireAuth, analyticsLimiter, async (req: Request, res: Response) => {
+router.get("/heatmap", analyticsLimiter, requireAuth, async (req: Request, res: Response) => {
     try {
         const { days, precision } = QuerySchema.parse(req.query);
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();

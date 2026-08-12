@@ -12,7 +12,20 @@ const trackSchema = z.object({
     medicine_id: uuidSchema,
     medicine_name: z.string().min(1).max(200),
     batch_number: z.string().max(100).optional(),
-    expiry_date: z.string().date(),
+    expiry_date: z
+        .string()
+        .date()
+        .refine(
+            (date) => {
+                const expiry = new Date(date);
+                const today = new Date();
+                today.setUTCHours(0, 0, 0, 0);
+                return expiry >= today;
+            },
+            {
+                message: "Expiry date must be in the future",
+            }
+        ),
 });
 router.get(
     "/tracked",
@@ -20,7 +33,7 @@ router.get(
     requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user!.id;
-        const { data, error } = await supabase
+        const { data, error } = await req.supabase!
             .from("tracked_medicines")
             .select("*")
             .eq("user_id", userId); // Security: Only get current user's data
@@ -38,7 +51,7 @@ router.post(
         const result = trackSchema.safeParse(req.body);
         if (!result.success) return res.status(400).json(result.error);
 
-        const { data: foundMedicine } = await supabase
+        const { data: foundMedicine } = await req.supabase!
             .from("medicines")
             .select("id, brand_name, generic_name")
             .eq("id", result.data.medicine_id)
@@ -47,7 +60,7 @@ router.post(
         const isVerified = foundMedicine != null;
 
         const userId = req.user!.id;
-        const { data, error } = await supabase
+        const { data, error } = await req.supabase!
             .from("tracked_medicines")
             .insert([{ ...result.data, user_id: userId, is_verified: isVerified }])
             .select()

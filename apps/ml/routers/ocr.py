@@ -8,7 +8,8 @@ import logging
 from pydantic import BaseModel, Field
 from typing import List
 from services.matcher import find_matches
-from utils.rate_limiter import RateLimiter  
+from utils.rate_limiter import RateLimiter
+from services.ocr_pipeline import ocr_pipeline  
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -103,6 +104,36 @@ async def extract_text(file: UploadFile = File(...)):
         logger.error(f"OCR error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process image: {str(e)}")
     
+    finally:
+        await file.close()
+
+@router.post("/extract-batch", dependencies=[Depends(ocr_limiter)])
+async def extract_batch_info(file: UploadFile = File(...)):
+    """
+    Extracts batch_no and expiry_date from blister packs using OpenCV preprocessing 
+    and Gemini Vision Model for robust parsing.
+    """
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File uploaded is not an image.")
+
+    try:
+        image_bytes = await file.read()
+        
+        if len(image_bytes) > MAX_IMAGE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large. Maximum allowed size is {MAX_IMAGE_SIZE_BYTES // (1024 * 1024)}MB."
+            )
+            
+        result = await ocr_pipeline.extract_batch_and_expiry(image_bytes)
+        
+        return result
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Batch extraction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to extract batch info: {str(e)}")
     finally:
         await file.close()
 

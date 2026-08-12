@@ -24,6 +24,40 @@ function stopMediaStream(stream: MediaStream | null): void {
 
 const SCANNER_INACTIVITY_TIMEOUT = 45000;
 
+type StatusMessageIds = {
+    initializing: string;
+    permissionDenied: string;
+    unavailable: string;
+    scannerError: string;
+    scanningHint: string;
+};
+
+function resolveStatusDescriptionId(
+    apiError: string | null | undefined,
+    isVerifying: boolean | undefined,
+    status: ScannerStatus,
+    ids: StatusMessageIds
+): string | undefined {
+    if (apiError || isVerifying) {
+        return undefined;
+    }
+
+    switch (status) {
+        case "initializing":
+            return ids.initializing;
+        case "permission-denied":
+            return ids.permissionDenied;
+        case "unavailable":
+            return ids.unavailable;
+        case "error":
+            return ids.scannerError;
+        case "scanning":
+            return ids.scanningHint;
+        default:
+            return undefined;
+    }
+}
+
 function playFeedback(): void {
     // 1. Haptic Feedback
     try {
@@ -119,6 +153,16 @@ export function BarcodeScanner({
     const permissionDeniedMessageId = useId();
     const unavailableMessageId = useId();
     const scannerErrorMessageId = useId();
+    const scanningHintId = useId();
+    const scannerRegionLabelId = useId();
+
+    const statusDescriptionId = resolveStatusDescriptionId(apiError, isVerifying, status, {
+        initializing: initializingMessageId,
+        permissionDenied: permissionDeniedMessageId,
+        unavailable: unavailableMessageId,
+        scannerError: scannerErrorMessageId,
+        scanningHint: scanningHintId,
+    });
 
     // Update refs when props change
     useEffect(() => {
@@ -169,107 +213,128 @@ export function BarcodeScanner({
         let cancelled = false;
 
         const startScanner = async (): Promise<void> => {
-            const { BrowserMultiFormatReader } = await import("@zxing/browser");
-            const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
-
-            if (cancelled) return;
-
-            const hints = new Map();
-            hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-                BarcodeFormat.CODE_128,
-                BarcodeFormat.QR_CODE,
-                BarcodeFormat.EAN_13,
-                BarcodeFormat.EAN_8,
-                BarcodeFormat.CODE_39,
-                BarcodeFormat.DATA_MATRIX,
-            ]);
-            hints.set(DecodeHintType.TRY_HARDER, true);
-
-            const reader = new BrowserMultiFormatReader(hints, {
-                delayBetweenScanAttempts: 300,
-            });
-
             try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    if (!cancelled) {
-                        setStatus("unavailable");
-                        setErrorMessage("Camera access is not supported by this browser.");
-                    }
-                    return;
-                }
+                const { BrowserMultiFormatReader } = await import("@zxing/browser");
+                const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
 
-                let stream: MediaStream;
+                if (cancelled) return;
+
+                const hints = new Map();
+                hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.QR_CODE,
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.EAN_8,
+                    BarcodeFormat.CODE_39,
+                    BarcodeFormat.DATA_MATRIX,
+                    BarcodeFormat.UPC_A,
+                    BarcodeFormat.UPC_E,
+                    BarcodeFormat.ITF,
+                    BarcodeFormat.CODE_93,
+                    BarcodeFormat.CODABAR,
+                ]);
+                hints.set(DecodeHintType.TRY_HARDER, true);
+
+                const reader = new BrowserMultiFormatReader(hints, {
+                    delayBetweenScanAttempts: 300,
+                });
+
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: { ideal: "environment" } },
-                    });
-                } catch {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                }
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        if (!cancelled) {
+                            setStatus("unavailable");
+                            setErrorMessage("Camera access is not supported by this browser.");
+                        }
+                        return;
+                    }
 
-                if (cancelled) {
-                    stopMediaStream(stream);
-                    return;
-                }
+                    let stream: MediaStream;
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: { ideal: "environment" },
+                                width: { ideal: 1920, min: 1280 },
+                                height: { ideal: 1080, min: 720 },
+                                focusMode: { ideal: "continuous" },
+                            } as any,
+                        });
+                    } catch {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    }
 
-                streamRef.current = stream;
-                if (!videoRef.current) return;
+                    if (cancelled) {
+                        stopMediaStream(stream);
+                        return;
+                    }
 
-                const controls = await reader.decodeFromStream(
-                    stream,
-                    videoRef.current,
-                    (result: any, error: any) => {
-                        if (result) {
-                            // Ignore scans if we are verifying or currently showing an error
-                            if (isVerifyingRef.current || apiErrorRef.current) return;
+                    streamRef.current = stream;
+                    if (!videoRef.current) return;
 
-                            const text = result.getText().trim();
-                            if (shouldEmitScan(text)) {
-                                resetInactivityTimer();
-                                playFeedback();
-                                onScan(text);
+                    const controls = await reader.decodeFromStream(
+                        stream,
+                        videoRef.current,
+                        (result: any, error: any) => {
+                            if (result) {
+                                // Ignore scans if we are verifying or currently showing an error
+                                if (isVerifyingRef.current || apiErrorRef.current) return;
+
+                                const text = result.getText().trim();
+                                if (shouldEmitScan(text)) {
+                                    resetInactivityTimer();
+                                    playFeedback();
+                                    onScan(text);
+                                }
+                            }
+
+                            if (error && error.name !== "NotFoundException") {
+                                // Ignore continuous decode errors
                             }
                         }
-
-                        if (error && error.name !== "NotFoundException") {
-                            // Ignore continuous decode errors
-                        }
-                    }
-                );
-
-                if (cancelled) {
-                    controls.stop();
-                    return;
-                }
-
-                controlsRef.current = controls;
-                setStatus("scanning");
-            } catch (err: unknown) {
-                if (cancelled) return;
-                const errorObj = err instanceof Error ? err : new Error(String(err));
-                if (
-                    errorObj.name === "NotAllowedError" ||
-                    errorObj.name === "PermissionDeniedError"
-                ) {
-                    setStatus("permission-denied");
-                    setErrorMessage(
-                        "Camera access was denied. Please allow camera permissions in your browser settings."
                     );
-                    onPermissionDenied?.();
-                } else if (
-                    errorObj.name === "NotFoundError" ||
-                    errorObj.name === "DevicesNotFoundError"
-                ) {
-                    setStatus("unavailable");
-                    setErrorMessage("No suitable camera was found on this device.");
-                } else {
-                    setStatus("error");
-                    setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+
+                    if (cancelled) {
+                        controls.stop();
+                        return;
+                    }
+
+                    controlsRef.current = controls;
+                    setStatus("scanning");
+                } catch (err: unknown) {
+                    if (cancelled) return;
+                    const errorObj = err instanceof Error ? err : new Error(String(err));
+                    if (
+                        errorObj.name === "NotAllowedError" ||
+                        errorObj.name === "PermissionDeniedError"
+                    ) {
+                        setStatus("permission-denied");
+                        setErrorMessage(
+                            "Camera access was denied. Please allow camera permissions in your browser settings."
+                        );
+                        onPermissionDenied?.();
+                    } else if (
+                        errorObj.name === "NotFoundError" ||
+                        errorObj.name === "DevicesNotFoundError"
+                    ) {
+                        setStatus("unavailable");
+                        setErrorMessage("No suitable camera was found on this device.");
+                    } else {
+                        setStatus("error");
+                        setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+                    }
                 }
+            } catch (importErr: unknown) {
+                if (cancelled) return;
+                setStatus("error");
+                setErrorMessage("Failed to load scanner dependencies: " + String(importErr));
             }
         };
 
-        startScanner();
+        startScanner().catch((err) => {
+            if (!cancelled) {
+                setStatus("error");
+                setErrorMessage("Critical failure starting scanner: " + String(err));
+            }
+        });
 
         return () => {
             cancelled = true;
@@ -281,7 +346,14 @@ export function BarcodeScanner({
     }, [retryCount, shouldEmitScan, onScan, resetInactivityTimer]); // isVerifying and apiError are purposefully removed here!
 
     return (
-        <div className="relative h-full w-full overflow-hidden rounded-2xl bg-black">
+        <section
+            className="relative h-full w-full overflow-hidden rounded-2xl bg-black"
+            aria-labelledby={scannerRegionLabelId}
+            aria-describedby={statusDescriptionId}
+        >
+            <h2 id={scannerRegionLabelId} className="sr-only">
+                Barcode scanner camera
+            </h2>
             {/* 1. THE BASE CAMERA LAYER (Always rendered) */}
             <video
                 ref={videoRef}
@@ -289,6 +361,7 @@ export function BarcodeScanner({
                 autoPlay
                 playsInline
                 muted
+                aria-label="Live camera preview for barcode scanning"
             />
 
             {/* 2. THE ERROR OVERLAY */}
@@ -301,6 +374,7 @@ export function BarcodeScanner({
                     <p className="max-w-xs text-sm text-slate-400">{apiError}</p>
                     {onRetry && (
                         <button
+                            type="button"
                             onClick={onRetry} // Now we ONLY clear the error. The camera underneath is already ready!
                             className="mt-4 rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
                         >
@@ -378,6 +452,7 @@ export function BarcodeScanner({
                             </div>
 
                             <button
+                                type="button"
                                 onClick={handleCameraRetry}
                                 className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
                             >
@@ -388,6 +463,7 @@ export function BarcodeScanner({
                             <p className="text-xs text-slate-500">Or use these alternatives:</p>
                             <div className="flex w-full max-w-xs gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -397,6 +473,7 @@ export function BarcodeScanner({
                                     📷 Upload Photo
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onRetry}
                                     className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
                                 >
@@ -420,6 +497,7 @@ export function BarcodeScanner({
                             <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
                             <div className="flex w-full max-w-xs gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -429,6 +507,7 @@ export function BarcodeScanner({
                                     📷 Upload Photo
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onRetry}
                                     className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
                                 >
@@ -451,6 +530,7 @@ export function BarcodeScanner({
                             <h3 className="text-lg font-bold text-white">Scanner Error</h3>
                             <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
                             <button
+                                type="button"
                                 onClick={handleCameraRetry}
                                 className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-600"
                             >
@@ -458,6 +538,7 @@ export function BarcodeScanner({
                             </button>
                             <div className="flex w-full max-w-xs gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -467,6 +548,7 @@ export function BarcodeScanner({
                                     📷 Upload Photo
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onRetry}
                                     className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700"
                                 >
@@ -480,6 +562,9 @@ export function BarcodeScanner({
                         <>
                             <div className="absolute top-3 left-1/2 z-30 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
                                 <span
+                                    id={scanningHintId}
+                                    role="status"
+                                    aria-live="polite"
                                     className={`text-xs font-medium ${
                                         looksLikePackaging ? "text-emerald-400" : "text-slate-300"
                                     }`}
@@ -494,6 +579,14 @@ export function BarcodeScanner({
                                 <span className="text-xs font-medium text-emerald-400">
                                     Scanning
                                 </span>
+                            </div>
+                            <div className="pointer-events-none absolute top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 text-center">
+                                <div className="h-48 w-80 rounded-xl border-2 border-dashed border-emerald-500/50"></div>
+                                <p className="mt-4 rounded bg-black/40 px-2 py-1 text-xs font-bold text-white/80 drop-shadow-md">
+                                    Looking for Barcode...
+                                    <br />
+                                    (No barcode? Use Upload Photo)
+                                </p>
                             </div>
                         </>
                     )}
@@ -517,12 +610,14 @@ export function BarcodeScanner({
                             </p>
                             <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => resetInactivityTimer()}
                                     className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
                                 >
                                     Keep Scanning
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const input = document.getElementById("medicine-upload");
                                         input?.click();
@@ -536,6 +631,6 @@ export function BarcodeScanner({
                     )}
                 </>
             )}
-        </div>
+        </section>
     );
 }

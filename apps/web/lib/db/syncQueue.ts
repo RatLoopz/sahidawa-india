@@ -65,7 +65,12 @@ export async function addToSyncQueue(
 export async function getSyncQueue(): Promise<QueuedScan[]> {
     if (!dbPromise) return [];
     const db = await dbPromise;
-    return db.getAll(STORE_NAME);
+    const items = (await db.getAll(STORE_NAME)) as QueuedScan[];
+    // IndexedDB getAll() returns rows in primary-key (random UUID) order, not
+    // chronological order. Sorting by timestamp ensures offline scans are synced
+    // deterministically (oldest first) and the pending list is shown in the order
+    // they were scanned, so results can never be processed out of order.
+    return items.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
 }
 
 export async function removeFromSyncQueue(id: string): Promise<void> {

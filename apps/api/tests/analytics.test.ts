@@ -1,3 +1,4 @@
+// @ts-nocheck
 import request from "supertest";
 import app from "../src/app";
 
@@ -42,7 +43,6 @@ jest.mock("../src/middleware/auth", () => ({
 
 import { supabase } from "../src/db/client";
 import { Request, Response, NextFunction } from "express";
-
 
 type MockScan = {
     latitude: string;

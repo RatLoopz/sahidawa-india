@@ -2,8 +2,10 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { setSessionAccessToken } from "@/lib/accessToken";
 import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { clearSyncQueueForLogout, registerCurrentUser } from "@/lib/syncUserScoping";
 
 interface AuthContextValue {
     session: Session | null;
@@ -28,26 +30,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            const s = data.session ?? null;
-            setSession(s);
-            setIsLoading(false);
-            if (s?.access_token) {
-                localStorage.setItem("sb-access-token", s.access_token);
-            } else {
-                localStorage.removeItem("sb-access-token");
-            }
-        });
+        supabase.auth
+            .getSession()
+            .then(({ data }) => {
+                const s = data.session ?? null;
+                setSession(s);
+                setIsLoading(false);
+                setSessionAccessToken(s?.access_token ?? null);
+                syncServiceWorkerSession(s);
+            })
+            .catch((err) => {
+                console.error("[AuthProvider] Failed:", err);
+                // Never leave consumers stuck in an infinite loading state:
+                // treat an unreadable session as signed-out so protected pages
+                // render their graceful re-authentication state.
+                setIsLoading(false);
+                setSessionAccessToken(null);
+                syncServiceWorkerSession(null);
+            });
 
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
-            if (session?.access_token) {
-                localStorage.setItem("sb-access-token", session.access_token);
-            } else {
-                localStorage.removeItem("sb-access-token");
-            }
+            setSessionAccessToken(session?.access_token ?? null);
+            syncServiceWorkerSession(session);
         });
 
         return () => subscription.unsubscribe();
@@ -58,4 +65,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {children}
         </AuthContext.Provider>
     );
+}
+
+/**
+ * Keep the service worker's notion of the signed-in user in step with the
+ * auth session so queued offline mutations are scoped/bound to the user who
+ * created them. On sign-out the queue is cleared so an old offline action can
+ * never be submitted as a different user.
+ */
+function syncServiceWorkerSession(session: Session | null): void {
+    const userId = session?.user?.id ?? null;
+    if (userId) {
+        registerCurrentUser(userId);
+    } else {
+        clearSyncQueueForLogout();
+    }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { detectPackaging } from "@/lib/vision/detectPackaging";
+import { detectPackaging, destroySandbox } from "@/lib/vision/detectPackaging";
 
 const CHECK_INTERVAL_MS = 500;
 
@@ -31,16 +31,19 @@ export function usePackagingHint(
 
             try {
                 const result = await detectPackaging(canvas);
-                console.log("Packaging:", result.looksLikePackaging);
                 if (!cancelled) setLooksLikePackaging(result.looksLikePackaging);
-            } catch {
-                // OpenCV not loaded yet, or a transient frame error — skip silently
+            } catch (err) {
+                // OpenCV not loaded yet, or a transient frame error — skip silently in prod
+                if (process.env.NODE_ENV === "development") {
+                    console.debug("Transient packaging detection error:", err);
+                }
             }
         }, CHECK_INTERVAL_MS);
 
         return () => {
             cancelled = true;
             window.clearInterval(intervalId);
+            destroySandbox();
         };
     }, [videoRef, enabled]);
 

@@ -22,6 +22,15 @@ function formatINR(value: number): string {
     return INR_FORMATTER.format(value);
 }
 
+function cleanGenericName(name: string | null | undefined): string {
+    if (!name) return "";
+    return name
+        .replace(/\s*\(\s*\/\s*\)\s*/g, "") // removes " (/)"
+        .replace(/\s*\(\s*\)\s*/g, "") // removes " ()"
+        .replace(/\s*\(\s*NA\s*\)\s*/g, "") // removes " (NA)"
+        .trim();
+}
+
 async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
     if (q.length < 2) return [];
@@ -44,8 +53,8 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
             composition: row.composition,
             cdsco_approval_status: row.cdsco_approval_status || "approved",
         }));
-    } catch (error: any) {
-        console.error(error.message || error);
+    } catch (error: unknown) {
+        console.error(error instanceof Error ? error.message : error);
         return [];
     }
 }
@@ -67,7 +76,7 @@ function CalculatorPageContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
-
+    const [noAlternativeFound, setNoAlternativeFound] = useState(false);
     const searchParams = useSearchParams();
     const medicineId = searchParams?.get("medicineId");
 
@@ -98,6 +107,7 @@ function CalculatorPageContent() {
             setAlternativeData(null);
             setGenericAlternative(null);
             setError(null);
+            setNoAlternativeFound(false);
             setQuantity(1);
 
             if (!medicine) return;
@@ -124,13 +134,17 @@ function CalculatorPageContent() {
                 }
 
                 const data = await fetchGenericAlternatives(medicine.id, lat, lng);
-                setAlternativeData(data);
+                if (data === null) {
+                    setNoAlternativeFound(true);
+                } else {
+                    setAlternativeData(data);
+                }
 
                 // Fetch related generic alternatives (same generic composition, not current brand, not Jan Aushadhi)
                 const { data: genericAlts } = await supabase
                     .from("medicines")
                     .select("id, brand_name, generic_name, manufacturer, mrp")
-                    .eq("generic_name", medicine.generic_name)
+                    .ilike("generic_name", `%${cleanGenericName(medicine.generic_name)}%`)
                     .neq("id", medicine.id)
                     .not("manufacturer", "ilike", "Jan Aushadhi")
                     .not("brand_name", "ilike", "%generic%")
@@ -140,14 +154,15 @@ function CalculatorPageContent() {
 
                 if (genericAlts && genericAlts.length > 0) {
                     setGenericAlternative({
-                        brand_name: genericAlts[0].brand_name || medicine.generic_name,
+                        brand_name:
+                            genericAlts[0].brand_name || cleanGenericName(medicine.generic_name),
                         manufacturer: genericAlts[0].manufacturer || "Alternative Manufacturer",
                         mrp: Number(genericAlts[0].mrp),
                         isEstimated: false,
                     });
                 } else {
                     setGenericAlternative({
-                        brand_name: `${medicine.generic_name} (Commercial)`,
+                        brand_name: `${cleanGenericName(medicine.generic_name)} (Commercial)`,
                         manufacturer: "Commercial Generic",
                         mrp: Number((medicine.mrp || 120.0) * 0.6),
                         isEstimated: true,
@@ -197,7 +212,7 @@ function CalculatorPageContent() {
                 const med: Medicine = {
                     id: data.id,
                     brand_name: data.brand_name || "",
-                    generic_name: data.generic_name || "",
+                    generic_name: cleanGenericName(data.generic_name),
                     manufacturer: data.manufacturer || "",
                     mrp: data.mrp ? Number(data.mrp) : 0,
                     jan_aushadhi_price: data.jan_aushadhi_price
@@ -259,6 +274,15 @@ function CalculatorPageContent() {
                     <div className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-red-700 dark:text-red-400">
                         <AlertCircle size={20} className="shrink-0" />
                         <p className="text-sm font-semibold">{error}</p>
+                    </div>
+                )}
+
+                {noAlternativeFound && !error && (
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300">
+                        <Pill size={20} className="shrink-0" />
+                        <p className="text-sm font-semibold">
+                            No generic alternative found for this medicine yet.
+                        </p>
                     </div>
                 )}
 

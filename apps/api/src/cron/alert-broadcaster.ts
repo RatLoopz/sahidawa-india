@@ -10,8 +10,16 @@ const CHECK_INTERVAL_MS = process.env.NODE_ENV === "test" ? 1000 : 30000; // 30 
 const PAGE_SIZE = 1000;
 const NOTIFICATION_CHUNK_SIZE = 50;
 const LOCK_KEY = "alert-broadcaster:lock";
-const LOCK_TTL_MS = 25_000; // slightly under the 30-second interval
+const LOCK_TTL_MS = 25_000; // 25s TTL, replenished by renewLock() so it outlives long runs
+// Heartbeat cadence is well under the TTL so a busy RPC/sms/whatsapp provider
+// call can never let the distributed lock expire mid-broadcast.
+const LOCK_RENEW_INTERVAL_MS = process.env.NODE_ENV === "test" ? 50 : Math.floor(LOCK_TTL_MS / 2);
 const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
+
+// In-process run guard: without it a single instance can overlap its own ticks
+// when a broadcast run outlives the 30s scheduler interval and the distributed
+// lock has already expired mid-run.
+let isBroadcasting = false;
 
 export const broadcastConfig = {
     MARK_BROADCASTED_CHUNK_SIZE: 500,
@@ -160,11 +168,33 @@ async function releaseLock(): Promise<void> {
     }
 }
 
+/**
+ * Replenishes the lock TTL so a slow broadcast run can never exceed the
+ * original lock expiry and hand the lock over to the next scheduler tick or
+ * another pod. Atomic Lua script: the TTL is extended only while this process
+ * still owns the lock.
+ */
+async function renewLock(): Promise<void> {
+    if (!redisClient.isOpen) return;
+    try {
+        const script = `
+            if redis.call("get", KEYS[1]) == ARGV[1] then
+                return redis.call("pexpire", KEYS[1], ARGV[2])
+            else
+                return 0
+            end
+        `;
+        await redisClient.eval(script, { keys: [LOCK_KEY], arguments: [LOCK_VALUE, LOCK_TTL_MS] });
+    } catch (err) {
+        logger.error({ message: "Failed to renew broadcaster lock", error: err });
+    }
+}
+
 async function sendNotificationToSubscriber(
     sub: NotificationSubscriber,
     type: "counterfeit" | "recall" | "expiry",
     data: NotificationAlertData
-): Promise<void> {
+): Promise<boolean> {
     const { title, body } = getLocalizedMessage(type, data, sub.language);
     const fullMessage = `${title}\n\n${body}`;
 
@@ -176,7 +206,10 @@ async function sendNotificationToSubscriber(
         sendPromises.push(whatsappService.send(sub.phone, fullMessage, sub.language));
     }
 
-    await Promise.all(sendPromises);
+    if (sendPromises.length === 0) return false;
+
+    const results = await Promise.allSettled(sendPromises);
+    return results.some((result) => result.status === "fulfilled" && result.value);
 }
 
 interface ExpiringBatchSummary {
@@ -248,24 +281,10 @@ export async function broadcastDistrictAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting counterfeit alert for district: ${alert.district}`);
 
-            const { error: markError } = await supabase
-                .from("district_alerts")
-                .update({ broadcasted: true })
-                .eq("id", alert.id);
-
-            if (markError) {
-                logger.error({
-                    message:
-                        "Failed to mark district alert as broadcasted, skipping send to avoid duplicate delivery on next tick",
-                    error: markError,
-                    alertId: alert.id,
-                });
-                continue;
-            }
-
             let from = 0;
             let to = PAGE_SIZE - 1;
             let hasMore = true;
+            let hasSuccessfulDelivery = false;
 
             while (hasMore) {
                 const { data: subscribers, error: subsError } = await supabase
@@ -296,7 +315,10 @@ export async function broadcastDistrictAlerts(): Promise<void> {
                             district: alert.district,
                         })
                     );
-                    await Promise.allSettled(promises);
+                    const results = await Promise.allSettled(promises);
+                    hasSuccessfulDelivery ||= results.some(
+                        (result) => result.status === "fulfilled" && result.value
+                    );
                 }
 
                 if (subscribers.length < PAGE_SIZE) {
@@ -307,7 +329,26 @@ export async function broadcastDistrictAlerts(): Promise<void> {
                 }
             }
 
-            await supabase.from("district_alerts").update({ broadcasted: true }).eq("id", alert.id);
+            if (!hasSuccessfulDelivery) {
+                logger.warn(
+                    "District alert delivery failed for every eligible subscriber; will retry.",
+                    { alertId: alert.id, district: alert.district }
+                );
+                continue;
+            }
+
+            const { error: markError } = await supabase
+                .from("district_alerts")
+                .update({ broadcasted: true })
+                .eq("id", alert.id);
+
+            if (markError) {
+                logger.error({
+                    message: "Failed to mark district alert as broadcasted",
+                    error: markError,
+                    alertId: alert.id,
+                });
+            }
         }
     } catch (err) {
         logger.error({ message: "Error in broadcastDistrictAlerts", error: err });
@@ -319,7 +360,8 @@ export async function broadcastDrugAlerts(): Promise<void> {
         const { data: alerts, error: alertsError } = await supabase
             .from("drug_alerts")
             .select("*")
-            .eq("broadcasted", false);
+            .eq("broadcasted", false)
+            .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`);
 
         if (alertsError) {
             logger.error({
@@ -334,25 +376,10 @@ export async function broadcastDrugAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting CDSCO drug recall: ${alert.reported_brand_name}`);
 
-            // MARK AS BROADCASTED BEFORE SENDING
-            const { error: markError } = await supabase
-                .from("drug_alerts")
-                .update({ broadcasted: true })
-                .eq("id", alert.id);
-
-            if (markError) {
-                logger.error({
-                    message:
-                        "Failed to mark drug alert as broadcasted, skipping send to avoid duplicate delivery on next tick",
-                    error: markError,
-                    alertId: alert.id,
-                });
-                continue;
-            }
-
             let from = 0;
             let to = PAGE_SIZE - 1;
             let hasMore = true;
+            let hasSuccessfulDelivery = false;
 
             while (hasMore) {
                 let query = supabase
@@ -387,7 +414,10 @@ export async function broadcastDrugAlerts(): Promise<void> {
                             batchNumber: alert.batch_number,
                         })
                     );
-                    await Promise.allSettled(promises);
+                    const results = await Promise.allSettled(promises);
+                    hasSuccessfulDelivery ||= results.some(
+                        (result) => result.status === "fulfilled" && result.value
+                    );
                 }
 
                 if (subscribers.length < PAGE_SIZE) {
@@ -396,6 +426,27 @@ export async function broadcastDrugAlerts(): Promise<void> {
                     from += PAGE_SIZE;
                     to += PAGE_SIZE;
                 }
+            }
+
+            if (!hasSuccessfulDelivery) {
+                logger.warn(
+                    "Drug alert delivery failed for every eligible subscriber; will retry.",
+                    { alertId: alert.id, drug: alert.reported_brand_name }
+                );
+                continue;
+            }
+
+            const { error: markError } = await supabase
+                .from("drug_alerts")
+                .update({ broadcasted: true })
+                .eq("id", alert.id);
+
+            if (markError) {
+                logger.error({
+                    message: "Failed to mark drug alert as broadcasted",
+                    error: markError,
+                    alertId: alert.id,
+                });
             }
         }
     } catch (err) {
@@ -691,17 +742,37 @@ export async function checkAndBroadcastAll(): Promise<void> {
         return;
     }
 
+    // In-process run guard: never start a second broadcast in this process
+    // while one is still in flight, even if the distributed lock has expired.
+    if (isBroadcasting) {
+        logger.info("Alert broadcaster already running in this process — skipping this tick.");
+        return;
+    }
+
     const acquired = await acquireLock();
     if (!acquired) {
         logger.info("Alert broadcaster lock held by another instance — skipping this tick.");
         return;
     }
 
+    isBroadcasting = true;
+
+    // Heartbeat: keep replenishing the lock TTL for the whole duration of the
+    // run so slow SMS/WhatsApp provider calls can never let it expire.
+    const renewalId = setInterval(() => {
+        renewLock().catch((err) => {
+            logger.error("Alert broadcaster: failed to renew lock", { error: err });
+        });
+    }, LOCK_RENEW_INTERVAL_MS);
+    renewalId.unref?.();
+
     try {
         await broadcastDistrictAlerts();
         await broadcastDrugAlerts();
         await broadcastExpiryAlerts();
     } finally {
+        clearInterval(renewalId);
+        isBroadcasting = false;
         await releaseLock();
     }
 }

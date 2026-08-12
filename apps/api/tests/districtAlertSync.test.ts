@@ -1,26 +1,34 @@
-const mockSchedule = jest.fn();
-const mockFrom = jest.fn();
-const mockLogger = {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-};
-
 jest.mock("node-cron", () => ({
-    schedule: mockSchedule,
+    schedule: jest.fn(),
 }));
 
-jest.mock("../src/db/client", () => ({
-    supabase: {
-        from: mockFrom,
-    },
-}));
+jest.mock("../src/db/client", () => {
+    const mockClient = {
+        from: jest.fn(),
+    };
+    return { supabase: mockClient };
+});
 
-jest.mock("../src/utils/logger", () => ({
-    __esModule: true,
-    default: mockLogger,
-}));
+jest.mock("../src/utils/logger", () => {
+    const ml = {
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+        debug: jest.fn(),
+    };
+    return {
+        __esModule: true,
+        default: ml,
+    };
+});
+
+import { supabase } from "../src/db/client";
+import logger from "../src/utils/logger";
+import cron from "node-cron";
+
+const mockSchedule = cron.schedule as jest.Mock;
+const mockFrom = supabase.from as jest.Mock;
+const mockLogger = logger as any;
 
 import { syncDistrictAlertTallies } from "../src/cron/districtAlertSync";
 

@@ -45,6 +45,19 @@ const PRECACHE_PAGES = [
     "/hi/offline",
     "/gu/offline",
     "/ta/offline",
+    "/bn/offline",
+    "/mr/offline",
+    "/te/offline",
+    "/ur/offline",
+    "/or/offline",
+    "/kn/offline",
+    "/pa/offline",
+    "/as/offline",
+    "/ks/offline",
+    "/kok/offline",
+    "/mai/offline",
+    "/ml/offline",
+    "/sa/offline",
     "/en/scan",
     "/hi/scan",
     "/gu/scan",
@@ -95,7 +108,7 @@ self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE_NAME).then((cache) =>
             cache.addAll(PRECACHE_PAGES).catch(() => {
-                console.log(
+                console.info(
                     "[SW] Some shell pages could not be precached; they will be cached on first visit."
                 );
             })
@@ -130,7 +143,7 @@ self.addEventListener("activate", (event) => {
                             (name.startsWith("sahidawa-") && !validCaches.has(name))
                     )
                     .map((name) => {
-                        console.log(`[SW] Deleting stale cache: ${name}`);
+                        console.info(`[SW] Deleting stale cache: ${name}`);
                         return caches.delete(name);
                     })
             )
@@ -157,6 +170,18 @@ self.addEventListener("fetch", (event) => {
         url.hostname === "tile.openstreetmap.org"
     ) {
         event.respondWith(cacheFirstWithExpiry(request, TILES_CACHE_NAME, 7 * 24 * 60 * 60 * 1000));
+        return;
+    }
+
+    // --- Cache Tesseract/OCR CDN assets for fast, offline accessibility ---
+    if (
+        url.hostname.includes("jsdelivr.net") ||
+        url.hostname.includes("unpkg.com") ||
+        url.hostname.includes("projectnaptha.com")
+    ) {
+        event.respondWith(
+            cacheFirstWithExpiry(request, STATIC_CACHE_NAME, 30 * 24 * 60 * 60 * 1000)
+        );
         return;
     }
 
@@ -293,7 +318,14 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
                 statusText: networkResponse.statusText,
                 headers,
             });
-            cache.put(request, cloned).catch(() => {});
+            cache
+                .put(request, cloned)
+                .then(() => {
+                    if (cacheName === TILES_CACHE_NAME) {
+                        limitCacheSize(TILES_CACHE_NAME, 200);
+                    }
+                })
+                .catch(() => console.warn("[SW] Failed to cache asset in cacheFirstWithExpiry"));
         }
         return networkResponse;
     } catch {
@@ -311,6 +343,24 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
 }
 
 /**
+ * Limit cache size by deleting the oldest entries in FIFO order.
+ */
+async function limitCacheSize(cacheName, maxItems) {
+    try {
+        const cache = await caches.open(cacheName);
+        const keys = await cache.keys();
+        if (keys.length > maxItems) {
+            const numberToDelete = keys.length - maxItems;
+            for (let i = 0; i < numberToDelete; i++) {
+                await cache.delete(keys[i]);
+            }
+        }
+    } catch (e) {
+        console.warn(`[SW] Failed to limit cache size for ${cacheName}`, e);
+    }
+}
+
+/**
  * Stale-While-Revalidate:
  *   1. Serve from cache immediately if available (fast).
  *   2. Fetch from network in the background and update the cache.
@@ -324,7 +374,9 @@ async function staleWhileRevalidate(request, cacheName) {
     const networkFetch = fetch(request)
         .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
-                cache.put(request, networkResponse.clone()).catch(() => {});
+                cache
+                    .put(request, networkResponse.clone())
+                    .catch(() => console.warn("[SW] Failed to cache in staleWhileRevalidate"));
             }
             return networkResponse;
         })
@@ -366,9 +418,31 @@ async function handleApiRequest(request, url, cacheName) {
 }
 
 async function fetchWithoutCache(request) {
+    const clonedRequest = ["POST", "PUT", "DELETE", "PATCH"].includes(request.method)
+        ? request.clone()
+        : null;
+
     try {
         return await fetchWithTimeout(request);
     } catch {
+        if (clonedRequest) {
+            await saveFailedRequest(clonedRequest);
+            if ("sync" in self.registration) {
+                try {
+                    await self.registration.sync.register("sahidawa-sync-mutations");
+                } catch (e) {
+                    console.warn("[SW] Sync registration failed", e);
+                }
+            }
+            return new Response(
+                JSON.stringify({
+                    error: "You are offline. Request queued for sync.",
+                    offline: true,
+                    queued: true,
+                }),
+                { status: 503, headers: { "Content-Type": "application/json" } }
+            );
+        }
         return createOfflineApiResponse();
     }
 }
@@ -424,7 +498,11 @@ async function networkFirstWithCache(request, cacheName) {
         }
 
         if (isPublicCacheableApiResponse(networkResponse)) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache
+                .put(request, networkResponse.clone())
+                .catch(() =>
+                    console.warn("[SW] Failed to cache API response in networkFirstWithCache")
+                );
         }
         return networkResponse;
     } catch {
@@ -459,7 +537,11 @@ async function navigateWithOfflineFallback(request) {
     try {
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache
+                .put(request, networkResponse.clone())
+                .catch(() =>
+                    console.warn("[SW] Failed to cache page in navigateWithOfflineFallback")
+                );
         }
         return networkResponse;
     } catch {
@@ -674,11 +756,20 @@ function checkExpiryAndNotify() {
 }
 
 // ---------------------------------------------------------------------------
-// MESSAGE — allow pages to communicate with the SW (e.g. skip waiting)
+// MESSAGE — allow pages to communicate with the SW
+//   - SKIP_WAITING: activate a newly installed worker immediately
+//   - SET_CURRENT_USER: record which user is signed in (for queue scoping)
+//   - CLEAR_SYNC_QUEUE: drop queued mutations (on sign-out)
 // ---------------------------------------------------------------------------
 self.addEventListener("message", (event) => {
     if (event.data?.type === "SKIP_WAITING") {
         self.skipWaiting();
+    }
+    if (event.data?.type === "SET_CURRENT_USER") {
+        event.waitUntil?.(setMetaValue("current-user-id", event.data.userId ?? null));
+    }
+    if (event.data?.type === "CLEAR_SYNC_QUEUE") {
+        event.waitUntil?.(clearQueuedRequests());
     }
 });
 
@@ -689,11 +780,345 @@ self.addEventListener("sync", (event) => {
     if (event.tag === "sahidawa-sync-scans") {
         event.waitUntil(notifyClientsToFlush());
     }
+    if (event.tag === "sahidawa-sync-mutations") {
+        event.waitUntil(flushMutationsQueue());
+    }
 });
 
 async function notifyClientsToFlush() {
     const clients = await self.clients.matchAll({ type: "window" });
     for (const client of clients) {
         client.postMessage({ type: "FLUSH_SYNC_QUEUE" });
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SYNC QUEUE HELPERS FOR MUTATING REQUESTS
+// ---------------------------------------------------------------------------
+function openSyncDb() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open("sahidawa-sync-db", 2);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("requests")) {
+                db.createObjectStore("requests", { keyPath: "id", autoIncrement: true });
+            }
+            if (!db.objectStoreNames.contains("meta")) {
+                db.createObjectStore("meta", { keyPath: "key" });
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => reject("Failed to open sync DB");
+    });
+}
+
+function setMetaValue(key, value) {
+    return openSyncDb()
+        .then((db) => {
+            return new Promise((resolve, reject) => {
+                if (!db.objectStoreNames.contains("meta")) {
+                    db.close();
+                    return resolve();
+                }
+                const tx = db.transaction("meta", "readwrite");
+                tx.objectStore("meta").put({ key, value });
+                tx.oncomplete = () => {
+                    db.close();
+                    resolve();
+                };
+                tx.onerror = () => {
+                    db.close();
+                    reject("Failed to write sync DB meta");
+                };
+            });
+        })
+        .catch((e) => console.error("[SW] Failed to write sync DB meta", e));
+}
+
+function getMetaValue(key) {
+    return openSyncDb()
+        .then((db) => {
+            return new Promise((resolve, reject) => {
+                if (!db.objectStoreNames.contains("meta")) {
+                    db.close();
+                    return resolve(null);
+                }
+                const tx = db.transaction("meta", "readonly");
+                const req = tx.objectStore("meta").get(key);
+                req.onsuccess = () => {
+                    db.close();
+                    resolve(req.result ? req.result.value : null);
+                };
+                req.onerror = () => {
+                    db.close();
+                    reject("Failed to read sync DB meta");
+                };
+            });
+        })
+        .catch(() => null);
+}
+
+/** The user id the page has most recently told us is signed in (or null). */
+function getCurrentUserId() {
+    return getMetaValue("current-user-id");
+}
+
+/**
+ * Derive the owning user id for a queued mutation from its Authorization
+ * bearer token (a Supabase JWT whose `sub` claim is the user id). When we
+ * later replay the stored headers verbatim, we must only do so while the same
+ * user is signed in — replaying with a stored token under a different session
+ * would submit an action as the wrong user.
+ */
+function extractUserIdFromRequest(request) {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader) return null;
+    const match = /^Bearer\s+(.+)$/i.exec(authHeader);
+    if (!match) return null;
+    try {
+        const encodedPayload = match[1].split(".")[1];
+        if (!encodedPayload) return null;
+        const base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+        const payload = JSON.parse(atob(padded));
+        return payload?.sub || payload?.user_id || payload?.user?.id || null;
+    } catch {
+        return null;
+    }
+}
+
+async function saveFailedRequest(request) {
+    try {
+        const db = await openSyncDb();
+        const headers = {};
+        for (const [key, value] of request.headers.entries()) {
+            // content-length is recomputed by fetch when the body is replayed,
+            // so drop it here to avoid desyncing from the reconstructed body.
+            if (key.toLowerCase() === "content-length") continue;
+            headers[key] = value;
+        }
+        // Persist the raw bytes (ArrayBuffer) instead of request.text(), which
+        // UTF-8-decodes the body and silently corrupts multipart uploads
+        // (medicine photos, voice recordings) so the evidence is lost on replay.
+        const body = await request.arrayBuffer();
+        const serialized = {
+            url: request.url,
+            method: request.method,
+            headers,
+            body,
+            timestamp: Date.now(),
+            // Bind this entry to the user who created it so it is never
+            // replayed under a different session. Prefer the explicit token in
+            // the request; fall back to the currently registered session user.
+            userId: extractUserIdFromRequest(request) || (await getCurrentUserId()) || null,
+        };
+
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("requests", "readwrite");
+            tx.objectStore("requests").add(serialized);
+            tx.oncomplete = () => {
+                db.close();
+                resolve();
+            };
+            tx.onerror = () => {
+                db.close();
+                reject();
+            };
+        });
+    } catch (e) {
+        console.error("[SW] Failed to save request to sync queue", e);
+    }
+}
+
+function deleteQueuedRequest(db, id) {
+    return new Promise((resolve) => {
+        const tx = db.transaction("requests", "readwrite");
+        tx.objectStore("requests").delete(id);
+        tx.oncomplete = resolve;
+    });
+}
+
+async function readErrorBody(response) {
+    try {
+        const text = await response.clone().text();
+        return text.length > 500 ? `${text.slice(0, 500)}…` : text;
+    } catch {
+        return "";
+    }
+}
+
+/**
+ * Refresh the CSRF credentials for a queued mutation and retry it once.
+ * Used when a flush hits a 401/403 (session/CSRF token expired). The worker
+ * rotates the token via /api/csrf-token, stamps it onto a copy of the queued
+ * request's headers, and re-sends the mutation. Returns { ok } on success, or
+ * { ok: false, status, error } if the retry still failed.
+ */
+async function refreshCredentialsAndRetry(reqData) {
+    try {
+        const csrfResponse = await fetch("/api/csrf-token", {
+            method: "GET",
+            credentials: "include",
+        });
+        if (!csrfResponse.ok) {
+            return {
+                ok: false,
+                status: csrfResponse.status,
+                error: await readErrorBody(csrfResponse),
+            };
+        }
+        const payload = await csrfResponse.json();
+        const token = payload?.csrfToken || payload?.csrf_token;
+        if (!token) {
+            return { ok: false, status: 403, error: "No CSRF token returned by server" };
+        }
+
+        const headers = { ...reqData.headers };
+        headers["x-csrf-token"] = token;
+
+        const retryResponse = await fetch(reqData.url, {
+            method: reqData.method,
+            headers,
+            body: reqData.method !== "GET" && reqData.method !== "HEAD" ? reqData.body : undefined,
+        });
+
+        if (retryResponse.ok) {
+            return { ok: true };
+        }
+        return {
+            ok: false,
+            status: retryResponse.status,
+            error: await readErrorBody(retryResponse),
+        };
+    } catch {
+        return { ok: false, status: 401, error: "" };
+    }
+}
+
+async function flushMutationsQueue() {
+    try {
+        const db = await openSyncDb();
+        const requests = await new Promise((resolve, reject) => {
+            const tx = db.transaction("requests", "readonly");
+            const req = tx.objectStore("requests").getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject();
+        });
+
+        if (!requests || requests.length === 0) {
+            db.close();
+            return;
+        }
+
+        const rejected = [];
+        let flushedAny = false;
+        let authFailure = false;
+
+        // User-scoping guard: a mutation bound to a specific user must only be
+        // replayed while that same user is authenticated. Never replay queued
+        // actions under a different session (or under login as another user),
+        // because the stored headers carry credentials for the original owner.
+        const currentUserId = await getCurrentUserId();
+
+        for (const reqData of requests) {
+            if (reqData.userId && currentUserId !== reqData.userId) {
+                console.warn(
+                    "[SW] Skipping queued mutation owned by a different user (current session mismatch)"
+                );
+                continue;
+            }
+            try {
+                const response = await fetch(reqData.url, {
+                    method: reqData.method,
+                    headers: reqData.headers,
+                    body:
+                        reqData.method !== "GET" && reqData.method !== "HEAD"
+                            ? reqData.body
+                            : undefined,
+                });
+
+                // Only a confirmed successful response may remove the queued action.
+                // A 401/403/409/422/5xx must NEVER be treated as "synced" — dropping
+                // the entry would silently destroy a counterfeiter report or
+                // medication action the user believed was safely queued.
+                if (response.ok) {
+                    await deleteQueuedRequest(db, reqData.id);
+                    flushedAny = true;
+                    continue;
+                }
+
+                // Authentication/CSRF failure — refresh credentials and retry once.
+                if (response.status === 401 || response.status === 403) {
+                    const recovery = await refreshCredentialsAndRetry(reqData);
+                    if (recovery.ok) {
+                        await deleteQueuedRequest(db, reqData.id);
+                        flushedAny = true;
+                        continue;
+                    }
+                    authFailure = true;
+                    rejected.push({
+                        id: reqData.id,
+                        status: recovery.status,
+                        url: reqData.url,
+                        method: reqData.method,
+                        authFailure: true,
+                        error: recovery.error || "",
+                    });
+                    continue;
+                }
+
+                // Validation / conflict / server errors — keep the entry queued and
+                // surface it so the user can retry, edit, or discard. Never lose data.
+                rejected.push({
+                    id: reqData.id,
+                    status: response.status,
+                    url: reqData.url,
+                    method: reqData.method,
+                    authFailure: false,
+                    error: await readErrorBody(response),
+                });
+            } catch (e) {
+                // Network failure (still offline) — leave the entry queued for a
+                // later sync. Each queued request is independent, so keep going.
+                console.warn("[SW] Sync flush fetch failed (still offline?)", e);
+            }
+        }
+        db.close();
+
+        // Ask open clients to refresh their in-memory CSRF token/session so the
+        // next real request (or manual retry) uses fresh credentials.
+        if (authFailure) {
+            notifyClientsCsrfRefresh();
+        }
+        const clients = await self.clients.matchAll({ type: "window" });
+        for (const client of clients) {
+            if (flushedAny) {
+                client.postMessage({ type: "SYNC_QUEUE_FLUSHED" });
+            }
+            client.postMessage({ type: "SYNC_QUEUE_REJECTED", entries: rejected });
+        }
+    } catch (e) {
+        console.error("[SW] Sync flush error", e);
+    }
+}
+
+/** Drop every queued mutation (used when the user signs out). */
+async function clearQueuedRequests() {
+    try {
+        const db = await openSyncDb();
+        if (!db.objectStoreNames.contains("requests")) {
+            db.close();
+            return;
+        }
+        await new Promise((resolve) => {
+            const tx = db.transaction("requests", "readwrite");
+            tx.objectStore("requests").clear();
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+        });
+        db.close();
+        console.log("[SW] Cleared queued mutations after sign-out");
+    } catch (e) {
+        console.error("[SW] Failed to clear queued mutations", e);
     }
 }

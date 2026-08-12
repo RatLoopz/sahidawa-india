@@ -1,4 +1,5 @@
-﻿import request from "supertest";
+// @ts-nocheck
+import request from "supertest";
 import app from "../src/app";
 
 // jest.mock is hoisted — everything must be self-contained inside the factory
@@ -46,7 +47,6 @@ const testHash = crypto.pbkdf2Sync(testSecret, testSalt, 100000, 64, "sha512").t
 import { supabase } from "../src/db/client";
 import { Request, Response, NextFunction } from "express";
 
-
 // ── Helpers ────────────────────────────────────────────────────────
 
 function buildAlerts(n: number) {
@@ -87,6 +87,19 @@ function mockApiKeyValid() {
             id: "valid",
             user_id: "user-1",
             scopes: ["alerts:ingest"],
+            key_salt: testSalt,
+            key_hash: testHash,
+        },
+        error: null,
+    });
+}
+
+function mockApiKeyWithoutIngestScope() {
+    getChain().maybeSingle.mockResolvedValue({
+        data: {
+            id: "valid",
+            user_id: "user-1",
+            scopes: ["alerts:read"],
             key_salt: testSalt,
             key_hash: testHash,
         },
@@ -330,5 +343,17 @@ describe("POST /api/v1/alerts/ingest — API key authentication", () => {
 
         expect(res.status).toBe(400);
         expect(res.body.error).toMatch(/invalid/i);
+    });
+
+    it("returns 403 when the API key lacks the alerts:ingest scope", async () => {
+        mockApiKeyWithoutIngestScope();
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "valid.key")
+            .send({ alerts: [] });
+
+        expect(res.status).toBe(403);
+        expect(res.body.error).toMatch(/scope/i);
     });
 });

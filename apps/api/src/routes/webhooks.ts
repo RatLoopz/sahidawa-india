@@ -7,6 +7,32 @@ import { invalidateCacheByPattern } from "../services/cache.service";
 
 const router = Router();
 
+/** Log IP + header names only — never Authorization values or raw header maps. */
+function unauthorizedWebhookMeta(req: Request) {
+    return {
+        ip: req.ip,
+        headerNames: Object.keys(req.headers).map((name) => name.toLowerCase()),
+    };
+}
+
+/** Shared Bearer secret check for all webhook routes. Returns false after sending 401. */
+function assertWebhookAuth(req: Request, res: Response, routePath: string): boolean {
+    const secret = process.env.SUPABASE_WEBHOOK_SECRET;
+    const authHeader = req.headers["authorization"];
+    const isValid =
+        typeof secret === "string" &&
+        typeof authHeader === "string" &&
+        safeCompare(authHeader, `Bearer ${secret}`);
+
+    if (isValid) {
+        return true;
+    }
+
+    logger.warn(`Unauthorized webhook attempt on ${routePath}`, unauthorizedWebhookMeta(req));
+    res.status(401).json({ error: "Unauthorized" });
+    return false;
+}
+
 /**
  * POST /api/webhooks/supabase/health-schemes
  *
@@ -19,21 +45,7 @@ router.post(
     "/supabase/health-schemes",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        // Verify secret token using a timing-safe comparison
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/health-schemes", {
-                ip: req.ip,
-                headers: req.headers,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/health-schemes")) {
             return;
         }
 
@@ -80,21 +92,7 @@ router.post(
     "/supabase/medicines",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        // Verify secret token using a timing-safe comparison
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/medicines", {
-                ip: req.ip,
-                headers: req.headers,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/medicines")) {
             return;
         }
 
@@ -107,9 +105,12 @@ router.post(
 
             const payload = req.body;
             const record = payload.record || payload.old_record || {};
+            const oldRecord = payload.old_record || {};
             const batchNumber = record.batch_number;
             const brandName = record.brand_name;
             const genericName = record.generic_name;
+            const oldBrandName = oldRecord.brand_name;
+            const oldGenericName = oldRecord.generic_name;
 
             const keysToDelete: string[] = [];
 
@@ -128,7 +129,28 @@ router.post(
                 keysToDelete.push(`medicine:voice:${normalizedGeneric}`);
             }
 
-            // 3. Perform deletion if keys exist
+            // 3. Invalidate verify-brand cache for the old and new brand names and the
+            //    old and new generic names (renames leave old-name keys behind).
+            for (const name of [brandName, oldBrandName]) {
+                if (name) {
+                    keysToDelete.push(`brand_cache:${name.trim().toLowerCase()}`);
+                }
+            }
+            for (const name of [genericName, oldGenericName]) {
+                if (name) {
+                    keysToDelete.push(`brand_cache:${name.trim().toLowerCase()}`);
+                }
+            }
+
+            // Transitions in either field that feeds the computed `verified` verdict
+            // (is_cdsco_verified && !is_counterfeit_alert) can stale verify-brand cache
+            // entries keyed by any user-supplied substring (e.g. "dolo"), which exact-name
+            // deletion above cannot enumerate — sweep the whole namespace on that rare event.
+            if (verificationStatusChanged(oldRecord, record)) {
+                await invalidateCacheByPattern("brand_cache:*");
+            }
+
+            // 4. Perform deletion if keys exist
             const uniqueKeys = Array.from(new Set(keysToDelete));
             if (uniqueKeys.length > 0) {
                 await redisClient.del(uniqueKeys);
@@ -150,6 +172,24 @@ router.post(
         }
     }
 );
+
+/**
+ * Whether the computed `verified` verdict could have changed between the old and
+ * new medicine records. The verdict derives from both `is_cdsco_verified` and
+ * `is_counterfeit_alert`, so a transition in either field can flip it for any
+ * user-supplied substring cache key that exact-name deletion cannot enumerate.
+ */
+function verificationStatusChanged(
+    oldRecord: Record<string, unknown>,
+    record: Record<string, unknown>
+): boolean {
+    const flipped = (before: unknown, after: unknown): boolean =>
+        before !== undefined && after !== undefined && Boolean(before) !== Boolean(after);
+    return (
+        flipped(oldRecord.is_counterfeit_alert, record.is_counterfeit_alert) ||
+        flipped(oldRecord.is_cdsco_verified, record.is_cdsco_verified)
+    );
+}
 
 /**
  * Helper to execute cache invalidation out-of-band/non-blocking
@@ -192,18 +232,7 @@ router.post(
     "/supabase/pharmacies",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/pharmacies")) {
             return;
         }
 
@@ -224,18 +253,7 @@ router.post(
     "/supabase/reports",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/reports", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/reports")) {
             return;
         }
 
@@ -255,18 +273,7 @@ router.post(
     "/supabase/users",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/users", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/supabase/users")) {
             return;
         }
 
@@ -292,19 +299,7 @@ router.post(
     "/etl/medicines-updated",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
-        const authHeader = req.headers["authorization"];
-
-        const isValid =
-            typeof secret === "string" &&
-            typeof authHeader === "string" &&
-            safeCompare(authHeader, `Bearer ${secret}`);
-
-        if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/etl/medicines-updated", {
-                ip: req.ip,
-            });
-            res.status(401).json({ error: "Unauthorized" });
+        if (!assertWebhookAuth(req, res, "/api/webhooks/etl/medicines-updated")) {
             return;
         }
 

@@ -6,7 +6,7 @@ export type { ABHALinkResponse, ABHAPrescription, ABHAVerificationData };
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
 export interface ABHAVerifyResponse {
-    token: string;
+    linked: true;
 }
 
 export interface ABHAUploadResponse {

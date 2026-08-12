@@ -38,6 +38,7 @@ class WishlistMergeUnavailableError extends Error {
 }
 
 export async function mergeGuestWishlist(
+    client: any,
     userId: string,
     guestProductIds: string[]
 ): Promise<string[]> {
@@ -46,7 +47,7 @@ export async function mergeGuestWishlist(
     }
 
     try {
-        const { data: existingWishlist, error: fetchError } = await supabase
+        const { data: existingWishlist, error: fetchError } = await client
             .from("wishlists")
             .select("product_id")
             .eq("user_id", userId);
@@ -65,7 +66,7 @@ export async function mergeGuestWishlist(
         if (newProductIds.length === 0) {
             return [];
         }
-        const { data: existingMedicines, error: medicineLookupError } = await supabase
+        const { data: existingMedicines, error: medicineLookupError } = await client
             .from("medicines")
             .select("id")
             .in("id", newProductIds);
@@ -91,7 +92,7 @@ export async function mergeGuestWishlist(
             product_id,
         }));
 
-        const { data: inserted, error: insertError } = await supabase
+        const { data: inserted, error: insertError } = await client
             .from("wishlists")
             .insert(insertData)
             .select("product_id");
@@ -128,7 +129,7 @@ router.post(
             return;
         }
 
-        if (!req.user) {
+        if (!req.user || !req.supabase) {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -136,7 +137,24 @@ router.post(
         try {
             const { product_id } = parsed.data;
 
-            const { data: existing, error: checkError } = await supabase
+            // Validate that the medicine actually exists
+            const { data: medicineData, error: medError } = await req.supabase
+                .from("medicines")
+                .select("id")
+                .eq("id", product_id)
+                .maybeSingle();
+
+            if (medError) {
+                next(medError);
+                return;
+            }
+
+            if (!medicineData) {
+                res.status(404).json({ error: "Medicine not found" });
+                return;
+            }
+
+            const { data: existing, error: checkError } = await req.supabase
                 .from("wishlists")
                 .select("id")
                 .eq("user_id", req.user.id)
@@ -153,7 +171,7 @@ router.post(
                 return;
             }
 
-            const { data: wishlistItem, error: insertError } = await supabase
+            const { data: wishlistItem, error: insertError } = await req.supabase
                 .from("wishlists")
                 .insert({
                     user_id: req.user.id,
@@ -189,7 +207,7 @@ router.delete(
             return;
         }
 
-        if (!req.user) {
+        if (!req.user || !req.supabase) {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -197,7 +215,7 @@ router.delete(
         try {
             const { productId } = req.params;
 
-            const { error: deleteError } = await supabase
+            const { error: deleteError } = await req.supabase
                 .from("wishlists")
                 .delete()
                 .eq("user_id", req.user.id)
@@ -224,26 +242,53 @@ router.get(
     requireAuth,
     limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        if (!req.user) {
+        if (!req.user || !req.supabase) {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
 
+        let page = parseInt(req.query.page as string, 10);
+        let limit = parseInt(req.query.limit as string, 10);
+
+        if (isNaN(page) || page <= 0) {
+            page = 1;
+        }
+        if (isNaN(limit) || limit <= 0) {
+            limit = 20;
+        }
+        if (limit > 100) {
+            limit = 100;
+        }
+
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
         try {
-            const { data: wishlistItems, error: fetchError } = await supabase
+            const {
+                data: wishlistItems,
+                error: fetchError,
+                count,
+            } = await req.supabase
                 .from("wishlists")
-                .select("id, product_id, created_at")
+                .select("id, product_id, created_at", { count: "exact" })
                 .eq("user_id", req.user.id)
-                .order("created_at", { ascending: false });
+                .order("created_at", { ascending: false })
+                .range(from, to);
 
             if (fetchError) {
                 next(fetchError);
                 return;
             }
 
+            const totalCount = count || 0;
+            const totalPages = Math.ceil(totalCount / limit);
+
             res.json({
                 success: true,
-                count: (wishlistItems || []).length,
+                page,
+                limit,
+                count: totalCount,
+                totalPages,
                 items: wishlistItems || [],
             });
         } catch (err) {
@@ -271,14 +316,14 @@ router.post(
             return;
         }
 
-        if (!req.user) {
+        if (!req.user || !req.supabase) {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
 
         try {
             const { product_ids } = parsed.data;
-            const mergedIds = await mergeGuestWishlist(req.user.id, product_ids);
+            const mergedIds = await mergeGuestWishlist(req.supabase, req.user.id, product_ids);
 
             res.json({
                 success: true,
@@ -318,7 +363,7 @@ router.post(
             return;
         }
 
-        if (!req.user) {
+        if (!req.user || !req.supabase) {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -326,7 +371,7 @@ router.post(
         try {
             const { product_ids } = parsed.data;
 
-            const { data: wishlistItems, error: fetchError } = await supabase
+            const { data: wishlistItems, error: fetchError } = await req.supabase
                 .from("wishlists")
                 .select("product_id")
                 .eq("user_id", req.user.id)

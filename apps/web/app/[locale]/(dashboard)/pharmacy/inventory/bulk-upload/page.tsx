@@ -148,19 +148,14 @@ export default function BulkUploadPage() {
                                         errors: data.errors,
                                     });
                                 }
-                            } catch (parseErr: any) {
-                                if (
-                                    parseErr.message !== "Unexpected end of JSON input" &&
-                                    !parseErr.message.includes("JSON")
-                                ) {
-                                    throw parseErr;
-                                }
+                            } catch (parseErr: unknown) {
+                                throw parseErr;
                             }
                         }
                     }
                 }
-            } catch (err: any) {
-                setApiError(err.message || "An unexpected error occurred.");
+            } catch (err: unknown) {
+                setApiError(err instanceof Error ? err.message : "An unexpected error occurred.");
             } finally {
                 setIsLoading(false);
                 setProgressStats(null);

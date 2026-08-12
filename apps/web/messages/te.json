@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "మీ ఆరోగ్యం, ధృవీకరించబడింది మరియు రక్షించబడింది.",
         "subtitle": "మందుల అసలుదనాన్ని వెంటనే ధృవీకరించడానికి, సురక్షిత ఫార్మసీలను కనుగొనడానికి మరియు ముఖ్యమైన ఆరోగ్య హెచ్చరికలను పొందడానికి భారతదేశపు ఓపెన్-సోర్స్ పౌర వేదిక.",
         "scan_button": "మందును స్కాన్ చేయండి",
@@ -319,6 +321,15 @@
         "description": "ప్రస్తుతం మీకు ఇంటర్నెట్ కనెక్షన్ లేదు.",
         "subtitle": "ఆఫ్‌లైన్‌లో ఉన్నప్పుడు కొన్ని ఫీచర్లు అందుబాటులో ఉండవు. ఇంటర్నెట్‌కు కనెక్ట్ కావడానికి ప్రయత్నించండి లేదా కాష్ చేసిన కంటెంట్‌ను బ్రౌజ్ చేయండి.",
         "tryAgain": "మళ్లీ ప్రయత్నించండి",
+
+        "syncFailedTitle": "క్యూలో ఉన్న చర్యలు తిరస్కరించబడ్డాయి",
+
+        "syncFailedDescription": "సర్వర్ కొన్ని క్యూ చర్యలను తిరస్కరించింది. మళ్లీ కనెక్ట్ అయిన తర్వాత మళ్లీ ప్రయత్నించండి లేదా వాటిని తొలగించండి.",
+
+        "syncRetry": "అన్నీ మళ్లీ ప్రయత్నించండి",
+
+        "syncDiscard": "తొలగించు",
+
         "goHome": "హోమ్‌కు వెళ్లండి",
         "footer": "కనెక్షన్ తిరిగి వచ్చినప్పుడు SahiDawa స్వయంచాలకంగా సమకాలీకరిస్తుంది.",
         "cachedContent": "మీరు ఇప్పటికీ మునుపు లోడ్ చేసిన కంటెంట్‌ను యాక్సెస్ చేయవచ్చు",
@@ -1422,7 +1433,9 @@
         "abhaSetup": "ABHA సెటప్",
         "abhaRecords": "ABHA రికార్డులు",
         "notificationSettings": "నోటిఫికేషన్ సెట్టింగ్‌లు",
-        "privacySecurity": "గోప్యత మరియు భద్రత"
+        "privacySecurity": "గోప్యత మరియు భద్రత",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1727,6 +1740,8 @@
         "no_search_results": "మీ శోధనకు సరిపోలే మందులు లేవు.",
         "item_status_label": "స్థితి:",
         "item_delete_button": "తొలగించు",
+        "sync_auth_title": "మీ చరిత్రను సింక్ చేయడానికి సైన్ ఇన్ చేయండి",
+        "sync_auth_action": "సైన్ ఇన్",
         "item_copy_success": "ఔషధం పేరు కాపీ చేయబడింది!"
     },
     "MyReports": {

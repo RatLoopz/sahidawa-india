@@ -79,4 +79,16 @@ export function getPhoneCountryCode(
         return null;
     }
 }
+export function maskPhone(phone: string | null | undefined): string {
+    if (!phone) return "null";
+    const str = String(phone);
+    if (str.length <= 6) return "****";
+    const prefixLen = str.startsWith("+") ? 3 : 2;
+    return (
+        str.slice(0, prefixLen) +
+        "*".repeat(Math.max(1, str.length - prefixLen - 4)) +
+        str.slice(-4)
+    );
+}
+
 ("# Trigger rebuild");

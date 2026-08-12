@@ -1,36 +1,36 @@
-const mockSupabase = {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    or: jest.fn().mockReturnThis(),
-    in: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    ilike: jest.fn().mockReturnThis(),
-    maybeSingle: jest.fn(),
-};
-
-const mockRedis = {
-    isOpen: true,
-    get: jest.fn(),
-    set: jest.fn().mockResolvedValue("OK"),
-    del: jest.fn().mockResolvedValue(1),
-    incr: jest.fn().mockResolvedValue(1),
-    zIncrBy: jest.fn().mockResolvedValue(1),
-    zRangeWithScores: jest.fn(),
-    expire: jest.fn().mockResolvedValue(true),
-    connect: jest.fn().mockResolvedValue(true),
-    on: jest.fn(),
-};
-
+// @ts-nocheck
 jest.mock("../src/db/client", () => ({
-    supabase: mockSupabase,
+    supabase: {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        ilike: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn(),
+    },
 }));
 
 jest.mock("../src/utils/redis", () => ({
-    redisClient: mockRedis,
+    redisClient: {
+        isOpen: true,
+        get: jest.fn(),
+        set: jest.fn().mockResolvedValue("OK"),
+        del: jest.fn().mockResolvedValue(1),
+        incr: jest.fn().mockResolvedValue(1),
+        zIncrBy: jest.fn().mockResolvedValue(1),
+        zRangeWithScores: jest.fn(),
+        expire: jest.fn().mockResolvedValue(true),
+        connect: jest.fn().mockResolvedValue(true),
+        on: jest.fn(),
+        scanIterator: jest.fn(),
+    },
     connectRedis: jest.fn(),
 }));
 
+import { supabase } from "../src/db/client";
+import { redisClient } from "../src/utils/redis";
 import {
     warmCache,
     getTTLForDrug,
@@ -44,6 +44,9 @@ import {
     HIT_THRESHOLDS,
 } from "../src/services/cache.service";
 import { lookupDrugByBatch } from "../src/services/drugLookup.service";
+
+const mockSupabase = supabase as any;
+const mockRedis = redisClient as any;
 
 describe("Redis Caching and Drug Lookup Services", () => {
     beforeEach(() => {
@@ -180,18 +183,40 @@ describe("Redis Caching and Drug Lookup Services", () => {
     });
 
     describe("invalidateDrugCache", () => {
-        it("should resolve drug IDs to batch numbers and delete cache keys", async () => {
+        it("should resolve drug IDs to batch numbers and delete cache keys using pattern matching", async () => {
             const mockData = [{ batch_number: "BATCH-1" }, { batch_number: "BATCH-2" }];
 
             mockSupabase.in.mockReturnThis();
             mockSupabase.limit.mockResolvedValueOnce({ data: mockData, error: null });
 
-            await invalidateDrugCache(["med-1", "med-2"]);
+            // Mock scanIterator to return composite keys for each batch
+            mockRedis.scanIterator
+                .mockImplementationOnce(function* () {
+                    yield ["drug:batch:BATCH-1", "drug:batch:BATCH-1|barcode1|Brand1"];
+                })
+                .mockImplementationOnce(function* () {
+                    yield ["drug:batch:BATCH-2", "drug:batch:BATCH-2|barcode2|Brand2"];
+                });
+
+            const deletedKeys = await invalidateDrugCache(["med-1", "med-2"]);
 
             expect(mockSupabase.from).toHaveBeenCalledWith("medicines");
-            expect(mockRedis.del).toHaveBeenCalledWith([
+            // Verify scanIterator was called with correct patterns
+            expect(mockRedis.scanIterator).toHaveBeenCalledTimes(2);
+            expect(mockRedis.scanIterator).toHaveBeenNthCalledWith(1, {
+                MATCH: "drug:batch:BATCH-1*",
+                COUNT: 100,
+            });
+            expect(mockRedis.scanIterator).toHaveBeenNthCalledWith(2, {
+                MATCH: "drug:batch:BATCH-2*",
+                COUNT: 100,
+            });
+            // Verify all keys were deleted
+            expect(deletedKeys).toEqual([
                 "drug:batch:BATCH-1",
+                "drug:batch:BATCH-1|barcode1|Brand1",
                 "drug:batch:BATCH-2",
+                "drug:batch:BATCH-2|barcode2|Brand2",
             ]);
         });
     });

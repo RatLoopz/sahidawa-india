@@ -17,6 +17,10 @@ const ABDM_PUBLIC_CERTIFICATE_PATH = "/v3/profile/public/certificate";
 // have rotated its key.
 let cachedAbdmPublicKey: string | null = null;
 
+export const resetAbdmPublicKeyCache = (): void => {
+    cachedAbdmPublicKey = null;
+};
+
 interface AbdmSessionResponse {
     accessToken?: string;
 }
@@ -64,7 +68,7 @@ export const verifyOTP = async (
     abhaAddress: string,
     txnId: string,
     otp: string
-): Promise<{ token: string }> => {
+): Promise<{ linked: true }> => {
     logger.info("ABHA OTP verification requested", {
         userId,
         txnId,
@@ -123,8 +127,10 @@ export const verifyOTP = async (
         status: "SUCCESS",
     });
 
+    // Keep the ABDM bearer server-side only (encrypted at rest). Returning it
+    // to the browser lets XSS/devtools exfiltrate health-record credentials.
     return {
-        token,
+        linked: true,
     };
 };
 
@@ -311,13 +317,17 @@ export function encryptToken(
     token: string,
     secret?: string
 ): { encryptedToken: string; iv: string; salt: string } {
-    const iv = crypto.randomBytes(16);
+    const iv = crypto.randomBytes(12);
     const salt = crypto.randomBytes(16);
-    const key = crypto.scryptSync(secret || getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), salt, 32);
-    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-    let encryptedToken = cipher.update(token, "utf8", "hex");
-    encryptedToken += cipher.final("hex");
-    return { encryptedToken, iv: iv.toString("hex"), salt: salt.toString("hex") };
+    const key = crypto.scryptSync(resolveTokenEncryptionSecret(secret), salt, 32);
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+    const encrypted = Buffer.concat([cipher.update(token, "utf8"), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return {
+        encryptedToken: `gcm:${Buffer.concat([encrypted, tag]).toString("hex")}`,
+        iv: iv.toString("hex"),
+        salt: salt.toString("hex"),
+    };
 }
 
 export function decryptToken(
@@ -326,13 +336,63 @@ export function decryptToken(
     saltHex: string,
     secret?: string
 ): string {
+    if (encryptedToken.startsWith("gcm:")) {
+        return decryptTokenGcm(encryptedToken.slice(4), ivHex, saltHex, secret);
+    }
+
+    // Legacy CBC records written before authenticated encryption.
+    return decryptTokenCbc(encryptedToken, ivHex, saltHex, secret);
+}
+
+function decryptTokenGcm(
+    ciphertextHex: string,
+    ivHex: string,
+    saltHex: string,
+    secret?: string
+): string {
+    const payload = Buffer.from(ciphertextHex, "hex");
+    if (payload.length <= 16) {
+        throw new Error("Invalid GCM ciphertext");
+    }
+
+    const encrypted = payload.subarray(0, payload.length - 16);
+    const tag = payload.subarray(payload.length - 16);
     const iv = Buffer.from(ivHex, "hex");
     const salt = Buffer.from(saltHex, "hex");
-    const key = crypto.scryptSync(secret || getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), salt, 32);
+    const key = crypto.scryptSync(resolveTokenEncryptionSecret(secret), salt, 32);
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(tag);
+    return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
+}
+
+function decryptTokenCbc(
+    encryptedToken: string,
+    ivHex: string,
+    saltHex: string,
+    secret?: string
+): string {
+    const iv = Buffer.from(ivHex, "hex");
+    const salt = Buffer.from(saltHex, "hex");
+    const key = crypto.scryptSync(resolveTokenEncryptionSecret(secret), salt, 32);
     const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
     let decrypted = decipher.update(encryptedToken, "hex", "utf8");
     decrypted += decipher.final("utf8");
     return decrypted;
+}
+
+function resolveTokenEncryptionSecret(secret?: string): string {
+    if (secret?.trim()) {
+        return secret.trim();
+    }
+
+    const dedicated = process.env.ABHA_TOKEN_ENCRYPTION_KEY?.trim();
+    if (dedicated) {
+        return dedicated;
+    }
+
+    // Fall back to the ABDM client secret only when a dedicated key is unset
+    // (local/dev). Production should set ABHA_TOKEN_ENCRYPTION_KEY.
+    return getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET");
 }
 
 const isMappedAbdmError = (message: string): boolean =>

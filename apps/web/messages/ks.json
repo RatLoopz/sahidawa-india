@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "تُہند صحت، تصدیق شُدہ تہِ مَحمُوظ۔",
         "subtitle": "ہندوستانُک اکھ اوپن سورس شَہَری پلیٹ فارم دَواہَن ہِنٛز اَصلیَت سُرَعژ سان چاک کَرنہِ، مَحفُوظ میڈیکل سٹور لبنہِ، تہِ اَہَم طبی اِطلاع اِنتھ پاوَنہِ خاطِر۔",
         "scan_button": "دَوا سکین کَریو",
@@ -360,6 +362,15 @@
         "description": "تُہنٛد اِنٹرنیٹ رابطہِ چُھنہِ وَعکِے چَلان۔",
         "subtitle": "آف لائن مَنٛز چِھ کینٛہ خُصوصِیَت بَنٛد۔ اِنٹرنیٹ سٲتؠ جوڑِیو یا کَیش مَواد وُچھِیو۔",
         "tryAgain": "دوبارہ کوشِش کَریو",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "ہوم پؠٹھ گَژھیو",
         "footer": "صحیح دَوا کَری اِنٹرنیٹ واپس یِنہِ پَتہِ خودکار ہَم آہَنٛگ۔",
         "cachedContent": "تُہؠ ہیکِیو پُرون لوڈ کَردَہ مَواد وُچھِتھ",
@@ -1367,7 +1378,9 @@
         "abhaSetup": "ABHA سیٹ اپ",
         "abhaRecords": "ABHA ریکارڈ",
         "notificationSettings": "اطلاعی ترتیٖباں",
-        "privacySecurity": "رازداری تہٕ حفاظت"
+        "privacySecurity": "رازداری تہٕ حفاظت",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1672,6 +1685,8 @@
         "no_search_results": "کوئی دوا آپ کی تلاش سے مماثل نہیں ہے۔",
         "item_status_label": "حیثیت:",
         "item_delete_button": "حذف کریں۔",
+        "sync_auth_title": "سائن اِن کٔریو تاہِ ہیٚتھہٕچ ہسٹری سِنک کٔرِو",
+        "sync_auth_action": "سائن اِن",
         "item_copy_success": "دوا کا نام نقل کیا گیا!"
     },
     "MyReports": {

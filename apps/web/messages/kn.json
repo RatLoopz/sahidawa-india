@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "ನಿಮ್ಮ ಆರೋಗ್ಯ, ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು ರಕ್ಷಿಸಲಾಗಿದೆ.",
         "subtitle": "ಔಷಧದ ನಿಜತ್ವವನ್ನು ತಕ್ಷಣವೇ ಪರಿಶೀಲಿಸಲು, ಸುರಕ್ಷಿತ ಔಷಧಾಲಯಗಳನ್ನು ಹುಡುಕಲು ಮತ್ತು ಮಹತ್ವದ ಆರೋಗ್ಯ ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪಡೆಯಲು ಭಾರತದ ಮುಕ್ತ-ಮೂಲ ನಾಗರಿಕ ವೇದಿಕೆ.",
         "scan_button": "ಔಷಧ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
@@ -319,6 +321,15 @@
         "description": "ಈಗ ನಿಮಗೆ ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಇಲ್ಲ.",
         "subtitle": "ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕೆಲವು ವೈಶಿಷ್ಟ್ಯಗಳು ಲಭ್ಯವಿಲ್ಲ. ಇಂಟರ್ನೆಟ್‌ಗೆ ಸಂಪರ್ಕಿಸಲು ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಕ್ಯಾಶ್ ಮಾಡಿದ ವಿಷಯ ನೋಡಿ.",
         "tryAgain": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+
+        "syncFailedTitle": "ಕ್ಯೂನಲ್ಲಿರುವ ಕ್ರಿಯೆಗಳನ್ನು ತಿರಸ್ಕರಿಸಲಾಗಿದೆ",
+
+        "syncFailedDescription": "ಸರ್ವರ್ ಕೆಲವು ಕ್ಯೂ ಕ್ರಿಯೆಗಳನ್ನು ತಿರಸ್ಕರಿಸಿದೆ. ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಅವುಗಳನ್ನು ತೆಗೆದುಹಾಕಿ.",
+
+        "syncRetry": "ಎಲ್ಲವನ್ನೂ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+
+        "syncDiscard": "ತೆಗೆದುಹಾಕಿ",
+
         "goHome": "ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ",
         "footer": "ನಿಮ್ಮ ಸಂಪರ್ಕ ಮರಳಿದಾಗ SahiDawa ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಿಂಕ್ ಆಗುತ್ತದೆ.",
         "cachedContent": "ಹಿಂದೆ ಲೋಡ್ ಮಾಡಿದ ವಿಷಯವನ್ನು ನೀವು ಇನ್ನೂ ಪ್ರವೇಶಿಸಬಹುದು",
@@ -1422,7 +1433,9 @@
         "abhaSetup": "ABHA ಸೆಟಪ್",
         "abhaRecords": "ABHA ದಾಖಲೆಗಳು",
         "notificationSettings": "ಅಧಿಸೂಚನೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-        "privacySecurity": "ಗೌಪ್ಯತೆ ಮತ್ತು ಭದ್ರತೆ"
+        "privacySecurity": "ಗೌಪ್ಯತೆ ಮತ್ತು ಭದ್ರತೆ",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1727,6 +1740,8 @@
         "no_search_results": "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಔಷಧಿಗಳು ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ.",
         "item_status_label": "ಸ್ಥಿತಿ:",
         "item_delete_button": "ಅಳಿಸಿ",
+        "sync_auth_title": "ನಿಮ್ಮ ಇತಿಹಾಸವನ್ನು ಸಿಂಕ್ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+        "sync_auth_action": "ಸೈನ್ ಇನ್",
         "item_copy_success": "ಔಷಧದ ಹೆಸರನ್ನು ನಕಲಿಸಲಾಗಿದೆ!"
     },
     "MyReports": {

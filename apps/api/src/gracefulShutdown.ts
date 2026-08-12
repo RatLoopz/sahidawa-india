@@ -80,15 +80,9 @@ export function createGracefulShutdown(server: Server, options: ShutdownOptions 
         }
 
         isShuttingDown = true;
-        logger.error("Unhandled Rejection detected", {
+        logger.error(`${reason} detected. Starting graceful shutdown.`, {
             reason,
-            error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
-        });
-        logger.error(`${reason} detected. Starting graceful shutdown. Reason:`, {
-            reason,
-            error,
-            ...(error !== undefined ? { details: getErrorDetails(error) } : {}),
+            error: error !== undefined ? getErrorDetails(error) : undefined,
         });
 
         const timeout = setTimeout(() => {
@@ -101,7 +95,7 @@ export function createGracefulShutdown(server: Server, options: ShutdownOptions 
         timeout.unref();
 
         try {
-            jobScheduler.shutdown();
+            await jobScheduler.shutdown();
             logger.info("Background jobs stopped during graceful shutdown", { reason });
 
             await closeServer(server);

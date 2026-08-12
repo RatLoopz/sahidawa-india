@@ -3,7 +3,11 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { logAdminAction } from "../services/audit.service";
 import { AuthenticatedRequest } from "../middleware/auth";
-import { triggerRecallAlert, sendNotificationToUser, buildVerificationReviewPayload } from "../services/notifications";
+import {
+    triggerRecallAlert,
+    sendNotificationToUser,
+    buildVerificationReviewPayload,
+} from "../services/notifications";
 import logger from "../utils/logger";
 
 const reportStatusSchema = z
@@ -240,6 +244,44 @@ export const updateReportStatus = async (
                             source: "SahiDawa Citizen Reports",
                             recalledAt: new Date().toISOString(),
                         });
+
+                        // Broadcast to active WebSocket clients via Supabase Realtime
+                        // Safely handle tests where channel might not be mocked
+                        const channel = supabase.channel?.("public:outbreaks");
+
+                        // Safely parse lat/lng from report_location if it's a WKT POINT string
+                        // Supabase typically returns PostGIS points as strings like "POINT(lng lat)" or as GeoJSON.
+                        const anyData = data as any;
+                        let lat: number | null = null;
+                        let lng: number | null = null;
+                        if (typeof anyData.report_location === "string") {
+                            const match = /POINT\(([-.\d]+)\s+([-.\d]+)\)/.exec(
+                                anyData.report_location
+                            );
+                            if (match) {
+                                lng = parseFloat(match[1]);
+                                lat = parseFloat(match[2]);
+                            }
+                        } else if (anyData.report_location?.coordinates) {
+                            lng = anyData.report_location.coordinates[0];
+                            lat = anyData.report_location.coordinates[1];
+                        }
+
+                        if (channel) {
+                            await channel.send({
+                                type: "broadcast",
+                                event: "outbreak",
+                                payload: {
+                                    medicine_name: anyData.reported_brand_name || "Unknown",
+                                    batch_number: anyData.scanned_barcode || "Unknown",
+                                    district: anyData.district || "Unknown",
+                                    alert_level: alertLevel,
+                                    lat,
+                                    lng,
+                                },
+                            });
+                            await supabase.removeChannel?.(channel);
+                        }
                     } catch (pushErr) {
                         logger.error({
                             message: "Failed to trigger push notification for district alert",

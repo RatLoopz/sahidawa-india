@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { API_BASE, getCsrfToken } from "@/lib/api";
 import { toast } from "sonner";
 import { Alert } from "@/app/[locale]/alerts/page";
-
+import { useSession } from "@/src/components/AuthProvider";
 export interface UseAlertsParams {
     debouncedBrandSearch: string;
     debouncedRegionSearch: string;
@@ -10,6 +10,8 @@ export interface UseAlertsParams {
 
 export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAlertsParams) {
     const queryClient = useQueryClient();
+
+    const { token } = useSession();
 
     const fetchAlertsPage = async ({ pageParam = 1 }) => {
         let url = `/api/v1/alerts?page=${pageParam}&limit=50`;
@@ -78,7 +80,11 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
         onError: (err, newTodo, context) => {
             queryClient.setQueryData(queryKey, context?.previousData);
             console.error(err);
-            toast.error("Failed to snooze alert. Please try again.");
+            const message =
+                err instanceof Error && err.message.includes("401")
+                    ? "Your session expired. Please sign in again."
+                    : "Failed to snooze alert. Please try again.";
+            toast.error(message);
         },
         onSuccess: (data, variables) => {
             toast.success(`Alert snoozed for ${variables.days} days`);
@@ -86,6 +92,10 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
     });
 
     const snoozeAlert = (id: string, days: number = 7) => {
+        if (!token) {
+            toast.error("Please sign in to snooze alerts.");
+            return;
+        }
         snoozeAlertMutation.mutate({ id, days });
     };
 

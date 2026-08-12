@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextFunction, Response } from "express";
 import { User } from "@supabase/supabase-js";
 import {

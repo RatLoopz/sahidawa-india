@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ, ସତ୍ୟାପିତ ଏବଂ ସୁରକ୍ଷିତ ।",
         "subtitle": "ଔଷଧର ସତ୍ୟତା ତୁରନ୍ତ ଯାଞ୍ଚ କରିବା, ସୁରକ୍ଷିତ ଔଷଧାଳୟ ଖୋଜିବା ଏବଂ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ସ୍ୱାସ୍ଥ୍ୟ ସତର୍କ ସୂଚନା ପ୍ରାପ୍ତ କରିବା ପାଇଁ ଭାରତର ଓପେନ୍-ସୋର୍ସ ନାଗରିକ ପ୍ଲାଟଫର୍ମ ।",
         "scan_button": "ଔଷଧ ସ୍କାନ କରନ୍ତୁ",
@@ -319,6 +321,15 @@
         "description": "ବର୍ତ୍ତମାନ ଆପଣଙ୍କ ପାଖରେ ଇଣ୍ଟରନେଟ୍ ସଂଯୋଗ ନାହିଁ ।",
         "subtitle": "ଅଫଲାଇନ୍ ଥିବାବେଳେ କିଛି ଫିଚର୍ କାମ ନକରିପାରେ । ଇଣ୍ଟରନେଟ୍ ସହ ଯୋଡ଼ି ହୁଅନ୍ତୁ, କିମ୍ବା ପୂର୍ବରୁ ଲୋଡ୍ ହୋଇଥିବା ବିଷୟବସ୍ତୁ ଦେଖନ୍ତୁ ।",
         "tryAgain": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+
+        "syncFailedTitle": "କ୍ୟୁରେ ଥିବା କାର୍ଯ୍ୟଗୁଡ଼ିକ ପ୍ରତ୍ୟାଖ୍ୟାନ ହେଲା",
+
+        "syncFailedDescription": "ସର୍ଭର କିଛି କ୍ୟୁ କାର୍ଯ୍ୟକୁ ପ୍ରତ୍ୟାଖ୍ୟାନ କଲା। ପୁଣି ଯୋଡ଼ିହେବା ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ କିମ୍ବା ସେଗୁଡ଼ିକୁ ବାଦ ଦିଅନ୍ତୁ।",
+
+        "syncRetry": "ସବୁ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+
+        "syncDiscard": "ବାଦ ଦିଅନ୍ତୁ",
+
         "goHome": "ହୋମ୍ କୁ ଯାଆନ୍ତୁ",
         "footer": "ଇଣ୍ଟରନେଟ୍ ଆସିଲେ SahiDawa ଆପେ ଆପେ ସେଭ୍ ହୋଇଯିବ ।",
         "cachedContent": "ଆପଣ ପୂର୍ବରୁ ଲୋଡ୍ ହୋଇଥିବା ବିଷୟବସ୍ତୁ ଏବେ ବି ଦେଖିପାରିବେ",
@@ -1422,7 +1433,9 @@
         "abhaSetup": "ABHA ସେଟଅପ୍",
         "abhaRecords": "ABHA ରେକର୍ଡ",
         "notificationSettings": "ବିଜ୍ଞପ୍ତି ସେଟିଂସ୍",
-        "privacySecurity": "ଗୋପନୀୟତା ଏବଂ ସୁରକ୍ଷା"
+        "privacySecurity": "ଗୋପନୀୟତା ଏବଂ ସୁରକ୍ଷା",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1727,6 +1740,8 @@
         "no_search_results": "କ search ଣସି medicines ଷଧ ଆପଣଙ୍କ ସନ୍��ାନ ସହିତ ମେଳ ଖାଉ ନାହିଁ |",
         "item_status_label": "ସ୍ଥିତି:",
         "item_delete_button": "ବିଲୋପ କରନ୍ତୁ |",
+        "sync_auth_title": "ଆପଣଙ୍କ ଇତିହାସ ସିଙ୍କ କରିବାକୁ ସାଇନ ଇନ କରନ୍ତୁ",
+        "sync_auth_action": "ସାଇନ ଇନ",
         "item_copy_success": "Ic ଷଧ ନାମ କପି ହୋଇଛି!"
     },
     "MyReports": {

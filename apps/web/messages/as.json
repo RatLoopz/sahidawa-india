@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "আপোনাৰ স্বাস্থ্য, যাচাই কৰা আৰু সুৰক্ষিত।",
         "subtitle": "ভাৰতৰ মুক্ত-উৎস নাগৰিক প্লেটফৰ্ম — তৎক্ষণাত ঔষধৰ সত্যতা যাচাই কৰক, নিৰাপদ ফাৰ্মাচী বিচাৰক, আৰু জৰুৰী স্বাস্থ্য সতৰ্কবাৰ্তা পাওক।",
         "scan_button": "ঔষধ স্কেন কৰক",
@@ -359,6 +361,15 @@
         "description": "এই মুহূৰ্তত আপোনাৰ ইন্টাৰনেট সংযোগ নাই।",
         "subtitle": "অফলাইনত কিছু বৈশিষ্ট্য অনুপলব্ধ। ইন্টাৰনেটৰ সৈতে সংযোগ কৰিবলৈ চেষ্টা কৰক বা কেশ্বড বিষয়বস্তু ব্ৰাউজ কৰক।",
         "tryAgain": "পুনৰ চেষ্টা কৰক",
+
+        "syncFailedTitle": "কিউত থকা কাৰ্যবোৰ প্ৰত্যাখ্যান হ'ল",
+
+        "syncFailedDescription": "সাৰ্ভাৰে কিছুমান কিউত থকা কাম প্ৰত্যাখ্যান কৰিলে। পুনৰ সংযোগ হোৱাৰ পিছত পুনৰ চেষ্টা কৰক অথবা সেইবোৰ বাদ দিয়ক।",
+
+        "syncRetry": "সকলো পুনৰ চেষ্টা কৰক",
+
+        "syncDiscard": "বাদ দিয়ক",
+
         "goHome": "হোমলৈ যাওক",
         "footer": "সংযোগ ঘূৰি অহাৰ পিছত SahiDawa স্বয়ংক্ৰিয়ভাৱে ছিঙ্ক হ'ব।",
         "cachedContent": "আপুনি এতিয়াও আগতে লোড কৰা বিষয়বস্তু চাব পাৰিব",
@@ -1422,7 +1433,9 @@
         "abhaSetup": "ABHA ছেটআপ",
         "abhaRecords": "ABHA ৰেকৰ্ড",
         "notificationSettings": "জাননী ছেটিংছ",
-        "privacySecurity": "গোপনীয়তা আৰু সুৰক্ষা"
+        "privacySecurity": "গোপনীয়তা আৰু সুৰক্ষা",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1727,6 +1740,8 @@
         "no_search_results": "আপোনাৰ সন্ধানৰ সৈতে কোনো ঔষধৰ মিল নাই।",
         "item_status_label": "অৱস্থা:",
         "item_delete_button": "মচি পেলাওক",
+        "sync_auth_title": "আপোনাৰ ইতিহাস চিংক কৰিবলৈ চাইন ইন কৰক",
+        "sync_auth_action": "চাইন ইন",
         "item_copy_success": "ঔষধৰ নাম কপি কৰা হৈছে!"
     },
     "MyReports": {
