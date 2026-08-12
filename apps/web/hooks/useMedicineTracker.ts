@@ -42,7 +42,7 @@ export interface UseMedicineTrackerReturn {
 
 const LS_KEY = "sahidawa_expiry_tracker";
 
-function lsRead(): Medicine[] {
+export function lsRead(): Medicine[] {
     try {
         if (typeof window === "undefined") return [];
         const raw = window.localStorage.getItem(LS_KEY);
