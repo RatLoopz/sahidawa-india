@@ -196,13 +196,14 @@ router.get(
                 const cleanedGenName = cleanGenericName(medicine.generic_name);
 
                 // Try to find a matching generic medicine from Jan Aushadhi
-                const { data: genericMed } = await supabase
+                const { data: genericMeds } = await supabase
                     .from("medicines")
                     .select("id, brand_name, generic_name, mrp, jan_aushadhi_price")
                     .ilike("generic_name", `%${cleanedGenName}%`)
                     .ilike("manufacturer", "%Jan Aushadhi%")
-                    .limit(1)
-                    .maybeSingle();
+                    .limit(1);
+
+                const genericMed = genericMeds && genericMeds.length > 0 ? genericMeds[0] : null;
 
                 if (genericMed) {
                     alternative = {
