@@ -18,47 +18,120 @@ function cleanGenericName(name: string | null | undefined): string {
         .trim();
 }
 
-async function generateAlternativeWithAI(
+import Groq from "groq-sdk";
+
+const AI_SCHEMA_DESCRIPTION = `
+{
+  "brand_name": "string (brand name provided)",
+  "generic_name": "string (clean generic composition name, e.g. 'Paracetamol')",
+  "brand_price": number (brand MRP provided),
+  "jan_aushadhi_price": number (estimated Jan Aushadhi price in INR, e.g. 15.0),
+  "savings_percentage": number (percentage savings as integer, e.g. 50),
+  "generic_name_display": "string (display name of Jan Aushadhi alternative, e.g. 'Paracetamol 650mg (Generic)')",
+  "usage": "string (1-2 sentence description of primary usage and how it works)"
+}`;
+
+const AI_SYSTEM_PROMPT = `You are a clinical pharmacist assistant for SahiDawa.
+Generate a suitable Jan Aushadhi generic alternative medicine for the given brand medicine.
+Provide the details as a single valid JSON object.
+Output ONLY the JSON — no markdown fences, no explanation, no preamble.
+The JSON MUST follow this exact schema:
+${AI_SCHEMA_DESCRIPTION}`;
+
+async function generateAlternativeWithGemini(
     brandName: string,
     genericName: string,
     mrp: number
 ): Promise<any> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
-    if (!apiKey) return null;
+    if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
 
-    try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        generationConfig: {
+            responseMimeType: "application/json",
+        },
+        systemInstruction: AI_SYSTEM_PROMPT,
+    });
 
-        const prompt = `You are a clinical pharmacist assistant for SahiDawa.
-Given the medicine:
-Brand Name: "${brandName}"
-Generic Name: "${genericName}"
-Brand Price (MRP): ${mrp || 120}
-
-Please find or infer the most suitable Jan Aushadhi generic alternative medicine details.
-Provide a JSON object response with the following exact keys:
-{
-  "brand_name": "${brandName}",
-  "generic_name": "clean generic composition name (e.g. 'Paracetamol')",
-  "brand_price": ${mrp || 120},
-  "jan_aushadhi_price": estimated Jan Aushadhi price in INR (number, e.g. 15.0),
-  "savings_percentage": percentage savings as integer (number, e.g. 50),
-  "generic_name_display": "display name of Jan Aushadhi alternative (e.g. 'Paracetamol 650mg (Generic)')",
-  "usage": "1-2 sentence description of primary usage and how it works"
+    const userPrompt = `Brand Name: "${brandName}"\nGeneric Name: "${genericName}"\nBrand Price (MRP): ${mrp || 120}`;
+    const result = await model.generateContent(userPrompt);
+    const text = result.response.text().trim();
+    return JSON.parse(text);
 }
 
-Output ONLY valid JSON. No markdown formatting blocks or fences.`;
+async function generateAlternativeWithGroq(
+    brandName: string,
+    genericName: string,
+    mrp: number
+): Promise<any> {
+    const apiKey = process.env.GROQ_API_KEY?.trim();
+    if (!apiKey) throw new Error("GROQ_API_KEY not configured");
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
-        const jsonStr = text
-            .replace(/^```json\s*/i, "")
-            .replace(/```$/, "")
-            .trim();
-        return JSON.parse(jsonStr);
-    } catch (err) {
-        logger.error("AI alternatives generation failed", { error: err });
+    const groq = new Groq({ apiKey });
+    const userPrompt = `Brand Name: "${brandName}"\nGeneric Name: "${genericName}"\nBrand Price (MRP): ${mrp || 120}`;
+
+    const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [
+            { role: "system", content: AI_SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+        max_tokens: 1024,
+    });
+
+    const text = completion.choices[0]?.message?.content ?? "";
+    return JSON.parse(text);
+}
+
+function isRateLimitError(err: unknown): boolean {
+    if (err instanceof Error) {
+        const msg = err.message.toLowerCase();
+        if (msg.includes("429") || msg.includes("rate limit") || msg.includes("quota")) return true;
+    }
+    if (typeof err === "object" && err !== null && "status" in err) {
+        return (err as { status: number }).status === 429;
+    }
+    return false;
+}
+
+async function generateAlternativeWithAI(
+    brandName: string,
+    genericName: string,
+    mrp: number
+): Promise<any> {
+    // Try Gemini first
+    try {
+        logger.info(`[AI Alternatives] Generating for "${brandName}" via Gemini 2.0 Flash`);
+        const result = await generateAlternativeWithGemini(brandName, genericName, mrp);
+        logger.info(`[AI Alternatives] Gemini succeeded for "${brandName}"`);
+        return result;
+    } catch (geminiErr) {
+        const isRateLimit = isRateLimitError(geminiErr);
+        const reason = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
+
+        if (isRateLimit) {
+            logger.warn(
+                `[AI Alternatives] Gemini rate-limited — falling back to Groq for "${brandName}"`
+            );
+        } else {
+            logger.warn(
+                `[AI Alternatives] Gemini failed ("${reason}") — falling back to Groq for "${brandName}"`
+            );
+        }
+    }
+
+    // Groq fallback
+    try {
+        logger.info(`[AI Alternatives] Generating for "${brandName}" via Groq LLaMA 3.1`);
+        const result = await generateAlternativeWithGroq(brandName, genericName, mrp);
+        logger.info(`[AI Alternatives] Groq succeeded for "${brandName}"`);
+        return result;
+    } catch (groqErr) {
+        logger.error(`[AI Alternatives] Groq failed for "${brandName}"`, { error: groqErr });
         return null;
     }
 }
