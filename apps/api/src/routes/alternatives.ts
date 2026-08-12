@@ -1,12 +1,140 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { barcodeLimiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
 import { redisClient } from "../utils/redis";
 
 const router = Router();
+
+function cleanGenericName(name: string | null | undefined): string {
+    if (!name) return "";
+    return name
+        .replace(/\s*\(\s*\/\s*\)\s*/g, "") // removes " (/)"
+        .replace(/\s*\(\s*\)\s*/g, "") // removes " ()"
+        .replace(/\s*\(\s*NA\s*\)\s*/g, "") // removes " (NA)"
+        .trim();
+}
+
+import Groq from "groq-sdk";
+
+const AI_SCHEMA_DESCRIPTION = `
+{
+  "brand_name": "string (brand name provided)",
+  "generic_name": "string (clean generic composition name, e.g. 'Paracetamol')",
+  "brand_price": number (brand MRP provided),
+  "jan_aushadhi_price": number (estimated Jan Aushadhi price in INR, e.g. 15.0),
+  "savings_percentage": number (percentage savings as integer, e.g. 50),
+  "generic_name_display": "string (display name of Jan Aushadhi alternative, e.g. 'Paracetamol 650mg (Generic)')",
+  "usage": "string (1-2 sentence description of primary usage and how it works)"
+}`;
+
+const AI_SYSTEM_PROMPT = `You are a clinical pharmacist assistant for SahiDawa.
+Generate a suitable Jan Aushadhi generic alternative medicine for the given brand medicine.
+Provide the details as a single valid JSON object.
+Output ONLY the JSON — no markdown fences, no explanation, no preamble.
+The JSON MUST follow this exact schema:
+${AI_SCHEMA_DESCRIPTION}`;
+
+async function generateAlternativeWithGemini(
+    brandName: string,
+    genericName: string,
+    mrp: number
+): Promise<any> {
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        generationConfig: {
+            responseMimeType: "application/json",
+        },
+        systemInstruction: AI_SYSTEM_PROMPT,
+    });
+
+    const userPrompt = `Brand Name: "${brandName}"\nGeneric Name: "${genericName}"\nBrand Price (MRP): ${mrp || 120}`;
+    const result = await model.generateContent(userPrompt);
+    const text = result.response.text().trim();
+    return JSON.parse(text);
+}
+
+async function generateAlternativeWithGroq(
+    brandName: string,
+    genericName: string,
+    mrp: number
+): Promise<any> {
+    const apiKey = process.env.GROQ_API_KEY?.trim();
+    if (!apiKey) throw new Error("GROQ_API_KEY not configured");
+
+    const groq = new Groq({ apiKey });
+    const userPrompt = `Brand Name: "${brandName}"\nGeneric Name: "${genericName}"\nBrand Price (MRP): ${mrp || 120}`;
+
+    const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [
+            { role: "system", content: AI_SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+        max_tokens: 1024,
+    });
+
+    const text = completion.choices[0]?.message?.content ?? "";
+    return JSON.parse(text);
+}
+
+function isRateLimitError(err: unknown): boolean {
+    if (err instanceof Error) {
+        const msg = err.message.toLowerCase();
+        if (msg.includes("429") || msg.includes("rate limit") || msg.includes("quota")) return true;
+    }
+    if (typeof err === "object" && err !== null && "status" in err) {
+        return (err as { status: number }).status === 429;
+    }
+    return false;
+}
+
+async function generateAlternativeWithAI(
+    brandName: string,
+    genericName: string,
+    mrp: number
+): Promise<any> {
+    // Try Gemini first
+    try {
+        logger.info(`[AI Alternatives] Generating for "${brandName}" via Gemini 2.0 Flash`);
+        const result = await generateAlternativeWithGemini(brandName, genericName, mrp);
+        logger.info(`[AI Alternatives] Gemini succeeded for "${brandName}"`);
+        return result;
+    } catch (geminiErr) {
+        const isRateLimit = isRateLimitError(geminiErr);
+        const reason = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
+
+        if (isRateLimit) {
+            logger.warn(
+                `[AI Alternatives] Gemini rate-limited — falling back to Groq for "${brandName}"`
+            );
+        } else {
+            logger.warn(
+                `[AI Alternatives] Gemini failed ("${reason}") — falling back to Groq for "${brandName}"`
+            );
+        }
+    }
+
+    // Groq fallback
+    try {
+        logger.info(`[AI Alternatives] Generating for "${brandName}" via Groq LLaMA 3.1`);
+        const result = await generateAlternativeWithGroq(brandName, genericName, mrp);
+        logger.info(`[AI Alternatives] Groq succeeded for "${brandName}"`);
+        return result;
+    } catch (groqErr) {
+        logger.error(`[AI Alternatives] Groq failed for "${brandName}"`, { error: groqErr });
+        return null;
+    }
+}
 
 /**
  * @openapi
@@ -182,6 +310,91 @@ router.get(
                 alternative = data;
             }
 
+            // Fallback: If generic_alternatives table is missing or empty, construct from medicines table directly
+            if (!alternative && medicine) {
+                const cleanedGenName = cleanGenericName(medicine.generic_name);
+
+                // Try to find a matching generic medicine from Jan Aushadhi
+                const { data: genericMeds } = await supabase
+                    .from("medicines")
+                    .select("id, brand_name, generic_name, mrp, jan_aushadhi_price")
+                    .ilike("generic_name", `%${cleanedGenName}%`)
+                    .ilike("manufacturer", "%Jan Aushadhi%")
+                    .limit(1);
+
+                const genericMed = genericMeds && genericMeds.length > 0 ? genericMeds[0] : null;
+
+                if (genericMed) {
+                    alternative = {
+                        brand_name: medicine.brand_name,
+                        generic_name: medicine.generic_name,
+                        brand_price: medicine.mrp,
+                        jan_aushadhi_price: genericMed.mrp || medicine.jan_aushadhi_price || 15.0,
+                        savings_percentage: medicine.mrp
+                            ? Math.round(
+                                  ((medicine.mrp -
+                                      (genericMed.mrp || medicine.jan_aushadhi_price || 15.0)) /
+                                      medicine.mrp) *
+                                      100
+                              )
+                            : 0,
+                        generic_name_display:
+                            genericMed.brand_name || `${medicine.generic_name} (Generic)`,
+                    };
+                } else if (medicine.jan_aushadhi_price) {
+                    // Create synthetic alternative using the prices stored directly on the commercial medicine row
+                    alternative = {
+                        brand_name: medicine.brand_name,
+                        generic_name: medicine.generic_name,
+                        brand_price: medicine.mrp,
+                        jan_aushadhi_price: medicine.jan_aushadhi_price,
+                        savings_percentage: medicine.mrp
+                            ? Math.round(
+                                  ((medicine.mrp - medicine.jan_aushadhi_price) / medicine.mrp) *
+                                      100
+                              )
+                            : 0,
+                        generic_name_display: `${medicine.generic_name} (Generic)`,
+                    };
+                }
+            }
+
+            if (!alternative) {
+                const searchBrand = medicine?.brand_name || medicine_id;
+                const searchGeneric = medicine?.generic_name || "";
+                const searchMrp = medicine?.mrp || 0;
+
+                logger.info(
+                    `Alternatives DB lookup failed. Attempting AI generation for "${searchBrand}"`
+                );
+                const aiAlt = await generateAlternativeWithAI(
+                    searchBrand,
+                    searchGeneric,
+                    searchMrp
+                );
+                if (aiAlt) {
+                    alternative = {
+                        brand_name: aiAlt.brand_name,
+                        generic_name: aiAlt.generic_name,
+                        brand_price: aiAlt.brand_price,
+                        jan_aushadhi_price: aiAlt.jan_aushadhi_price,
+                        savings_percentage: aiAlt.savings_percentage,
+                        generic_name_display: aiAlt.generic_name_display,
+                    };
+                    if (medicine) {
+                        medicine.composition = aiAlt.usage;
+                    } else {
+                        medicine = {
+                            id: "ai-generated",
+                            brand_name: searchBrand,
+                            generic_name: searchGeneric,
+                            mrp: searchMrp,
+                            composition: aiAlt.usage,
+                        } as any;
+                    }
+                }
+            }
+
             if (!alternative) {
                 res.status(404).json({
                     error: "No generic alternative found for this medicine",
@@ -228,16 +441,19 @@ router.get(
 
             const responseData = {
                 brand_name: alternative.brand_name || medicine?.brand_name || medicine_id,
-                generic_name: alternative.generic_name || medicine?.generic_name,
+                generic_name: cleanGenericName(alternative.generic_name || medicine?.generic_name),
                 brand_price: brandPrice,
                 jan_aushadhi_price: jaPrice,
                 savings_percentage: savingsPct,
-                alternative_name:
-                    alternative.generic_name_display ||
-                    alternative.generic_name ||
-                    (medicine?.generic_name
-                        ? `${medicine.generic_name} (Generic)`
-                        : "Atorvastatin 10mg (Generic)"),
+                alternative_name: alternative.generic_name_display
+                    ? alternative.generic_name_display.includes(" (Generic)")
+                        ? `${cleanGenericName(alternative.generic_name_display.replace(" (Generic)", ""))} (Generic)`
+                        : cleanGenericName(alternative.generic_name_display)
+                    : alternative.generic_name
+                      ? `${cleanGenericName(alternative.generic_name)} (Generic)`
+                      : medicine?.generic_name
+                        ? `${cleanGenericName(medicine.generic_name)} (Generic)`
+                        : "Atorvastatin 10mg (Generic)",
                 nearest_store: nearestStore,
                 usage:
                     medicine?.composition ||

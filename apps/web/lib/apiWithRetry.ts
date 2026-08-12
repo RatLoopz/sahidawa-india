@@ -187,7 +187,7 @@ export async function fetchWithRetry(
                             delay = parsedDelay;
                         }
                     }
-                    await sleep(delay, options.signal);
+                    await sleep(delay, options.signal ?? undefined);
                     continue;
                 }
                 return response;
@@ -238,7 +238,7 @@ export async function fetchWithRetry(
                 );
             }
 
-            await sleep(delay, options.signal);
+            await sleep(delay, options.signal ?? undefined);
         }
     }
 
@@ -250,18 +250,18 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
         if (signal?.aborted) {
             return reject(signal.reason || new Error("Request was cancelled."));
         }
-        
+
         let timeoutId: ReturnType<typeof setTimeout>;
-        
+
         const abortHandler = () => {
             clearTimeout(timeoutId);
             reject(signal!.reason || new Error("Request was cancelled."));
         };
-        
+
         if (signal) {
             signal.addEventListener("abort", abortHandler);
         }
-        
+
         timeoutId = setTimeout(() => {
             if (signal) {
                 signal.removeEventListener("abort", abortHandler);
