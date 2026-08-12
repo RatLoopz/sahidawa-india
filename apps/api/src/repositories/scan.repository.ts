@@ -26,6 +26,8 @@ export const scanRepository = {
             .or(
                 `brand_name.ilike."%${escapePostgrest(matchedName)}%",generic_name.ilike."%${escapePostgrest(matchedName)}%"`
             )
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true })
             .limit(1)
             .maybeSingle();
         if (error) throw error;
@@ -59,6 +61,8 @@ export const scanRepository = {
             .or(
                 `brand_name.ilike."%${escapePostgrest(brandName)}%",generic_name.ilike."%${escapePostgrest(brandName)}%"`
             )
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true })
             .limit(1)
             .maybeSingle();
         if (error) throw error;
