@@ -1029,10 +1029,18 @@
         "areaSpecific": "Area Specific",
         "exportToCalendar": "Export to Calendar",
         "stages": {
-            "birth": { "label": "Birth" },
-            "infant": { "label": "Infant" },
-            "child": { "label": "Child" },
-            "adolescent": { "label": "Adolescent" }
+            "birth": {
+                "label": "Birth"
+            },
+            "infant": {
+                "label": "Infant"
+            },
+            "child": {
+                "label": "Child"
+            },
+            "adolescent": {
+                "label": "Adolescent"
+            }
         },
         "nis": {
             "bcg": {
@@ -1865,5 +1873,29 @@
         "statTaken": "Taken",
         "statSkipped": "Skipped",
         "statExpected": "Expected"
+    },
+    "Scanner": {
+        "title": "Smart Prescription Scanner",
+        "description": "Upload a picture of your handwritten prescription, and our AI will extract the medicines and instructions for you.",
+        "uploadTitle": "Upload Prescription",
+        "uploadDescription": "Drag & drop or click to upload a clear picture of your prescription (JPEG/PNG)",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection."
+        }
     }
 }
