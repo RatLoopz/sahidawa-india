@@ -323,7 +323,9 @@ async function clearPendingPhoneChange(userId: string): Promise<void> {
     if (!redisClient.isOpen) return;
     try {
         await redisClient.del(getPendingPhoneChangeKey(userId));
-    } catch {}
+    } catch (err) {
+        logger.warn("Failed to clear pending phone change", { err, userId });
+    }
 }
 
 router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
@@ -888,7 +890,9 @@ router.patch(
                         .eq("user_id", req.user.id)
                         .maybeSingle();
                     currentSubscriber = data;
-                } catch {}
+                } catch (err) {
+                    logger.warn("Failed to load notification subscriber", { err });
+                }
             }
             if (!currentSubscriber) {
                 currentSubscriber = memorySubscriberStore.find((s) => s.user_id === req.user!.id);
