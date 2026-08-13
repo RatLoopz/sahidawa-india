@@ -179,98 +179,94 @@ async function parseCsvIncremental(
         totalRows: number;
         error?: string;
     }>((resolve) => {
-        let rowsToInsert: any[] = [];
-        const failedRows: Array<{ row: number; reason: string }> = [];
-        // csvRecordPos: increments for every row (including empty) — used for logical row numbering
-        let csvRecordPos = 0;
-        // nonEmptyDataRows: increments only for non-empty rows — used for totalRows and the row limit
-        let nonEmptyDataRows = 0;
-        let successfulInserts = 0;
-        let isDone = false;
-
-        const finishWithError = (errMsg: string, parser: any) => {
-            if (isDone) return;
-            isDone = true;
-            if (parser) parser.abort();
-            resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows, error: errMsg });
-        };
-
+        // Parse the CSV completely into memory first because Papa.parse does not support
+        // asynchronous pause/resume when parsing strings. This prevents firing off all
+        // database batches simultaneously.
         Papa.parse<Record<string, string>>(fileInput as any, {
             header: true,
-            // Do NOT skip empty lines so we can count them for correct row numbers
             skipEmptyLines: false,
             transformHeader: (h) => h.trim().toLowerCase(),
             transform: (v) => v.trim(),
-            step: (results, parser) => {
-                if (isDone) return;
-
-                const rowData = results.data;
-                const errors = results.errors;
-                csvRecordPos++;
-                const logicalRow = csvRecordPos + 1; // +1 to account for header line (row 1)
-
-                // Detect an entirely empty record (all fields empty strings or undefined)
-                const allEmpty = Object.values(rowData).every((v) => v === "" || v === undefined);
-                if (allEmpty) {
-                    // Advance position counter only; do not count toward data rows
-                    return;
+            complete: async (results) => {
+                const failedRows: Array<{ row: number; reason: string }> = [];
+                let rowsToInsert: any[] = [];
+                let nonEmptyDataRows = 0;
+                let successfulInserts = 0;
+                
+                // If there was a fatal parsing error that halted the parse early
+                const parseErrors = results.errors;
+                if (parseErrors && parseErrors.length > 0 && parseErrors[0].type === "Delimiter") {
+                    return resolve({
+                        successfulInserts,
+                        failedRows,
+                        totalRows: nonEmptyDataRows,
+                        error: parseErrors.map(e => e.message).join(", ")
+                    });
                 }
 
-                // Non-empty row: count it regardless of validity
-                nonEmptyDataRows++;
+                for (let i = 0; i < results.data.length; i++) {
+                    const rowData = results.data[i];
+                    const logicalRow = i + 2; // +1 for 0-index, +1 for header
 
-                if (nonEmptyDataRows > MAX_BULK_UPLOAD_ITEMS) {
-                    finishWithError(
-                        `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
-                        parser
-                    );
-                    return;
-                }
+                    const allEmpty = Object.values(rowData).every((v) => v === "" || v === undefined);
+                    if (allEmpty) continue;
 
-                if (errors && errors.length > 0) {
-                    const reason = errors.map((e) => e.message).join(", ");
-                    failedRows.push({ row: logicalRow, reason });
-                    return;
-                }
+                    nonEmptyDataRows++;
 
-                // Normalise empty strings to undefined for Zod optional fields
-                const normalised: Record<string, any> = {};
-                for (const key of Object.keys(rowData)) {
-                    const val = rowData[key];
-                    normalised[key] = val === "" ? undefined : val;
-                }
+                    if (nonEmptyDataRows > MAX_BULK_UPLOAD_ITEMS) {
+                        return resolve({
+                            successfulInserts,
+                            failedRows,
+                            totalRows: nonEmptyDataRows,
+                            error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
+                        });
+                    }
 
-                const validationResult = inventoryRowSchema.safeParse(normalised);
-                if (!validationResult.success) {
-                    const reason = validationResult.error.issues.map((i) => i.message).join(", ");
-                    failedRows.push({ row: logicalRow, reason });
-                    return;
-                }
+                    // Log parsing errors for this specific row (if any)
+                    const rowErrors = parseErrors.filter(e => e.row === i);
+                    if (rowErrors.length > 0) {
+                        failedRows.push({ row: logicalRow, reason: rowErrors.map((e) => e.message).join(", ") });
+                        continue;
+                    }
 
-                rowsToInsert.push({
-                    pharmacy_id: pharmacyId,
-                    medicine_name: validationResult.data.medicine_name,
-                    batch_number: validationResult.data.batch_number,
-                    expiry_date: validationResult.data.expiry_date,
-                    quantity: validationResult.data.quantity,
-                    mrp: validationResult.data.mrp,
-                });
+                    const normalised: Record<string, any> = {};
+                    for (const key of Object.keys(rowData)) {
+                        const val = rowData[key];
+                        normalised[key] = val === "" ? undefined : val;
+                    }
 
-                if (rowsToInsert.length >= BATCH_SIZE) {
-                    parser.pause();
-                    const batch = [...rowsToInsert];
-                    rowsToInsert = []; // Free up heap memory
+                    const validationResult = inventoryRowSchema.safeParse(normalised);
+                    if (!validationResult.success) {
+                        const reason = validationResult.error.issues.map((issue) => issue.message).join(", ");
+                        failedRows.push({ row: logicalRow, reason });
+                        continue;
+                    }
 
-                    Promise.resolve(client.from("pharmacy_inventory").insert(batch))
-                        .then(({ error }) => {
-                            if (error) {
-                                logger.error(`Database bulk insertion failed: ${error.message}`);
-                                finishWithError(
-                                    "Database operation failed during insertion.",
-                                    parser
-                                );
-                            } else {
-                                successfulInserts += batch.length;
+                    rowsToInsert.push({
+                        pharmacy_id: pharmacyId,
+                        medicine_name: validationResult.data.medicine_name,
+                        batch_number: validationResult.data.batch_number,
+                        expiry_date: validationResult.data.expiry_date,
+                        quantity: validationResult.data.quantity,
+                        mrp: validationResult.data.mrp,
+                    });
+
+                    // Flush batch if full or if it is the last row
+                    if (rowsToInsert.length >= BATCH_SIZE || i === results.data.length - 1) {
+                        if (rowsToInsert.length > 0) {
+                            try {
+                                const { error } = await client.from("pharmacy_inventory").insert(rowsToInsert);
+                                if (error) {
+                                    logger.error(`Database bulk insertion failed: ${error.message}`);
+                                    return resolve({
+                                        successfulInserts,
+                                        failedRows,
+                                        totalRows: nonEmptyDataRows,
+                                        error: "Database operation failed during insertion.",
+                                    });
+                                }
+                                
+                                successfulInserts += rowsToInsert.length;
                                 if (onProgress) {
                                     onProgress({
                                         successfulInserts,
@@ -278,63 +274,30 @@ async function parseCsvIncremental(
                                         failedRows: failedRows.length,
                                     });
                                 }
-                                if (!isDone) parser.resume();
-                            }
-                        })
-                        .catch((err: any) => {
-                            logger.error(
-                                `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
-                            );
-                            finishWithError("Database operation failed during insertion.", parser);
-                        });
-                }
-            },
-            complete: () => {
-                if (isDone) return;
-
-                if (rowsToInsert.length > 0) {
-                    Promise.resolve(client.from("pharmacy_inventory").insert(rowsToInsert))
-                        .then(({ error }) => {
-                            if (isDone) return;
-                            isDone = true;
-                            if (error) {
-                                logger.error(`Database bulk insertion failed: ${error.message}`);
-                                resolve({
+                                rowsToInsert = [];
+                            } catch (err: any) {
+                                logger.error(`Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`);
+                                return resolve({
                                     successfulInserts,
                                     failedRows,
                                     totalRows: nonEmptyDataRows,
                                     error: "Database operation failed during insertion.",
                                 });
-                            } else {
-                                successfulInserts += rowsToInsert.length;
-                                resolve({
-                                    successfulInserts,
-                                    failedRows,
-                                    totalRows: nonEmptyDataRows,
-                                });
                             }
-                        })
-                        .catch((err: any) => {
-                            if (isDone) return;
-                            isDone = true;
-                            logger.error(
-                                `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
-                            );
-                            resolve({
-                                successfulInserts,
-                                failedRows,
-                                totalRows: nonEmptyDataRows,
-                                error: "Database operation failed during insertion.",
-                            });
-                        });
-                } else {
-                    isDone = true;
-                    resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows });
+                        }
+                    }
                 }
+
+                resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows });
             },
-            error: (err, parser) => {
+            error: (err) => {
                 const errMsg = err instanceof Error ? err.message : String(err);
-                finishWithError(errMsg || "CSV Parsing error", parser);
+                resolve({
+                    successfulInserts: 0,
+                    failedRows: [],
+                    totalRows: 0,
+                    error: errMsg || "CSV Parsing error",
+                });
             },
         });
     });
