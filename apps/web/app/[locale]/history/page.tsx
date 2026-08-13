@@ -17,6 +17,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 const ExportModal = dynamic(() => import("./ExportModal"));
 
+type StatusFilter = "all" | "verified" | "suspicious" | "fake";
+type SortOrder = "newest" | "oldest";
+
 export default function HistoryPage() {
     const exportButtonRef = useRef<HTMLButtonElement | null>(null);
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
@@ -25,6 +28,8 @@ export default function HistoryPage() {
     const [showClearConfirmation, setShowClearConfirmation] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
     const [isOnline, setIsOnline] = useState<boolean>(() =>
         typeof window !== "undefined" ? window.navigator.onLine : true
     );
@@ -118,9 +123,12 @@ export default function HistoryPage() {
 
     const handleCancelClear = () => setShowClearConfirmation(false);
 
-    const filteredHistory = history.filter((item) =>
-        item.medicineName.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredHistory = history
+        .filter((item) => item.medicineName.toLowerCase().includes(search.toLowerCase()))
+        .filter((item) => statusFilter === "all" || item.status?.toLowerCase() === statusFilter)
+        .sort((a, b) =>
+            sortOrder === "newest" ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
+        );
 
     const verifiedCount = history.filter(
         (item) => item.status?.toLowerCase() === "verified"
@@ -131,6 +139,12 @@ export default function HistoryPage() {
     ).length;
 
     const fakeCount = history.filter((item) => item.status?.toLowerCase() === "fake").length;
+
+    // Clicking an already-active stat card clears the filter back to "all",
+    // so the cards double as a toggleable shortcut rather than a one-way filter.
+    const handleStatCardClick = (status: StatusFilter) => {
+        setStatusFilter((current) => (current === status ? "all" : status));
+    };
 
     const openExportModal = () => {
         exportButtonRef.current?.focus();
@@ -266,44 +280,104 @@ export default function HistoryPage() {
                 )}
                 {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <button
+                        type="button"
+                        onClick={() => handleStatCardClick("all")}
+                        aria-pressed={statusFilter === "all"}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "all"
+                                ? "border-white/40 bg-white/10 ring-1 ring-white/40"
+                                : "border-white/10 bg-white/5 hover:bg-white/10"
+                        }`}
+                    >
                         <p className="text-sm opacity-70">{t("stat_total")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold">{history.length}</h2>
-                    </div>
+                    </button>
 
-                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                    <button
+                        type="button"
+                        onClick={() => handleStatCardClick("verified")}
+                        aria-pressed={statusFilter === "verified"}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "verified"
+                                ? "border-emerald-500/60 bg-emerald-500/20 ring-1 ring-emerald-500/60"
+                                : "border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/15"
+                        }`}
+                    >
                         <p className="text-sm text-emerald-300">{t("stat_verified")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-emerald-400">
                             {verifiedCount}
                         </h2>
-                    </div>
+                    </button>
 
-                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+                    <button
+                        type="button"
+                        onClick={() => handleStatCardClick("suspicious")}
+                        aria-pressed={statusFilter === "suspicious"}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "suspicious"
+                                ? "border-amber-500/60 bg-amber-500/20 ring-1 ring-amber-500/60"
+                                : "border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/15"
+                        }`}
+                    >
                         <p className="text-sm text-amber-300">{t("stat_suspicious")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-amber-400">
                             {suspiciousCount}
                         </h2>
-                    </div>
+                    </button>
 
-                    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                    <button
+                        type="button"
+                        onClick={() => handleStatCardClick("fake")}
+                        aria-pressed={statusFilter === "fake"}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "fake"
+                                ? "border-red-500/60 bg-red-500/20 ring-1 ring-red-500/60"
+                                : "border-red-500/20 bg-red-500/10 hover:bg-red-500/15"
+                        }`}
+                    >
                         <p className="text-sm text-red-300">{t("stat_fake")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-red-400">{fakeCount}</h2>
-                    </div>
+                    </button>
                 </div>
 
                 {history.length > 0 && (
-                    <input
-                        id="history-search"
-                        type="text"
-                        placeholder={t("search_placeholder")}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
-                    />
+                    <div className="mb-4 flex flex-wrap gap-3">
+                        <input
+                            id="history-search"
+                            type="text"
+                            placeholder={t("search_placeholder")}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="min-w-[200px] flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        />
+                        <select
+                            id="history-status-filter"
+                            aria-label={t("filter_status_label")}
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        >
+                            <option value="all">{t("status_all")}</option>
+                            <option value="verified">{t("status_verified")}</option>
+                            <option value="suspicious">{t("status_suspicious")}</option>
+                            <option value="fake">{t("status_fake")}</option>
+                        </select>
+                        <select
+                            id="history-sort-order"
+                            aria-label={t("sort_label")}
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        >
+                            <option value="newest">{t("sort_newest")}</option>
+                            <option value="oldest">{t("sort_oldest")}</option>
+                        </select>
+                    </div>
                 )}
                 {history.length === 0 ? (
                     <EmptyState
@@ -312,7 +386,7 @@ export default function HistoryPage() {
                         description={t("empty_description")}
                     />
                 ) : filteredHistory.length === 0 ? (
-                    <p className="text-center text-sm opacity-50">{t("no_search_results")}</p>
+                    <p className="text-center text-sm opacity-50">{t("no_filtered_results")}</p>
                 ) : (
                     <div className="space-y-4">
                         {filteredHistory.map((item) => (

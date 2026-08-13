@@ -1436,7 +1436,12 @@
         "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
-        "item_copy_success": "Medicine name copied!"
+        "item_copy_success": "Medicine name copied!",
+        "filter_status_label": "Filter by status",
+        "sort_label": "Sort by",
+        "sort_newest": "Newest first",
+        "sort_oldest": "Oldest first",
+        "no_filtered_results": "No scans match the selected filters."
     },
     "MyReports": {
         "header_title": "My Reports",
