@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { LiveMessage } from "@/components/ui/LiveMessage";
-import { canMutateAdminData, getAdminRoleFromSession, type AdminRole } from "@/lib/adminAuth";
+import { canMutateAdminData, getAdminRoleFromUser, type AdminRole } from "@/lib/adminAuth";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
 import { useSession } from "@/src/components/AuthProvider";
 
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         if (authLoading) return;
-        setAdminRole(getAdminRoleFromSession(session));
+        setAdminRole(getAdminRoleFromUser(session?.user));
     }, [authLoading, token]);
 
     useEffect(() => {
@@ -262,11 +262,11 @@ export default function AdminDashboard() {
                     keys!
                 </>
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" />{" "}
-                    {err.message || "Cache flush failed"}
+                    {err instanceof Error ? err.message : "Cache flush failed"}
                 </>,
                 false
             );

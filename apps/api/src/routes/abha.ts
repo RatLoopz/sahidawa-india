@@ -125,10 +125,9 @@ router.get(
 
             const result = await getAbhaStatus(userId);
             res.status(200).json(result);
-        } catch (error) {
-            res.status(500).json({
-                error: error instanceof Error ? error.message : "Failed to check ABHA status",
-            });
+        } catch (error: unknown) {
+            console.error("ABHA linking error:", error);
+            res.status(500).json({ error: error instanceof Error ? error.message : "Failed to link ABHA address" });
         }
     }
 );
@@ -294,9 +293,9 @@ router.get(
 
             const metricsResult = await downloadHealthRecords(userId);
             res.status(200).json(metricsResult);
-        } catch (error: any) {
+        } catch (error: unknown) {
             res.status(500).json({
-                error: error.message || "Records processing engine encountered an error",
+                error: error instanceof Error ? error.message : "Records processing engine encountered an error",
             });
         }
     }

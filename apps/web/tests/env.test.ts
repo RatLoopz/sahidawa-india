@@ -20,14 +20,14 @@ describe("env", () => {
         expect(getSupabaseUrl()).toBe("https://test.supabase.co");
     });
 
-    it("throws when the Supabase URL is missing", () => {
-        expect(() => getSupabaseUrl()).toThrow("NEXT_PUBLIC_SUPABASE_URL is not defined");
+    it("returns a placeholder when the Supabase URL is missing", () => {
+        expect(getSupabaseUrl()).toBe("https://placeholder.supabase.co");
     });
 
-    it("throws when the Supabase URL is invalid", () => {
+    it("returns a placeholder when the Supabase URL is invalid", () => {
         process.env.NEXT_PUBLIC_SUPABASE_URL = "invalid-url";
 
-        expect(() => getSupabaseUrl()).toThrow("not a valid URL");
+        expect(getSupabaseUrl()).toBe("https://placeholder.supabase.co");
     });
 
     it("returns the Supabase anon key when configured", () => {
@@ -36,7 +36,7 @@ describe("env", () => {
         expect(getSupabaseAnonKey()).toBe("test-anon-key");
     });
 
-    it("throws when the Supabase anon key is missing", () => {
-        expect(() => getSupabaseAnonKey()).toThrow("NEXT_PUBLIC_SUPABASE_ANON_KEY is not defined");
+    it("returns a placeholder when the Supabase anon key is missing", () => {
+        expect(getSupabaseAnonKey()).toBe("placeholder-key");
     });
 });

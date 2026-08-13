@@ -17,6 +17,17 @@ const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000); // 60s TTL
 const verifyBrandCache = createSWRCache<VerifyResult>(300_000); // 5min TTL
 
 async function fetchWithCsrf<T>(
+export class ApiHttpError extends Error {
+    readonly status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.name = "ApiHttpError";
+        this.status = status;
+    }
+}
+
+export async function fetchWithCsrf<T>(
     url: string,
     options: Omit<import("./apiWithRetry").FetchOptions, "headers"> & {
         headers?: Record<string, string>;
@@ -47,7 +58,7 @@ async function fetchWithCsrf<T>(
             error?: { message?: string } | string;
         };
         const errorMessage = typeof body.error === "object" ? body.error.message : body.error;
-        throw new Error(errorMessage ?? "Server error occurred. Please retry.");
+        throw new ApiHttpError(errorMessage ?? "Server error occurred. Please retry.", res.status);
     }
 
     return res.json() as Promise<T>;
@@ -86,11 +97,12 @@ export type MedicineImageAnalysis = {
 
 export async function analyzeMedicineImage(
     imageUrl: string,
+    medicineId?: string,
     signal?: AbortSignal
 ): Promise<MedicineImageAnalysis> {
     return fetchWithCsrf<MedicineImageAnalysis>(`${API_BASE}/api/ml/analyze`, {
         method: "POST",
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageUrl, medicineId }),
         timeout: 10000,
         signal,
     });
@@ -228,9 +240,46 @@ export async function fetchVerifiedPharmacies(
             `${API_BASE}/api/pharmacies/nearest?lat=${lat}&lng=${lng}&radius=${radiusKm}`,
             { timeout: 8000, signal }
         );
-        if (!res.ok) return [];
-        const body = await res.json();
-        return body.pharmacies ?? [];
+        if (res.ok) {
+            const body = await res.json();
+            const pharmacies: VerifiedPharmacy[] = body.pharmacies ?? [];
+            // If API returned pharmacies, use them
+            if (pharmacies.length > 0) return pharmacies;
+        }
+    } catch {
+        // API failed — fall through to direct Supabase fallback
+    }
+
+    // ── Direct Supabase RPC fallback ────────────────────────────────────────
+    // Called when the Express API is unavailable or returns empty results.
+    // This ensures Jan Aushadhi stores from our database always appear on the
+    // map even in development or when the API server is unreachable.
+    try {
+        const { supabase: sbClient } = await import("./supabase");
+        const { data, error } = await sbClient.rpc("get_nearest_pharmacies", {
+            query_lat: lat,
+            query_lng: lng,
+            search_radius_km: radiusKm,
+        });
+        if (error || !data) return [];
+
+        return (data as Array<Record<string, unknown>>).map((row) => ({
+            id: String(row.id ?? ""),
+            name: String(row.name ?? "Pharmacy"),
+            address: String(row.address ?? ""),
+            lat: Number(row.lat ?? 0),
+            lng: Number(row.lng ?? 0),
+            distance: `${Number(row.distance ?? 0).toFixed(1)} km`,
+            phone_number: row.phone_number ? String(row.phone_number) : null,
+            is_verified: Boolean(row.is_verified ?? false),
+            district: row.district ? String(row.district) : null,
+            state: row.state ? String(row.state) : null,
+            updated_at: row.updated_at ? String(row.updated_at) : undefined,
+            is_active: row.is_active !== false,
+            deleted_at: null,
+            operating_hours: null,
+            timezone: null,
+        }));
     } catch {
         return [];
     }
@@ -382,8 +431,9 @@ export async function verifyMedicine(
                 };
             }
             if (endpoint) {
-                throw new Error(
-                    "Stored ML verification endpoint returned an unsuccessful response"
+                throw new ApiHttpError(
+                    "Stored ML verification endpoint returned an unsuccessful response",
+                    mlRes.status
                 );
             }
         } catch (error) {

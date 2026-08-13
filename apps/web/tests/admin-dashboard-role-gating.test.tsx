@@ -145,7 +145,6 @@ describe("AdminDashboard role-based mutation controls", () => {
     beforeEach(() => {
         mockSessionRole = null;
         mockGetSession.mockClear();
-        localStorage.setItem("sb-access-token", "test-token");
         Object.defineProperty(global, "fetch", {
             configurable: true,
             writable: true,

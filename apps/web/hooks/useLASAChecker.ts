@@ -28,8 +28,8 @@ export function useLASAChecker() {
         try {
             const result = await checkLasaConflicts(query, controller.signal);
             setData(result);
-        } catch (err: any) {
-            if (err.name === "AbortError") {
+        } catch (err: unknown) {
+            if (err instanceof Error && err.name === "AbortError") {
                 return;
             }
             console.error("useLASAChecker error:", err);

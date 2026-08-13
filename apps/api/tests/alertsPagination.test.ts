@@ -94,6 +94,19 @@ function mockApiKeyValid() {
     });
 }
 
+function mockApiKeyWithoutIngestScope() {
+    getChain().maybeSingle.mockResolvedValue({
+        data: {
+            id: "valid",
+            user_id: "user-1",
+            scopes: ["alerts:read"],
+            key_salt: testSalt,
+            key_hash: testHash,
+        },
+        error: null,
+    });
+}
+
 function mockApiKeyInvalid() {
     getChain().maybeSingle.mockResolvedValue({
         data: null,
@@ -330,5 +343,17 @@ describe("POST /api/v1/alerts/ingest — API key authentication", () => {
 
         expect(res.status).toBe(400);
         expect(res.body.error).toMatch(/invalid/i);
+    });
+
+    it("returns 403 when the API key lacks the alerts:ingest scope", async () => {
+        mockApiKeyWithoutIngestScope();
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "valid.key")
+            .send({ alerts: [] });
+
+        expect(res.status).toBe(403);
+        expect(res.body.error).toMatch(/scope/i);
     });
 });

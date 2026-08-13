@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "നിങ്ങളുടെ ആരോഗ്യം, പരിശോധിക്കപ്പെട്ടതും സംരക്ഷിക്കപ്പെട്ടതും.",
         "subtitle": "മരുന്നിന്റെ ആധികാരികത ഉടനടി പരിശോധിക്കാനും, സുരക്ഷിതമായ ഫാർമസികൾ കണ്ടെത്താനും, നിർണ്ണായക ആരോഗ്യ അലേർട്ടുകൾ ലഭിക്കാനും ഉള്ള ഇന്ത്യയുടെ ഓപ്പൺ-സോഴ്‌സ് പൗര പ്ലാറ്റ്‌ഫോം.",
         "scan_button": "മരുന്ന് സ്കാൻ ചെയ്യുക",
@@ -1375,7 +1377,9 @@
         "abhaSetup": "ABHA സെറ്റപ്പ്",
         "abhaRecords": "ABHA രേഖകൾ",
         "notificationSettings": "അറിയിപ്പ് ക്രമീകരണങ്ങൾ",
-        "privacySecurity": "സ്വകാര്യതയും സുരക്ഷയും"
+        "privacySecurity": "സ്വകാര്യതയും സുരക്ഷയും",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1680,6 +1684,8 @@
         "no_search_results": "നിങ്ങളുടെ തിരയലുമായി പൊരുത്തപ്പെടുന്ന മരുന്നുകളൊന്നും ഇല്ല.",
         "item_status_label": "നില:",
         "item_delete_button": "ഇല്ലാതാക്കുക",
+        "sync_auth_title": "നിങ്ങളുടെ ചരിത്രം സിൻക് ചെയ്യാൻ സൈൻ ഇൻ ചെയ്യുക",
+        "sync_auth_action": "സൈൻ ഇൻ",
         "item_copy_success": "മരുന്നിൻ്റെ പേര് പകർത്തി!"
     },
     "MyReports": {

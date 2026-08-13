@@ -12,12 +12,14 @@ import { useTranslations } from "next-intl";
 import { useSession } from "@/src/components/AuthProvider";
 import { useBookmarksStore } from "@/src/stores/useBookmarksStore";
 import { parseLocalDate } from "../expiry-tracker/components/dateUtils";
+import { lsRead } from "@/hooks/useMedicineTracker";
 
 interface TrackedMedicine {
     id: string;
     medicine_name: string;
     expiry_date: string;
     is_verified: boolean;
+    isGuest?: boolean;
 }
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -69,10 +71,12 @@ export default function MyMedicinesPage() {
         setSelectedMedicine(medicine);
         setVerificationModalOpen(true);
     };
+
     const [status, setStatus] = useState<FetchStatus>("loading");
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [refreshKey, setRefreshKey] = useState(0);
 
+    // ── Fetch / load medicines ─────────────────────────────────────────────────
     useEffect(() => {
         let cancelled = false;
 
@@ -82,9 +86,26 @@ export default function MyMedicinesPage() {
             setStatus("loading");
             setErrorMessage(null);
 
+            // ── Guest path ────────────────────────────────────────────────────
+            if (!token) {
+                const guestMeds = lsRead().map((m) => ({
+                    id: m.id,
+                    medicine_name: m.name,
+                    expiry_date: m.expiryDate,
+                    is_verified: false,
+                    isGuest: true,
+                }));
+                if (!cancelled) {
+                    setMedicines(guestMeds);
+                    setStatus("success");
+                }
+                return;
+            }
+
+            // ── Authenticated path ────────────────────────────────────────────
             try {
                 const res = await fetchWithRetry(`${API_BASE}/api/v1/medicines/tracked`, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 if (!res.ok) {
@@ -112,6 +133,26 @@ export default function MyMedicinesPage() {
             cancelled = true;
         };
     }, [isSessionLoading, refreshKey, token]);
+
+    // ── Sync guest medicines when localStorage changes (e.g. from Expiry Tracker) ──
+    useEffect(() => {
+        if (token) return;
+
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key !== "sahidawa_expiry_tracker") return;
+            const guestMeds = lsRead().map((m) => ({
+                id: m.id,
+                medicine_name: m.name,
+                expiry_date: m.expiryDate,
+                is_verified: false,
+                isGuest: true,
+            }));
+            setMedicines(guestMeds);
+        };
+
+        window.addEventListener("storage", handleStorage);
+        return () => window.removeEventListener("storage", handleStorage);
+    }, [token]);
 
     const removeBookmark = (name: string) => {
         setConfirmDialog({
@@ -143,6 +184,15 @@ export default function MyMedicinesPage() {
 
     return (
         <div className="mx-auto w-full max-w-4xl space-y-12 p-6">
+            {/* Guest banner */}
+            {!token && !isSessionLoading && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                    <em>
+                        You are viewing your local cabinet. Sign in to sync your medicines across
+                        devices.
+                    </em>
+                </div>
+            )}
             {/* Tracked Medicines Section */}
             <section>
                 <h1 className="mb-4 text-2xl font-bold">{t("page.title")}</h1>
@@ -155,7 +205,6 @@ export default function MyMedicinesPage() {
                         </p>
                     </div>
                 ) : status === "error" ? (
-                    /* --- Error State: never conflated with the empty state --- */
                     <div className="flex flex-col items-center justify-center space-y-4 rounded-2xl border-2 border-dashed border-red-200 bg-red-50/50 px-4 py-16 text-center dark:border-red-900 dark:bg-red-950/20">
                         <div className="rounded-full bg-red-100 p-4 text-red-600 dark:bg-red-950/40 dark:text-red-400">
                             <AlertTriangle className="h-8 w-8" />
@@ -178,7 +227,6 @@ export default function MyMedicinesPage() {
                         </button>
                     </div>
                 ) : medicines.length === 0 ? (
-                    /* --- Centered Empty State Wrapper (only shown on a confirmed empty result) --- */
                     <div className="flex flex-col items-center justify-center space-y-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-4 py-16 text-center dark:border-slate-800 dark:bg-slate-900/20">
                         <div className="rounded-full bg-emerald-50 p-4 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
                             <Pill className="h-8 w-8" />
@@ -210,10 +258,7 @@ export default function MyMedicinesPage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -15 }}
                                     transition={{ duration: 0.25 }}
-                                    whileHover={{
-                                        y: -4,
-                                        scale: 1.02,
-                                    }}
+                                    whileHover={{ y: -4, scale: 1.02 }}
                                     className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-emerald-500 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-500"
                                 >
                                     <div className="flex items-start justify-between gap-4">
@@ -236,7 +281,7 @@ export default function MyMedicinesPage() {
                                                             ✓ {t("badges.verified")}
                                                         </Badge>
                                                     )}
-                                                    {med.is_verified === false && (
+                                                    {med.is_verified === false && !med.isGuest && (
                                                         <button
                                                             onClick={(event) => {
                                                                 verificationTriggerRef.current =
@@ -281,7 +326,6 @@ export default function MyMedicinesPage() {
                     </div>
                 )}
             </section>
-
             {/* Saved Bookmarks Section */}
             <section>
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
@@ -318,7 +362,6 @@ export default function MyMedicinesPage() {
                     </div>
                 )}
             </section>
-
             {/* Bookmark deletion confirmation */}
             <ConfirmationDialog
                 isOpen={confirmDialog.isOpen}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
 
 import {
@@ -11,9 +11,12 @@ import {
     ScanHistoryEntry,
 } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, Download, LogIn, RefreshCw, Trash2 } from "lucide-react";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Link, usePathname } from "@/i18n/routing";
+import { useSession } from "@/src/components/AuthProvider";
+import { buildLoginPath } from "@/lib/authReturn";
 
 const ExportModal = dynamic(() => import("./ExportModal"));
 
@@ -38,6 +41,9 @@ export default function HistoryPage() {
     );
 
     const t = useTranslations("ScanHistory");
+    const locale = useLocale();
+    const pathname = usePathname();
+    const { session } = useSession();
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     const loadHistory = useCallback(async () => {
@@ -279,6 +285,17 @@ export default function HistoryPage() {
                     </div>
                 )}
                 {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
+                {syncStatus === "error" && !session && (
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm">
+                        <span className="text-amber-300">{t("sync_auth_title")}</span>
+                        <Link
+                            href={buildLoginPath(locale, pathname) as any}
+                            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 font-semibold text-amber-950 transition hover:bg-amber-400"
+                        >
+                            <LogIn size={16} /> {t("sync_auth_action")}
+                        </Link>
+                    </div>
+                )}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <button
                         type="button"
@@ -294,19 +311,17 @@ export default function HistoryPage() {
 
                         <h2 className="mt-2 text-3xl font-bold">{history.length}</h2>
                     </button>
-
                     <button
-                        type="button"
-                        onClick={() => handleStatCardClick("verified")}
-                        aria-pressed={statusFilter === "verified"}
+                        onClick={() =>
+                            setStatusFilter(statusFilter === "verified" ? "all" : "verified")
+                        }
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "verified"
-                                ? "border-emerald-500/60 bg-emerald-500/20 ring-1 ring-emerald-500/60"
+                                ? "border-emerald-500/60 bg-emerald-500/20"
                                 : "border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/15"
                         }`}
                     >
                         <p className="text-sm text-emerald-300">{t("stat_verified")}</p>
-
                         <h2 className="mt-2 text-3xl font-bold text-emerald-400">
                             {verifiedCount}
                         </h2>
@@ -319,6 +334,12 @@ export default function HistoryPage() {
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "suspicious"
                                 ? "border-amber-500/60 bg-amber-500/20 ring-1 ring-amber-500/60"
+                        onClick={() =>
+                            setStatusFilter(statusFilter === "suspicious" ? "all" : "suspicious")
+                        }
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "suspicious"
+                                ? "border-amber-500/60 bg-amber-500/20"
                                 : "border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/15"
                         }`}
                     >
@@ -336,6 +357,10 @@ export default function HistoryPage() {
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "fake"
                                 ? "border-red-500/60 bg-red-500/20 ring-1 ring-red-500/60"
+                        onClick={() => setStatusFilter(statusFilter === "fake" ? "all" : "fake")}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "fake"
+                                ? "border-red-500/60 bg-red-500/20"
                                 : "border-red-500/20 bg-red-500/10 hover:bg-red-500/15"
                         }`}
                     >
@@ -377,8 +402,30 @@ export default function HistoryPage() {
                             <option value="newest">{t("sort_newest")}</option>
                             <option value="oldest">{t("sort_oldest")}</option>
                         </select>
+                            value={statusFilter}
+                            onChange={(e) =>
+                                setStatusFilter(
+                                    e.target.value as "all" | "verified" | "suspicious" | "fake"
+                                )
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        >
+                            <option value="all">All</option>
+                            <option value="verified">Verified</option>
+                            <option value="suspicious">Suspicious</option>
+                            <option value="fake">Fake</option>
+                        </select>
+                        <button
+                            onClick={() =>
+                                setSortOrder(sortOrder === "newest" ? "oldest" : "newest")
+                            }
+                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
+                        >
+                            {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+                        </button>
                     </div>
                 )}
+
                 {history.length === 0 ? (
                     <EmptyState
                         icon={<ClipboardList className="h-10 w-10 text-emerald-500" />}

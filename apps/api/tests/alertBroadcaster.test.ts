@@ -117,6 +117,7 @@ function createSubscriberQueryMock(capturedEqArgs: string[]) {
 function createAlertTable(alerts: Record<string, unknown>[]) {
     const chain: Record<string, unknown> = {
         eq: jest.fn(() => chain),
+        or: jest.fn(() => chain),
         then: (resolve: (value: unknown) => void) => resolve({ data: alerts, error: null }),
     };
 
@@ -252,21 +253,17 @@ describe("broadcastDistrictAlerts", () => {
         jest.clearAllMocks();
     });
 
-    it("marks the alert as broadcasted before paginating subscribers (not after)", async () => {
-        const callOrder: string[] = [];
-        const chain = getChain();
+    it("marks the alert as broadcasted only after at least one delivery succeeds", async () => {
+        const markSpy = jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
 
-        chain.select.mockReturnThis();
-        chain.eq.mockReturnThis();
-        chain.ilike.mockReturnThis();
-
-        // First select(...).eq(...).eq(...) call: fetch unbroadcasted alerts
-        let selectCallCount = 0;
         (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
             if (table === "district_alerts") {
                 return {
-                    select: jest.fn().mockImplementation(() => ({
-                        eq: jest.fn().mockImplementation(() => ({
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
                             eq: jest.fn().mockResolvedValue({
                                 data: [
                                     {
@@ -280,32 +277,37 @@ describe("broadcastDistrictAlerts", () => {
                                 ],
                                 error: null,
                             }),
-                        })),
-                    })),
-                    update: jest.fn().mockImplementation(() => {
-                        callOrder.push("mark_broadcasted");
-                        return {
-                            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-                        };
+                        }),
                     }),
+                    update: markSpy,
                 };
             }
             if (table === "notification_subscribers") {
-                selectCallCount += 1;
-                return createSubscriberTable([], {
-                    onRange: () => callOrder.push("fetch_subscribers"),
-                });
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
             }
-            return chain;
+            return {};
         });
 
         await broadcastDistrictAlerts();
 
-        expect(callOrder[0]).toBe("mark_broadcasted");
-        expect(callOrder).toContain("fetch_subscribers");
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).toHaveBeenCalledWith({ broadcasted: true });
     });
 
-    it("does not send notifications when marking broadcasted=true fails", async () => {
+    it("keeps the alert eligible for retry when every delivery fails", async () => {
+        const markSpy = jest.fn();
+        (smsService.send as jest.Mock).mockResolvedValue(false);
+
         (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
             if (table === "district_alerts") {
                 return {
@@ -326,43 +328,29 @@ describe("broadcastDistrictAlerts", () => {
                             }),
                         }),
                     }),
-                    update: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockResolvedValue({
-                            data: null,
-                            error: { message: "DB write failed" },
-                        }),
-                    }),
+                    update: markSpy,
                 };
             }
             if (table === "notification_subscribers") {
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            ilike: jest.fn().mockReturnValue({
-                                range: jest.fn().mockResolvedValue({
-                                    data: [
-                                        {
-                                            id: "sub-1",
-                                            phone: "+911234567890",
-                                            language: "en",
-                                            channels: ["sms"],
-                                            district: "Mumbai",
-                                            is_active: true,
-                                        },
-                                    ],
-                                    error: null,
-                                }),
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Mumbai",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
             }
             return {};
         });
 
         await broadcastDistrictAlerts();
 
-        expect(smsService.send).not.toHaveBeenCalled();
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).not.toHaveBeenCalled();
     });
 
     it("does not re-notify already-broadcasted alerts on the next tick", async () => {
@@ -439,6 +427,254 @@ describe("broadcastDistrictAlerts", () => {
 
         expect(ilikeArgs).toEqual(["district", "Pune District"]);
         expect(smsService.send).toHaveBeenCalledTimes(1);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// broadcastDrugAlerts (retry semantics)
+// ---------------------------------------------------------------------------
+
+describe("broadcastDrugAlerts", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("marks the alert as broadcasted only after at least one delivery succeeds", async () => {
+        const markSpy = jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Delhi",
+                                        reported_brand_name: "Paracetamol",
+                                        batch_number: "B1",
+                                        broadcasted: false,
+                                    },
+                                ],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: markSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).toHaveBeenCalledWith({ broadcasted: true });
+    });
+
+    it("keeps the alert eligible for retry when every delivery fails", async () => {
+        const markSpy = jest.fn();
+        (smsService.send as jest.Mock).mockResolvedValue(false);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Mumbai",
+                                        reported_brand_name: "Ibuprofen",
+                                        batch_number: "B2",
+                                        broadcasted: false,
+                                    },
+                                ],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: markSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Mumbai",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not broadcast a drug alert that is currently snoozed", async () => {
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: jest.fn(),
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).not.toHaveBeenCalled();
+    });
+
+    it("broadcasts a drug alert whose snooze period has expired", async () => {
+        const markSpy = jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Delhi",
+                                        reported_brand_name: "Paracetamol",
+                                        batch_number: "B1",
+                                        broadcasted: false,
+                                        snoozed_until: "2026-01-01T00:00:00.000Z",
+                                    },
+                                ],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: markSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).toHaveBeenCalledWith({ broadcasted: true });
+    });
+
+    it("broadcasts a drug alert with null snoozed_until", async () => {
+        const markSpy = jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "drug_alerts") {
+                return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            or: jest.fn().mockResolvedValue({
+                                data: [
+                                    {
+                                        id: "drug-alert-1",
+                                        district: "Delhi",
+                                        reported_brand_name: "Paracetamol",
+                                        batch_number: "B1",
+                                        broadcasted: false,
+                                        snoozed_until: null,
+                                    },
+                                ],
+                                error: null,
+                            }),
+                        }),
+                    }),
+                    update: markSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return createSubscriberTable([
+                    {
+                        id: "sub-1",
+                        phone: "+911234567890",
+                        language: "en",
+                        channels: ["sms"],
+                        district: "Delhi",
+                        is_active: true,
+                        status: "active",
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastDrugAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markSpy).toHaveBeenCalledWith({ broadcasted: true });
     });
 });
 

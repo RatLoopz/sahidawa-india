@@ -59,16 +59,55 @@ export async function processSmsJob(job: Job): Promise<void> {
     throw new Error(`Twilio SMS API error: ${response.status} ${errText}`);
 }
 
-const connection = new IORedis(process.env.REDIS_URL as string, { maxRetriesPerRequest: null });
+let worker: Worker | null = null;
+let connection: IORedis | null = null;
 
-new Worker(
-    "sms-queue",
-    async (job: Job) => {
-        await processSmsJob(job);
-    },
-    {
-        connection: connection as any,
+export function startSmsWorker(): { stop: () => Promise<void> } {
+    if (process.env.NODE_ENV === "test") {
+        logger.info("SMS Worker disabled in test environment.");
+        return { stop: async () => {} };
     }
-);
 
-logger.info("SMS Worker started");
+    if (worker) {
+        logger.warn("SMS Worker already started.");
+        return { stop: async () => {} };
+    }
+
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+        throw new Error("REDIS_URL is required to start the SMS Worker.");
+    }
+
+    connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
+    worker = new Worker(
+        "sms-queue",
+        async (job: Job) => {
+            await processSmsJob(job);
+        },
+        {
+            connection: connection as any,
+        }
+    );
+
+    worker.on("failed", (failedJob, error) => {
+        logger.error(
+            `SMS Worker job failed for ${failedJob?.id ?? "unknown"}: ${error?.message ?? error}`
+        );
+    });
+
+    logger.info("SMS Worker started");
+
+    return {
+        stop: async () => {
+            if (worker) {
+                await worker.close();
+                worker = null;
+            }
+            if (connection) {
+                connection.disconnect();
+                connection = null;
+            }
+            logger.info("SMS Worker stopped");
+        },
+    };
+}

@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "توهان جي صحت، تصديق ٿيل ۽ محفوظ.",
         "subtitle": "ڀارت جو اوپن سورس شهري پليٽفارم، جيڪو دوائن جي اصليت جي فوري تصديق، محفوظ فارميسي ڳولڻ، ۽ اهم صحت وارن اطلاعن جي سهولت فراهم ڪري ٿو.",
         "scan_button": "دوا اسڪين ڪريو",
@@ -1348,6 +1350,8 @@
         "no_search_results": "توهان جي ڳولا سان ميل کائيندڙ ڪا به دوا نه ملي.",
         "item_status_label": "اسٽيٽس: ",
         "item_delete_button": "ختم ڪريو",
+        "sync_auth_title": "پنھنجي تاريخ سنڪ ڪرڻ لاءِ سائن ان ڪريو",
+        "sync_auth_action": "سائن ان",
         "item_copy_success": "دوا جو نالو ڪاپي ٿي ويو!"
     },
     "MyReports": {
@@ -1542,7 +1546,9 @@
         "abhaSetup": "ABHA سيٽ اپ",
         "abhaRecords": "ABHA رڪارڊ",
         "notificationSettings": "اطلاعي سيٽنگون",
-        "privacySecurity": "رازداري ۽ سلامتي"
+        "privacySecurity": "رازداري ۽ سلامتي",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {

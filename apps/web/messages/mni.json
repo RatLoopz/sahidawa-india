@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "ꯅꯪꯒꯤ ꯍꯦꯜꯊ, ꯌꯥꯊꯪꯈ꯭ꯔꯕ ꯑꯃꯁꯨꯡ ꯁꯤꯟꯗꯣꯛꯈ꯭ꯔꯕ꯫",
         "subtitle": "ꯃꯦꯗꯤꯁꯤꯟꯒꯤ ꯑꯆꯨꯝꯕ ꯈꯨꯗꯝ ꯌꯥꯔꯨꯁꯤꯟꯅꯕ, ꯁꯦꯡꯗꯣꯛꯂꯕ ꯐꯥꯔꯃꯦꯁꯤ ꯊꯤꯅꯕ, ꯑꯃꯁꯨꯡ ꯃꯔꯨꯑꯣꯏꯕ ꯍꯦꯜꯊ ꯑꯦꯂꯔ꯭ꯇ ꯐꯪꯅꯕ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯑꯣꯄꯟ-ꯁꯣꯔ꯭ꯁ ꯁꯤꯇꯤꯖꯦꯟ ꯄ꯭ꯂꯦꯇꯐꯣꯔ꯭ꯃ꯫",
         "scan_button": "ꯃꯦꯗꯤꯁꯤꯟ ꯁ꯭ꯀꯦꯟ ꯇꯧꯕ",
@@ -1348,6 +1350,8 @@
         "no_search_results": "ꯅꯍꯥꯛꯅꯥ ꯊꯤꯕꯒꯥ ꯃꯥꯟꯅꯕꯥ ꯃꯦꯗꯤꯁꯤꯟ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤꏏ",
         "item_status_label": "ꯐꯤꯚꯝ (Status): ",
         "item_delete_button": "ꯃꯨꯠꯊꯠꯄꯥ",
+        "sync_auth_title": "ꯅꯍꯥꯛꯀꯤ ꯄꯨꯋꯥꯔꯤ ꯁꯤꯟꯛ ꯇꯧꯅꯕ ꯁꯥꯏꯟ ꯏꯟ ꯇꯧ",
+        "sync_auth_action": "ꯁꯥꯏꯟ ꯏꯟ",
         "item_copy_success": "ꯍꯤꯗꯥꯛꯀꯤ ꯃꯤꯡ ꯀꯣꯄꯤ ꯇꯧꯈ꯭ꯔꯦ!"
     },
     "MyReports": {
@@ -1542,7 +1546,9 @@
         "abhaSetup": "ABHA সেটআপ",
         "abhaRecords": "ABHA রেকর্ড",
         "notificationSettings": "নোটিফিকেসন সেটিং",
-        "privacySecurity": "ৱাফম অমসুং সেকురిति"
+        "privacySecurity": "ৱাফম অমসুং সেকురిति",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {

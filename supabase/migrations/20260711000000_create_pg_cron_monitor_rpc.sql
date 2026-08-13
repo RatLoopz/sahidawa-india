@@ -1,5 +1,5 @@
 -- RPC to fetch failed pg_cron jobs, allowing the API service_role to access cron.job_run_details
-CREATE OR REPLACE FUNCTION get_failed_pg_cron_jobs(p_job_name text, p_since_time timestamptz)
+CREATE OR REPLACE FUNCTION public.get_failed_pg_cron_jobs(p_job_name text, p_since_time timestamptz)
 RETURNS TABLE (
     jobid bigint,
     runid bigint,
@@ -11,6 +11,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 BEGIN
     RETURN QUERY
@@ -30,3 +31,7 @@ BEGIN
     ORDER BY cjd.start_time DESC;
 END;
 $$;
+
+REVOKE EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) TO service_role;
+

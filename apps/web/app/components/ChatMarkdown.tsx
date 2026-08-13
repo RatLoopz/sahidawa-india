@@ -27,7 +27,7 @@ const MarkdownLink = ({ children, href, ...props }: AnchorHTMLAttributes<HTMLAnc
 );
 
 const MarkdownBlockquote = ({ children }: ComponentPropsWithoutRef<"blockquote">) => (
-    <blockquote className="border-l-2 border-emerald-500/50 pl-3 text-slate-600 dark:text-slate-300">
+    <blockquote className="mt-2 mb-2 rounded-r-md border-l-4 border-emerald-500 bg-emerald-50 py-2 pr-2 pl-3 font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
         {children}
     </blockquote>
 );

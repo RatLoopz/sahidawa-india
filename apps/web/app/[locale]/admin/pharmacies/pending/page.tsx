@@ -4,6 +4,7 @@ import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/routing";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
+import { getSessionAccessToken } from "@/lib/accessToken";
 import {
     CheckCircle,
     Clock,
@@ -30,8 +31,7 @@ type PendingPharmacy = {
 };
 
 function getToken(): string {
-    if (globalThis.window === undefined) return "";
-    return localStorage.getItem("sb-access-token") ?? "";
+    return getSessionAccessToken();
 }
 
 function timeAgo(dateStr: string): string {

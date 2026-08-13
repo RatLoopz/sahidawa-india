@@ -493,4 +493,63 @@ describe("Offline Support", () => {
             expect(providerContent).toContain("SKIP_WAITING");
         });
     });
+
+    describe("Service Worker source", () => {
+        const workerPath = join(process.cwd(), "worker", "index.js");
+        const workerSource = fs.readFileSync(workerPath, "utf8");
+
+        it("precaches offline pages for all supported locales", () => {
+            const supportedLocales = [
+                "en",
+                "hi",
+                "gu",
+                "ta",
+                "bn",
+                "mr",
+                "te",
+                "ur",
+                "or",
+                "kn",
+                "pa",
+                "as",
+                "ks",
+                "kok",
+                "mai",
+                "ml",
+                "sa",
+            ];
+
+            for (const locale of supportedLocales) {
+                expect(workerSource).toContain(`"/${locale}/offline"`);
+            }
+        });
+
+        it("defines SUPPORTED_LOCALES covering all precached offline locales", () => {
+            const match = workerSource.match(/SUPPORTED_LOCALES\s*=\s*\[([\s\S]*?)\]/);
+            expect(match).not.toBeNull();
+
+            const localeEntries = match![1]
+                .split(",")
+                .map((s) => s.trim().replace(/"/g, ""))
+                .filter(Boolean);
+
+            expect(localeEntries).toContain("en");
+            expect(localeEntries).toContain("hi");
+            expect(localeEntries).toContain("gu");
+            expect(localeEntries).toContain("ta");
+            expect(localeEntries).toContain("bn");
+            expect(localeEntries).toContain("mr");
+            expect(localeEntries).toContain("te");
+            expect(localeEntries).toContain("ur");
+            expect(localeEntries).toContain("or");
+            expect(localeEntries).toContain("kn");
+            expect(localeEntries).toContain("pa");
+            expect(localeEntries).toContain("as");
+            expect(localeEntries).toContain("ks");
+            expect(localeEntries).toContain("kok");
+            expect(localeEntries).toContain("mai");
+            expect(localeEntries).toContain("ml");
+            expect(localeEntries).toContain("sa");
+        });
+    });
 });

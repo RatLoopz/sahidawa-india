@@ -68,6 +68,7 @@ describe("AuthProvider sync queue user-scoping", () => {
 
         expect(registerCurrentUser).toHaveBeenCalledWith("user-A");
         expect(clearSyncQueueForLogout).not.toHaveBeenCalled();
+        expect(localStorage.getItem("sb-access-token")).toBeNull();
     });
 
     it("clears the queue and unregisters the user when the session ends", async () => {

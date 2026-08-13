@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "మీ ఆరోగ్యం, ధృవీకరించబడింది మరియు రక్షించబడింది.",
         "subtitle": "మందుల అసలుదనాన్ని వెంటనే ధృవీకరించడానికి, సురక్షిత ఫార్మసీలను కనుగొనడానికి మరియు ముఖ్యమైన ఆరోగ్య హెచ్చరికలను పొందడానికి భారతదేశపు ఓపెన్-సోర్స్ పౌర వేదిక.",
         "scan_button": "మందును స్కాన్ చేయండి",
@@ -1431,7 +1433,9 @@
         "abhaSetup": "ABHA సెటప్",
         "abhaRecords": "ABHA రికార్డులు",
         "notificationSettings": "నోటిఫికేషన్ సెట్టింగ్‌లు",
-        "privacySecurity": "గోప్యత మరియు భద్రత"
+        "privacySecurity": "గోప్యత మరియు భద్రత",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1740,8 @@
         "no_search_results": "మీ శోధనకు సరిపోలే మందులు లేవు.",
         "item_status_label": "స్థితి:",
         "item_delete_button": "తొలగించు",
+        "sync_auth_title": "మీ చరిత్రను సింక్ చేయడానికి సైన్ ఇన్ చేయండి",
+        "sync_auth_action": "సైన్ ఇన్",
         "item_copy_success": "ఔషధం పేరు కాపీ చేయబడింది!"
     },
     "MyReports": {

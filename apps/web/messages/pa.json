@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "ਤੁਹਾਡੀ ਸਿਹਤ, ਪ੍ਰਮਾਣਿਤ ਅਤੇ ਸੁਰੱਖਿਅਤ।",
         "subtitle": "ਭਾਰਤ ਦਾ ਓਪਨ-ਸੋਰਸ ਪਲੇਟਫਾਰਮ ਜੋ ਦਵਾਈ ਦੀ ਅਸਲੀਅਤ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੈ, ਸੁਰੱਖਿਅਤ ਫਾਰਮੇਸੀ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ ਅਤੇ ਮਹੱਤਵਪੂਰਨ ਸਿਹਤ ਚੇਤਾਵਨੀਆਂ ਦਿੰਦਾ ਹੈ।",
         "scan_button": "ਦਵਾਈ ਸਕੈਨ ਕਰੋ",
@@ -1431,7 +1433,9 @@
         "abhaSetup": "ABHA ਸੈੱਟਅੱਪ",
         "abhaRecords": "ABHA ਰਿਕਾਰਡ",
         "notificationSettings": "ਸੂਚਨਾ ਸੈਟਿੰਗਾਂ",
-        "privacySecurity": "ਗੋਪਨੀਯਤਾ ਅਤੇ ਸੁਰੱਖਿਆ"
+        "privacySecurity": "ਗੋਪਨੀਯਤਾ ਅਤੇ ਸੁਰੱਖਿਆ",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1740,8 @@
         "no_search_results": "ਕੋਈ ਵੀ ਦਵਾਈ ਤੁਹਾਡੀ ਖੋਜ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ।",
         "item_status_label": "ਸਥਿਤੀ:",
         "item_delete_button": "ਮਿਟਾਓ",
+        "sync_auth_title": "ਆਪਣਾ ਇਤਿਹਾਸ ਸਿੰਕ ਕਰਨ ਲਈ ਸਾਈਨ ਇਨ ਕਰੋ",
+        "sync_auth_action": "ਸਾਈਨ ਇਨ",
         "item_copy_success": "ਦਵਾਈ ਦਾ ਨਾਮ ਕਾਪੀ ਕੀਤਾ ਗਿਆ!"
     },
     "MyReports": {

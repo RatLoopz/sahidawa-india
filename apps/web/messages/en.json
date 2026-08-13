@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "Your Health, Verified & Protected.",
         "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",
         "scan_button": "Scan Medicine",
@@ -1442,6 +1444,9 @@
         "sort_newest": "Newest first",
         "sort_oldest": "Oldest first",
         "no_filtered_results": "No scans match the selected filters."
+        "sync_auth_title": "Sign in to sync your history",
+        "sync_auth_action": "Sign in",
+        "item_copy_success": "Medicine name copied!"
     },
     "MyReports": {
         "header_title": "My Reports",
@@ -1718,7 +1723,9 @@
         "abhaSetup": "ABHA Setup",
         "abhaRecords": "ABHA Records",
         "notificationSettings": "Notification Settings",
-        "privacySecurity": "Privacy & Security"
+        "privacySecurity": "Privacy & Security",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Navbar": {
         "logo_alt": "SahiDawa Logo"
@@ -1876,5 +1883,29 @@
         "statTaken": "Taken",
         "statSkipped": "Skipped",
         "statExpected": "Expected"
+    },
+    "Scanner": {
+        "title": "Smart Prescription Scanner",
+        "description": "Upload a picture of your handwritten prescription, and our AI will extract the medicines and instructions for you.",
+        "uploadTitle": "Upload Prescription",
+        "uploadDescription": "Drag & drop or click to upload a clear picture of your prescription (JPEG/PNG)",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection."
+        }
     }
 }

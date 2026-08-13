@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
 import { redis } from "@/lib/redis";
@@ -76,8 +76,84 @@ export async function POST(req: NextRequest) {
             console.warn("[overpass] Redis GET failed:", redisErr);
         }
 
-        // Cache miss (or invalid cache): query all mirrors in parallel
-        const controllers: AbortController[] = [];
+        const lockKey = `overpass_lock:${hash}`;
+        const lockToken = randomUUID();
+        let isLeader = false;
+        let lockAcquired = false;
+
+        try {
+            const lockResult = await redis.set(lockKey, lockToken, { nx: true, ex: 35 });
+            if (lockResult === "OK") {
+                isLeader = true;
+                lockAcquired = true;
+            }
+        } catch (redisErr) {
+            console.warn("[overpass] Redis SET lock failed, assuming leader:", redisErr);
+            isLeader = true;
+        }
+
+        if (!isLeader) {
+            const maxWaitMs = 25000;
+            const intervalMs = 2000;
+            let waited = 0;
+
+            while (waited < maxWaitMs) {
+                await new Promise((resolve) => setTimeout(resolve, intervalMs));
+                waited += intervalMs;
+
+                try {
+                    const cached = await redis.get(cacheKey);
+                    if (cached) {
+                        try {
+                            const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
+                            if (parsed && Array.isArray(parsed.elements)) {
+                                return NextResponse.json(parsed, {
+                                    headers: { "X-Cache": "HIT-WAIT" },
+                                });
+                            }
+                        } catch (parseErr) {
+                            console.warn("[overpass] Failed to parse polled cache");
+                        }
+                    }
+
+                    const currentLock = await redis.get(lockKey);
+                    if (!currentLock) {
+                        break;
+                    }
+                } catch (redisErr) {
+                    console.warn("[overpass] Polling Redis failed:", redisErr);
+                    break;
+                }
+            }
+        } else {
+            // Double check cache in case it was written between our first check and lock acquisition
+            if (lockAcquired) {
+                try {
+                    const cached = await redis.get(cacheKey);
+                    if (cached) {
+                        const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
+                        if (parsed && Array.isArray(parsed.elements)) {
+                            const luaScript = `
+                                if redis.call("GET", KEYS[1]) == ARGV[1] then
+                                    return redis.call("DEL", KEYS[1])
+                                end
+                                return 0
+                            `;
+                            await redis.eval(luaScript, [lockKey], [lockToken]);
+                            return NextResponse.json(parsed, {
+                                headers: { "X-Cache": "HIT" },
+                            });
+                        }
+                    }
+                } catch (e) {
+                    // Ignore and proceed to fetch
+                }
+            }
+        }
+
+        try {
+            // Cache miss (or invalid cache): query all mirrors in parallel
+            const controllers: AbortController[] = [];
         const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
             const controller = new AbortController();
             controllers.push(controller);
@@ -124,10 +200,19 @@ export async function POST(req: NextRequest) {
         let fastestData;
         try {
             fastestData = await Promise.any(fetchPromises);
-        } catch {
-            // This catches both complete network failures AND cases where all mirrors returned 0 elements
-            console.warn("[overpass] All mirrors rejected or returned 0 elements");
-            fastestData = { elements: [] };
+        } catch (aggregateError: any) {
+            // Check if any mirror successfully completed but returned 0 elements
+            const zeroElementErrors = (aggregateError.errors || []).filter(
+                (err: any) => err.message && err.message.includes("returned 0 elements")
+            );
+
+            if (zeroElementErrors.length > 0) {
+                console.warn("[overpass] At least one mirror successfully returned 0 elements");
+                fastestData = { elements: [] };
+            } else {
+                console.error("[overpass] All parallel mirrors failed with errors/timeouts");
+                throw aggregateError;
+            }
         }
 
         // Abort remaining in-flight requests
@@ -147,6 +232,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(fastestData, {
             headers: { "X-Cache": "MISS" },
         });
+        } finally {
+            if (lockAcquired) {
+                try {
+                    const luaScript = `
+                        if redis.call("GET", KEYS[1]) == ARGV[1] then
+                            return redis.call("DEL", KEYS[1])
+                        end
+                        return 0
+                    `;
+                    await redis.eval(luaScript, [lockKey], [lockToken]);
+                } catch (e) {
+                    console.warn("[overpass] Failed to release lock safely:", e);
+                }
+            }
+        }
     } catch (err) {
         console.error("[overpass] Uncaught error:", err);
         return NextResponse.json(

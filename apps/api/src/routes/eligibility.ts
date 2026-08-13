@@ -192,10 +192,10 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
                 });
                 res.status(200).json({ eligible_schemes });
                 return;
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.error("Error calling PM-JAY eligibility service", {
-                    error: err.message || String(err),
-                    name: err.name,
+                    error: err instanceof Error ? err.message : String(err),
+                    name: err instanceof Error ? err.name : "Unknown",
                 });
 
                 if (err instanceof PmjayAuthError) {
@@ -236,7 +236,7 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
 
                 res.status(500).json({
                     error: "Internal server error during eligibility check",
-                    details: err.message || String(err),
+                    details: err instanceof Error ? err.message : String(err),
                 });
                 return;
             }

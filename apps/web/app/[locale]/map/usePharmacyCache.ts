@@ -40,13 +40,16 @@ function normalizeRadiusKm(radiusMeters: number): number {
     return Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 10;
 }
 
+const CACHE_VERSION = "v2";
+
 export function buildNearbyCacheKey(lat: number, lng: number, radiusMeters: number): string {
     // Round coordinates consistently while keeping radius-specific searches isolated.
-    return `nearby:${lat.toFixed(2)}:${lng.toFixed(2)}:r:${normalizeRadiusKm(radiusMeters)}`;
+    return `${CACHE_VERSION}:nearby:${lat.toFixed(2)}:${lng.toFixed(2)}:r:${normalizeRadiusKm(radiusMeters)}`;
 }
 
 export function buildBoundsCacheKey(bounds: PharmacyBounds): string {
     return [
+        CACHE_VERSION,
         "bounds",
         bounds.south.toFixed(3),
         bounds.west.toFixed(3),
