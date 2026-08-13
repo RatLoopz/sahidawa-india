@@ -5,8 +5,7 @@ import { Mic, X } from "lucide-react";
 import { useVoiceNavigation } from "@/hooks/useVoiceNavigation";
 
 export function VoiceVisualizer() {
-    const { isListeningForIntent, cancelListening, transcript, toggleWakeWord, isWakeWordActive } =
-        useVoiceNavigation();
+    const { isListeningForIntent, cancelListening, transcript, toggleWakeWord, isWakeWordActive } = useVoiceNavigation();
 
     return (
         <AnimatePresence>
