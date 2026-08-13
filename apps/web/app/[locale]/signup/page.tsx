@@ -20,6 +20,7 @@ import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { FaGithub } from "react-icons/fa6";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FULL_NAME_PATTERN = /^[A-Za-z\s]+$/;
 
 function isStrongPassword(password: string): boolean {
     return (
@@ -61,6 +62,10 @@ export default function SignUpPage() {
 
         if (!trimmedName) {
             return t("errors.fullNameRequired");
+        }
+
+        if (!FULL_NAME_PATTERN.test(trimmedName)) {
+            return t("errors.fullNameInvalid");
         }
 
         if (!trimmedEmail) {
@@ -304,6 +309,7 @@ export default function SignUpPage() {
                                     placeholder={t("fullNamePlaceholder")}
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
+                                    pattern="[A-Za-z\s]+"
                                     required
                                     disabled={isMissingEnvVars}
                                     className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
