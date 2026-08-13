@@ -109,6 +109,13 @@ if not tts_loaded:
         "TTS routes are disabled. Install google-cloud-texttospeech or configure Azure TTS."
     )
 include_router_if_available(app, "routers.voice_verify", required=True, dependencies=auth)
+# Optional: voice-driven medicine-name extraction. Degrades gracefully to an
+# empty list when the LLM stack/API key is absent, so it need not be required.
+extract_loaded = include_router_if_available(
+    app, "routers.medicine_extract", required=False, dependencies=auth
+)
+if not extract_loaded:
+    logger.warning("Medicine-extraction routes are disabled in this runtime.")
 
 @app.get("/")
 @app.head("/")

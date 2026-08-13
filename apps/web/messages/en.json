@@ -1395,7 +1395,16 @@
         "mechanism": "Mechanism:",
         "source": "Source:",
         "errorMessage": "Failed to complete interaction check. Please try again.",
-        "offlineBadge": "Offline Result — Connect to internet for latest data"
+        "offlineBadge": "Offline Result — Connect to internet for latest data",
+        "voice": {
+            "button": "Add medicines by voice",
+            "listening": "Listening… tap to stop",
+            "processing": "Adding medicines…",
+            "unsupported": "Voice input isn't supported on this browser",
+            "permissionDenied": "Microphone access is needed for voice input",
+            "error": "Couldn't add medicines by voice. Please try again.",
+            "noMedicines": "No medicine names detected. Please try again."
+        }
     },
     "ScanHistory": {
         "export_modal_title": "Export Scan History",
