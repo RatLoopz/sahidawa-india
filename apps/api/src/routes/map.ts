@@ -287,7 +287,6 @@ router.get(
             logger.error({ message: "Error fetching nearby facilities", error: err });
             res.status(500).json({
                 error: "Internal server error",
-                details: err instanceof Error ? err.stack : String(err),
             });
         }
     }
