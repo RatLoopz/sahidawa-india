@@ -79,11 +79,13 @@ Rules for valid medicines:
 - All text in English. Medical terms followed by layperson explanation in parentheses.
 - If reference FDA text is provided, prioritise it but keep output concise.
 
-Required JSON shape:
+Required JSON shape (ALL fields are MANDATORY — never omit any):
 {
   "isMedicine": boolean,
   "activeIngredient": "string — INN generic name",
   "genericName": "string — display name",
+  "description": "string — 1-2 sentence plain-language description of what this medicine is and how it works",
+  "commonUses": ["string — condition 1", "string — condition 2", "string — condition 3"],
   "brandAliases": ["array of common brand names"],
   "sideEffects": [{"name":"string","severity":"common|severe","frequency":"common|uncommon|rare"}],
   "ageBasedDosage": [{"group":"children|adults|elderly","label":"string","ageRange":"string","dose":"string","frequency":"string","notes":["string"],"warnings":["string"]}],
@@ -291,8 +293,9 @@ export async function GET(request: NextRequest) {
                     );
                 }
 
-                // Check for new schema fields (description & commonUses)
-                if (cachedProfile.description && cachedProfile.commonUses) {
+                // Only serve from cache if profile has the new required fields.
+                // If missing, delete the stale entry so fresh LLM data is written back.
+                if (cachedProfile.description && cachedProfile.commonUses?.length > 0) {
                     return NextResponse.json(data.profile_json, {
                         headers: {
                             "X-Cache": "HIT",
@@ -301,6 +304,12 @@ export async function GET(request: NextRequest) {
                         },
                     });
                 }
+
+                // Stale entry — delete it so the upsert below writes fresh data
+                await db
+                    .from("medicine_safety_profiles")
+                    .delete()
+                    .eq("generic_name", genericName);
             }
         } catch {
             // non-fatal — proceed to LLM

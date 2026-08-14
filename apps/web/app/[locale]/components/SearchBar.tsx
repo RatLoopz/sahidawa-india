@@ -328,7 +328,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             setIsLoading(false);
             setNoResults(false);
             setError(null);
-            onSearchChange?.("");
+            // NOTE: Do NOT call onSearchChange("") here — only explicit Submit (button/Enter)
+            // should trigger the parent. Calling it on clear causes the safety panel to close
+            // even when the user is mid-typing a new search.
             return;
         }
 
@@ -342,7 +344,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             }
             abortControllerRef.current?.abort();
         };
-    }, [trimmedQuery, deferredTrimmedQuery, fetchSuggestions, onSearchChange]);
+    }, [trimmedQuery, deferredTrimmedQuery, fetchSuggestions]);
 
     // ── Select a suggestion ────────────────────────────────────────────────────
     const selectSuggestion = useCallback(
