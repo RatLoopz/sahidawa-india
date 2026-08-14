@@ -15,7 +15,7 @@ export function VoiceVisualizer() {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 50 }}
-                    className="fixed bottom-24 left-1/2 z-[100] w-11/12 max-w-sm -translate-x-1/2 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-md"
+                    className="fixed bottom-24 left-1/2 z-100 w-11/12 max-w-sm -translate-x-1/2 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-md"
                 >
                     <div className="flex flex-col items-center justify-center space-y-4">
                         <button
@@ -57,7 +57,7 @@ export function VoiceVisualizer() {
             {!isListeningForIntent && (
                 <button
                     onClick={toggleWakeWord}
-                    className={`fixed right-[5.5rem] bottom-[4.5rem] z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors md:right-24 md:bottom-6 ${
+                    className={`fixed right-22 bottom-18 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors md:right-24 md:bottom-6 ${
                         isWakeWordActive
                             ? "animate-pulse bg-emerald-600 text-white"
                             : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
