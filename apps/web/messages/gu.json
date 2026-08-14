@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "તમારું સ્વાસ્થ્ય, ચકાસાયેલ અને સુરક્ષિત.",
         "subtitle": "દવાઓની અસ્સલતા તાત્કાલિક ચકાસવા, સુરક્ષિત ફાર્મસી શોધવા અને મહત્વપૂર્ણ આરોગ્ય સૂચનાઓ મેળવવા માટે ભારતનું ઓપન-સોર્સ નાગરિક પ્લેટફોર્મ.",
         "scan_button": "દવા સ્કૅન કરો",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",
         "alerts": "સૂચનાઓ",
+        "tools": "સાધનો",
         "pharmacy_map": "ફાર્મસી નકશો",
         "my_reports": "મારા રિપોર્ટ",
         "schedule": "સમયપત્રક",
@@ -519,6 +522,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,7 +1435,9 @@
         "abhaSetup": "ABHA સેટઅપ",
         "abhaRecords": "ABHA રેકોર્ડ્સ",
         "notificationSettings": "સૂચના સેટિંગ્સ",
-        "privacySecurity": "ગોપનીયતા અને સુરક્ષા"
+        "privacySecurity": "ગોપનીયતા અને સુરક્ષા",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1742,8 @@
         "no_search_results": "તમારી શોધ સાથે કોઈ દવાઓ મેળ ખાતી નથી.",
         "item_status_label": "સ્થિતિ:",
         "item_delete_button": "કાઢી નાખો",
+        "sync_auth_title": "તમારો ઇતિહાસ સિંક કરવા માટે સાઇન ઇન કરો",
+        "sync_auth_action": "સાઇન ઇન",
         "item_copy_success": "દવાના નામની નકલ કરી!"
     },
     "MyReports": {

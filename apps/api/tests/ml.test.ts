@@ -16,13 +16,6 @@ jest.mock("../src/middleware/auth", () => ({
     AuthenticatedRequest: Object,
 }));
 
-jest.mock("node:dns", () => ({
-    promises: {
-        resolve4: jest.fn(),
-    },
-}));
-
-import { promises as dnsMock } from "node:dns";
 import { Request, Response, NextFunction } from "express";
 
 function buildApp() {
@@ -33,6 +26,7 @@ function buildApp() {
 }
 
 const VALID_TOKEN = "Bearer test-auth-token";
+const VALID_CLOUDINARY_URL = "https://res.cloudinary.com/demo/image/upload/medicine.jpg";
 
 describe("ml routes", () => {
     const originalFetch = global.fetch;
@@ -41,7 +35,6 @@ describe("ml routes", () => {
     beforeEach(() => {
         process.env.ML_SERVICE_URL = "http://ml-service.test";
         jest.clearAllMocks();
-        (dnsMock.resolve4 as jest.Mock).mockResolvedValue(["203.0.113.42"]);
     });
 
     afterEach(() => {
@@ -52,7 +45,7 @@ describe("ml routes", () => {
     it("rejects unauthenticated requests", async () => {
         const response = await request(buildApp())
             .post("/api/ml/analyze")
-            .send({ imageUrl: "https://res.cloudinary.com/demo/image/upload/medicine.jpg" });
+            .send({ imageUrl: VALID_CLOUDINARY_URL });
 
         assert.equal(response.status, 401);
         assert.ok(response.body.error.includes("Unauthorized"));
@@ -67,9 +60,13 @@ describe("ml routes", () => {
         assert.equal(response.status, 400);
     });
 
-    it("proxies valid Cloudinary URLs to the ML service", async () => {
-        global.fetch = async () =>
-            new globalThis.Response(
+    it("proxies valid Cloudinary URLs to the ML service and falls back to dolo-650 when medicineId is omitted", async () => {
+        let requestBody: any = null;
+        global.fetch = async (url, options) => {
+            if (options && options.body) {
+                requestBody = JSON.parse(options.body as string);
+            }
+            return new globalThis.Response(
                 JSON.stringify({
                     isFake: false,
                     confidence: 0.81,
@@ -78,15 +75,44 @@ describe("ml routes", () => {
                 }),
                 { status: 200, headers: { "Content-Type": "application/json" } }
             );
+        };
 
         const response = await request(buildApp())
             .post("/api/ml/analyze")
             .set("Authorization", VALID_TOKEN)
-            .send({ imageUrl: "https://res.cloudinary.com/demo/image/upload/medicine.jpg" });
+            .send({ imageUrl: VALID_CLOUDINARY_URL });
 
         assert.equal(response.status, 200);
         assert.equal(response.body.verdict, "likely_genuine");
         assert.equal(response.body.isFake, false);
+        assert.equal(requestBody.medicineId, "dolo-650");
+    });
+
+    it("proxies valid Cloudinary URLs to the ML service and forwards medicineId when provided", async () => {
+        let requestBody: any = null;
+        global.fetch = async (url, options) => {
+            if (options && options.body) {
+                requestBody = JSON.parse(options.body as string);
+            }
+            return new globalThis.Response(
+                JSON.stringify({
+                    isFake: false,
+                    confidence: 0.81,
+                    verdict: "likely_genuine",
+                    details: "Packaging photo passed the preliminary visual quality scan.",
+                }),
+                { status: 200, headers: { "Content-Type": "application/json" } }
+            );
+        };
+
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: VALID_CLOUDINARY_URL, medicineId: "crocin-500" });
+
+        assert.equal(response.status, 200);
+        assert.equal(response.body.verdict, "likely_genuine");
+        assert.equal(requestBody.medicineId, "crocin-500");
     });
 
     it("returns a configuration error when ML_SERVICE_URL is missing", async () => {
@@ -98,7 +124,7 @@ describe("ml routes", () => {
         const response = await request(buildApp())
             .post("/api/ml/analyze")
             .set("Authorization", VALID_TOKEN)
-            .send({ imageUrl: "https://res.cloudinary.com/demo/image/upload/medicine.jpg" });
+            .send({ imageUrl: VALID_CLOUDINARY_URL });
 
         assert.equal(response.status, 500);
         assert.equal(response.body.code, "ML_SERVICE_URL_MISSING");
@@ -212,46 +238,34 @@ describe("ml routes", () => {
         assert.equal(response.status, 400);
     });
 
-    it("blocks public-looking domains whose DNS resolves to a private IP", async () => {
-        (dnsMock.resolve4 as jest.Mock).mockResolvedValueOnce(["10.0.0.5"]);
-
-        const response = await request(buildApp())
-            .post("/api/ml/analyze")
-            .set("Authorization", VALID_TOKEN)
-            .send({ imageUrl: "https://innocent-looking.example.test/data" });
-
-        assert.equal(response.status, 400);
-    });
-
-    it("allows domains whose DNS resolves to a public IP", async () => {
-        (dnsMock.resolve4 as jest.Mock).mockResolvedValueOnce(["203.0.113.42"]);
-
-        global.fetch = async () =>
-            new globalThis.Response(
-                JSON.stringify({
-                    isFake: false,
-                    confidence: 0.81,
-                    verdict: "likely_genuine",
-                    details: "Passed visual quality scan.",
-                }),
-                { status: 200, headers: { "Content-Type": "application/json" } }
-            );
+    it("rejects non-Cloudinary public hosts (allowlist)", async () => {
+        global.fetch = async () => {
+            throw new Error("fetch should not be called for non-Cloudinary hosts");
+        };
 
         const response = await request(buildApp())
             .post("/api/ml/analyze")
             .set("Authorization", VALID_TOKEN)
             .send({ imageUrl: "https://public-host.example.test/photo.jpg" });
 
-        assert.equal(response.status, 200);
+        assert.equal(response.status, 400);
+        assert.match(JSON.stringify(response.body.details), /Cloudinary HTTPS image delivery URL/);
     });
 
-    it("blocks domains when DNS resolution fails (fail closed)", async () => {
-        (dnsMock.resolve4 as jest.Mock).mockRejectedValueOnce(new Error("DNS resolution failed"));
-
+    it("rejects Cloudinary URLs with query strings", async () => {
         const response = await request(buildApp())
             .post("/api/ml/analyze")
             .set("Authorization", VALID_TOKEN)
-            .send({ imageUrl: "https://unresolvable.example.test/img.jpg" });
+            .send({ imageUrl: "https://res.cloudinary.com/demo/image/upload/medicine.jpg?x=1" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects Cloudinary URLs that are not image/upload paths", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: "https://res.cloudinary.com/demo/raw/upload/file.bin" });
 
         assert.equal(response.status, 400);
     });

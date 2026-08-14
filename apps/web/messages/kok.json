@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "तुमचें भलायकी, तपासिल्ली आनी राखिल्ली.",
         "subtitle": "वकतांची खात्रीखोरपणा रोकडीच तपासपाक, सुसज्जित आनी सुरक्षित वखदशाळां सोदपाक, आनी कडक भलायकी सुचोवण्यो मेळोवपाक भारताचें एक सुगम आनी मुक्त-स्त्रोत (open-source) नागरीक व्यासपीठ.",
         "scan_button": "वखद स्कॅन करात",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "हें कशें काम करता",
         "alerts": "सुचोवण्यो",
+        "tools": "साधनां",
         "pharmacy_map": "वखदशाळेचो नॅशा",
         "my_reports": "म्हज्यो नोंदी",
         "schedule": "वेळापत्रक",
@@ -204,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "निकाल शेअर करात",
+            "whatsapp_button": "WhatsApp शेअर करात",
             "title": "सहीदवा वखद खात्रीकरण निकाल",
             "real_status": "तपासणी उपरांत खरे",
             "suspicious_status": "दुबावीत म्हणून नोंद जाल्लें",
@@ -1225,6 +1229,8 @@
         "empty_description": "तुमचीं सत्यापीत केल्लीं वखदां हांगा दिसतलीं.",
         "item_status_label": "स्थिती: १.",
         "item_delete_button": "काडून उडोवप",
+        "sync_auth_title": "तुमचो इतिहास सिंक करपाक सायन इन करात",
+        "sync_auth_action": "सायन इन",
         "item_copy_success": "वखदाचें नांव नकल केलें!",
         "sync_status_synced": "सिंक केलें",
         "sync_status_offline": "ऑफलायन (सिंक प्रलंबित)",
@@ -1493,7 +1499,9 @@
         "abhaSetup": "ABHA सेटअप",
         "abhaRecords": "ABHA नोंदी",
         "notificationSettings": "सूचोवणी सेटिंग्ज",
-        "privacySecurity": "खासगीपण आनी सुरक्षा"
+        "privacySecurity": "खासगीपण आनी सुरक्षा",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {

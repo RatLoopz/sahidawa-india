@@ -33,7 +33,7 @@ router.get(
     requireAuth,
     async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user!.id;
-        const { data, error } = await supabase
+        const { data, error } = await req.supabase!
             .from("tracked_medicines")
             .select("*")
             .eq("user_id", userId); // Security: Only get current user's data
@@ -51,7 +51,7 @@ router.post(
         const result = trackSchema.safeParse(req.body);
         if (!result.success) return res.status(400).json(result.error);
 
-        const { data: foundMedicine } = await supabase
+        const { data: foundMedicine } = await req.supabase!
             .from("medicines")
             .select("id, brand_name, generic_name")
             .eq("id", result.data.medicine_id)
@@ -60,7 +60,7 @@ router.post(
         const isVerified = foundMedicine != null;
 
         const userId = req.user!.id;
-        const { data, error } = await supabase
+        const { data, error } = await req.supabase!
             .from("tracked_medicines")
             .insert([{ ...result.data, user_id: userId, is_verified: isVerified }])
             .select()

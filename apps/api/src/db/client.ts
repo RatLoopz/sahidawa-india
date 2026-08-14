@@ -126,6 +126,8 @@ async function pooledFetch(input: RequestInfo | URL, init?: RequestInit): Promis
     }
 }
 
+import { anonSupabase } from "./supabase";
+
 // ── Supabase client ───────────────────────────────────────────────────────────
 
 // Privileged backend client for server-side writes and admin-only access.
@@ -142,6 +144,27 @@ export const serviceRoleSupabase: SupabaseClient = createClient(supabaseUrl, sup
 // Backward-compatible alias for existing API modules. New code should import
 // serviceRoleSupabase so the permission level is clear at the call site.
 export const supabase = serviceRoleSupabase;
+
+/**
+ * Creates a per-request Supabase client authenticated with the user's JWT.
+ * This client respects Row Level Security (RLS) policies.
+ */
+export function getAuthSupabase(token?: string | null): SupabaseClient {
+    if (!token) return anonSupabase;
+    
+    return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+        global: {
+            fetch: pooledFetch as typeof fetch,
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        },
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+        },
+    });
+}
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 

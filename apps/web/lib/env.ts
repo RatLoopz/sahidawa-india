@@ -1,14 +1,14 @@
 export function getSupabaseUrl(): string {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!url) {
-        throw new Error(
-            "NEXT_PUBLIC_SUPABASE_URL is not defined. This environment variable is required for the application to start."
-        );
+        console.warn("[env] NEXT_PUBLIC_SUPABASE_URL is not defined. Using placeholder for build.");
+        return "https://placeholder.supabase.co";
     }
     try {
         new URL(url);
     } catch {
-        throw new Error("NEXT_PUBLIC_SUPABASE_URL is not a valid URL.");
+        console.warn("[env] NEXT_PUBLIC_SUPABASE_URL is not a valid URL. Using placeholder.");
+        return "https://placeholder.supabase.co";
     }
     return url;
 }
@@ -16,9 +16,8 @@ export function getSupabaseUrl(): string {
 export function getSupabaseAnonKey(): string {
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!key) {
-        throw new Error(
-            "NEXT_PUBLIC_SUPABASE_ANON_KEY is not defined. This environment variable is required for the application to start."
-        );
+        console.warn("[env] NEXT_PUBLIC_SUPABASE_ANON_KEY is not defined. Using placeholder for build.");
+        return "placeholder-key";
     }
     return key;
 }

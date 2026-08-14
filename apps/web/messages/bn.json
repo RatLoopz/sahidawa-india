@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "আপনার স্বাস্থ্য, যাচাইকৃত ও সুরক্ষিত।",
         "subtitle": "ভারতের ওপেন-সোর্স নাগরিক প্ল্যাটফর্ম, যা ওষুধের আসলত্ব তাৎক্ষণিকভাবে যাচাই করতে, নিরাপদ ফার্মেসি খুঁজে পেতে এবং গুরুত্বপূর্ণ স্বাস্থ্য সতর্কতা পেতে সাহায্য করে।",
         "scan_button": "ওষুধ স্ক্যান করুন",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
         "alerts": "সতর্কতা",
+        "tools": "সরঞ্জাম",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "my_reports": "আমার রিপোর্ট",
         "schedule": "সময়সূচি",
@@ -519,6 +522,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,7 +1435,9 @@
         "abhaSetup": "ABHA সেটআপ",
         "abhaRecords": "ABHA রেকর্ড",
         "notificationSettings": "বিজ্ঞপ্তি সেটিংস",
-        "privacySecurity": "গোপনীয়তা ও নিরাপত্তা"
+        "privacySecurity": "গোপনীয়তা ও নিরাপত্তা",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1742,8 @@
         "no_search_results": "আপনার অনুসন্ধানের সাথে মেলে এমন কোনো ওষুধ পাওয়া যায়নি।",
         "item_status_label": "স্থিতি: ",
         "item_delete_button": "মুছে ফেলুন",
+        "sync_auth_title": "আপনার ইতিহাস সিঙ্ক করতে সাইন ইন করুন",
+        "sync_auth_action": "সাইন ইন",
         "item_copy_success": "ওষুধের নাম কপি করা হয়েছে!"
     },
     "MyReports": {

@@ -324,7 +324,7 @@ let lastDiscordAlertTime = 0;
 const DISCORD_ALERT_DEBOUNCE_MS = 15 * 60 * 1000; // 15 minutes
 
 async function sendCacheAlertDiscord(): Promise<void> {
-    const WEBHOOK_URL = process.env.PG_CRON_MONITOR_WEBHOOK_URL;
+    const WEBHOOK_URL = process.env.DISCORD_APP_ALERTS_WEBHOOK_URL || process.env.PG_CRON_MONITOR_WEBHOOK_URL;
     if (!WEBHOOK_URL) return;
 
     const now = Date.now();
@@ -403,8 +403,8 @@ export async function getCacheStats(): Promise<{
         if (snapshotResult.status === "fulfilled" && snapshotResult.value) {
             try {
                 snapshot = JSON.parse(snapshotResult.value);
-            } catch (e) {
-                // Ignore parse errors
+            } catch (_e) {
+                // Ignore parse errors - snapshot will remain null
             }
         }
 

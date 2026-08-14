@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "अहाँक स्वास्थ्य, सत्यापित आ सुरक्षित।",
         "subtitle": "भारतक मुक्त-स्रोत नागरिक प्लेटफॉर्म — तुरन्त दवाइक प्रामाणिकता सत्यापित करू, सुरक्षित फार्मेसी खोजू, आ महत्त्वपूर्ण स्वास्थ्य सचेतना प्राप्त करू।",
         "scan_button": "दवाइ स्कैन करू",
@@ -237,6 +239,7 @@
         "uploadPhoto": "फोटो अपलोड करू",
         "share": {
             "button": "परिणाम शेयर करू",
+            "whatsapp_button": "WhatsApp पर शेयर करू",
             "title": "SahiDawa दवाइ सत्यापन परिणाम",
             "real_status": "असली सत्यापित",
             "suspicious_status": "संदिग्ध चिह्नित",
@@ -1372,6 +1375,8 @@
         "no_search_results": "अहाँक खोजसँ मेल खायवला कोनो दवाइ नहि भेटल।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "मेटाऊ",
+        "sync_auth_title": "अपन इतिहास सिंक करबाक लेल साइन इन करू",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "दवाइक नाम कॉपी भेल!"
     },
     "MyReports": {
@@ -1618,7 +1623,9 @@
         "abhaSetup": "ABHA सेटअप",
         "abhaRecords": "ABHA रिकॉर्ड",
         "notificationSettings": "सूचना सेटिंग्स",
-        "privacySecurity": "गोपनीयता आ सुरक्षा"
+        "privacySecurity": "गोपनीयता आ सुरक्षा",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {

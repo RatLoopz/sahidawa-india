@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "আপোনাৰ স্বাস্থ্য, যাচাই কৰা আৰু সুৰক্ষিত।",
         "subtitle": "ভাৰতৰ মুক্ত-উৎস নাগৰিক প্লেটফৰ্ম — তৎক্ষণাত ঔষধৰ সত্যতা যাচাই কৰক, নিৰাপদ ফাৰ্মাচী বিচাৰক, আৰু জৰুৰী স্বাস্থ্য সতৰ্কবাৰ্তা পাওক।",
         "scan_button": "ঔষধ স্কেন কৰক",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "কেনেকৈ কাম কৰে",
         "alerts": "সতৰ্কবাৰ্তা",
+        "tools": "সঁজুলি",
         "pharmacy_map": "ফাৰ্মাচী মেপ",
         "my_reports": "মোৰ ৰিপৰ্টসমূহ",
         "schedule": "অনুসূচী",
@@ -204,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "ফলাফল শ্বেয়াৰ কৰক",
+            "whatsapp_button": "WhatsApp-ত শ্বেয়াৰ কৰক",
             "title": "SahiDawa ঔষধ যাচাই ফলাফল",
             "real_status": "প্ৰকৃত বুলি যাচাই কৰা হৈছে",
             "suspicious_status": "সন্দেহজনক বুলি চিহ্নিত",
@@ -1431,7 +1435,9 @@
         "abhaSetup": "ABHA ছেটআপ",
         "abhaRecords": "ABHA ৰেকৰ্ড",
         "notificationSettings": "জাননী ছেটিংছ",
-        "privacySecurity": "গোপনীয়তা আৰু সুৰক্ষা"
+        "privacySecurity": "গোপনীয়তা আৰু সুৰক্ষা",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1742,8 @@
         "no_search_results": "আপোনাৰ সন্ধানৰ সৈতে কোনো ঔষধৰ মিল নাই।",
         "item_status_label": "অৱস্থা:",
         "item_delete_button": "মচি পেলাওক",
+        "sync_auth_title": "আপোনাৰ ইতিহাস চিংক কৰিবলৈ চাইন ইন কৰক",
+        "sync_auth_action": "চাইন ইন",
         "item_copy_success": "ঔষধৰ নাম কপি কৰা হৈছে!"
     },
     "MyReports": {

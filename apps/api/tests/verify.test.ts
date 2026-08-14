@@ -6,6 +6,7 @@ jest.mock("../src/db/client", () => {
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         ilike: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         maybeSingle: jest.fn(),
         eq: jest.fn().mockReturnThis(),
@@ -50,9 +51,23 @@ describe("POST /api/verify", () => {
                 },
                 error: null,
             })
-            // 2. batch recall check
+            // 2. live safety refresh
+            .mockResolvedValueOnce({
+                data: {
+                    cdsco_approval_status: "Approved",
+                    is_counterfeit_alert: false,
+                    is_cdsco_verified: true,
+                    cdsco_match_score: 98.4,
+                    matched_cdsco_product: "Test Brand",
+                    matched_cdsco_manufacturer: "Test Mfg",
+                    product_match_score: 97,
+                    manufacturer_match_score: 100,
+                },
+                error: null,
+            })
+            // 3. batch recall check
             .mockResolvedValueOnce({ data: { recall_status: "none" }, error: null })
-            // 3. scan counts RPC
+            // 4. scan counts RPC
             .mockResolvedValueOnce({ data: { count_24h: 0, count_7d: 0 }, error: null });
 
         const res = await request(app)
@@ -93,9 +108,23 @@ describe("POST /api/verify", () => {
                 },
                 error: null,
             })
-            // 2. batch recall check
+            // 2. live safety refresh
+            .mockResolvedValueOnce({
+                data: {
+                    cdsco_approval_status: "Approved",
+                    is_counterfeit_alert: false,
+                    is_cdsco_verified: false,
+                    cdsco_match_score: 42.1,
+                    matched_cdsco_product: null,
+                    matched_cdsco_manufacturer: null,
+                    product_match_score: 44,
+                    manufacturer_match_score: 38,
+                },
+                error: null,
+            })
+            // 3. batch recall check
             .mockResolvedValueOnce({ data: { recall_status: "none" }, error: null })
-            // 3. scan counts RPC
+            // 4. scan counts RPC
             .mockResolvedValueOnce({ data: { count_24h: 2, count_7d: 5 }, error: null });
 
         const res = await request(app)
@@ -108,6 +137,64 @@ describe("POST /api/verify", () => {
         expect(res.body.scanMeta.suspicious).toBe(true);
         expect(res.body.scanMeta.suspicionReasons.length).toBeGreaterThan(0);
         expect(res.body.medicine.is_cdsco_verified).toBe(false);
+    });
+
+    it("should reflect the latest safety state even when the cached medicine record is stale", async () => {
+        // Cached/lookup record is stale: says the medicine is NOT counterfeit and
+        // IS CDSCO verified (i.e. "safe"). The live safety refresh must override
+        // this so users never see a stale "safe" result after it has been flagged.
+        ((supabase as any).insert as jest.Mock).mockResolvedValue({ data: null, error: null });
+        ((supabase as any).maybeSingle as jest.Mock)
+            // 1. lookupDrugByBatch (stale snapshot)
+            .mockResolvedValueOnce({
+                data: {
+                    id: "11111111-1111-1111-1111-111111111111",
+                    brand_name: "Test Brand",
+                    generic_name: "Test Generic",
+                    manufacturer: "Test Mfg",
+                    batch_number: "AUG625D",
+                    cdsco_approval_status: "Approved",
+                    is_counterfeit_alert: false,
+                    is_cdsco_verified: true,
+                    cdsco_match_score: 98.4,
+                    matched_cdsco_product: "Test Brand",
+                    matched_cdsco_manufacturer: "Test Mfg",
+                    product_match_score: 97,
+                    manufacturer_match_score: 100,
+                },
+                error: null,
+            })
+            // 2. live safety refresh (recalled / counterfeit + not CDSCO verified)
+            .mockResolvedValueOnce({
+                data: {
+                    cdsco_approval_status: "recalled",
+                    is_counterfeit_alert: true,
+                    is_cdsco_verified: false,
+                    cdsco_match_score: 98.4,
+                    matched_cdsco_product: "Test Brand",
+                    matched_cdsco_manufacturer: "Test Mfg",
+                    product_match_score: 97,
+                    manufacturer_match_score: 100,
+                },
+                error: null,
+            })
+            // 3. batch recall check
+            .mockResolvedValueOnce({ data: { recall_status: "none" }, error: null })
+            // 4. scan counts RPC
+            .mockResolvedValueOnce({ data: { count_24h: 0, count_7d: 0 }, error: null });
+
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "AUG625D", brandName: "Augmentin" });
+
+        expect(res.status).toBe(200);
+        // The stale cached flags must be replaced by the live safety state.
+        expect(res.body.medicine.is_counterfeit_alert).toBe(true);
+        expect(res.body.medicine.is_cdsco_verified).toBe(false);
+        expect(res.body.medicine.cdsco_approval_status).toBe("recalled");
+        // Suspicious logic must also use the live counterfeit flag.
+        expect(res.body.scanMeta.suspicious).toBe(true);
+        expect(res.body.scanMeta.suspicionReasons.length).toBeGreaterThan(0);
     });
 
     it("should return 404 for an unknown batch number", async () => {

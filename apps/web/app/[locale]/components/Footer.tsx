@@ -111,6 +111,14 @@ export default function Footer() {
                                     </Link>
                                 </li>
                             ))}
+                            <li>
+                                <Link
+                                    href="/partner"
+                                    className="inline-flex items-center gap-1.5 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                                >
+                                    Pharmacy Partner
+                                </Link>
+                            </li>
                         </ul>
                     </nav>
 

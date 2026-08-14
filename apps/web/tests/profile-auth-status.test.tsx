@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { TextDecoder as NodeTextDecoder } from "util";
 
 import ProfilePage from "../app/[locale]/profile/page";
+import { setSessionAccessToken, getSessionAccessToken } from "@/lib/accessToken";
 
 const mockPush = jest.fn();
 let mockToken: string | null = null;
@@ -84,6 +85,7 @@ describe("ProfilePage auth status", () => {
         }
 
         localStorage.clear();
+        setSessionAccessToken(null);
         mockToken = null;
         mockPush.mockClear();
     });
@@ -123,6 +125,7 @@ describe("ProfilePage auth status", () => {
 
     it("clears malformed access tokens instead of rendering them", async () => {
         mockToken = "not-a-valid-jwt";
+        setSessionAccessToken("not-a-valid-jwt");
         localStorage.setItem("sb-access-token", "not-a-valid-jwt");
 
         render(<ProfilePage />);
@@ -132,6 +135,7 @@ describe("ProfilePage auth status", () => {
             "href",
             "/login"
         );
+        expect(getSessionAccessToken()).toBe("");
         expect(localStorage.getItem("sb-access-token")).toBeNull();
         expect(document.body).not.toHaveTextContent("not-a-valid-jwt");
     });
@@ -142,12 +146,14 @@ describe("ProfilePage auth status", () => {
             exp: Math.floor(Date.now() / 1000) - 60,
         });
         mockToken = token;
+        setSessionAccessToken(token);
         localStorage.setItem("sb-access-token", token);
 
         render(<ProfilePage />);
 
         expect(await screen.findByText("Guest User")).toBeInTheDocument();
         expect(screen.getByText("No account connected")).toBeInTheDocument();
+        expect(getSessionAccessToken()).toBe("");
         expect(localStorage.getItem("sb-access-token")).toBeNull();
     });
 
@@ -157,12 +163,14 @@ describe("ProfilePage auth status", () => {
             exp: Math.floor(Date.now() / 1000) + 3600,
         });
         mockToken = token;
+        setSessionAccessToken(token);
         localStorage.setItem("sb-access-token", token);
 
         render(<ProfilePage />);
 
         fireEvent.click(await screen.findByRole("button", { name: /sign out/i }));
 
+        expect(getSessionAccessToken()).toBe("");
         expect(localStorage.getItem("sb-access-token")).toBeNull();
         expect(mockPush).toHaveBeenCalledWith("/");
 

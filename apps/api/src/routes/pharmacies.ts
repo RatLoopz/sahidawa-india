@@ -35,6 +35,13 @@ const router = Router();
 const MAX_RESULTS = 200;
 const BATCH_SIZE = 500;
 
+// Schema for nearest-open pharmacy query
+const nearestOpenSchema = z.object({
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(10),
+});
+
 const validateInventoryUploadSize = (req: Request, res: Response, next: NextFunction) => {
     const contentLengthHeader = req.headers["content-length"];
     const contentLength = Array.isArray(contentLengthHeader)
@@ -157,6 +164,7 @@ const inventoryRowSchema = z.object({
 
 // Reusable incremental CSV parsing helper using PapaParse step mode
 async function parseCsvIncremental(
+    client: any,
     fileInput: string | NodeJS.ReadableStream,
     pharmacyId: string,
     onProgress?: (stats: {
@@ -171,98 +179,94 @@ async function parseCsvIncremental(
         totalRows: number;
         error?: string;
     }>((resolve) => {
-        let rowsToInsert: any[] = [];
-        const failedRows: Array<{ row: number; reason: string }> = [];
-        // csvRecordPos: increments for every row (including empty) — used for logical row numbering
-        let csvRecordPos = 0;
-        // nonEmptyDataRows: increments only for non-empty rows — used for totalRows and the row limit
-        let nonEmptyDataRows = 0;
-        let successfulInserts = 0;
-        let isDone = false;
-
-        const finishWithError = (errMsg: string, parser: any) => {
-            if (isDone) return;
-            isDone = true;
-            if (parser) parser.abort();
-            resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows, error: errMsg });
-        };
-
+        // Parse the CSV completely into memory first because Papa.parse does not support
+        // asynchronous pause/resume when parsing strings. This prevents firing off all
+        // database batches simultaneously.
         Papa.parse<Record<string, string>>(fileInput as any, {
             header: true,
-            // Do NOT skip empty lines so we can count them for correct row numbers
             skipEmptyLines: false,
             transformHeader: (h) => h.trim().toLowerCase(),
             transform: (v) => v.trim(),
-            step: (results, parser) => {
-                if (isDone) return;
-
-                const rowData = results.data;
-                const errors = results.errors;
-                csvRecordPos++;
-                const logicalRow = csvRecordPos + 1; // +1 to account for header line (row 1)
-
-                // Detect an entirely empty record (all fields empty strings or undefined)
-                const allEmpty = Object.values(rowData).every((v) => v === "" || v === undefined);
-                if (allEmpty) {
-                    // Advance position counter only; do not count toward data rows
-                    return;
+            complete: async (results) => {
+                const failedRows: Array<{ row: number; reason: string }> = [];
+                let rowsToInsert: any[] = [];
+                let nonEmptyDataRows = 0;
+                let successfulInserts = 0;
+                
+                // If there was a fatal parsing error that halted the parse early
+                const parseErrors = results.errors;
+                if (parseErrors && parseErrors.length > 0 && parseErrors[0].type === "Delimiter") {
+                    return resolve({
+                        successfulInserts,
+                        failedRows,
+                        totalRows: nonEmptyDataRows,
+                        error: parseErrors.map(e => e.message).join(", ")
+                    });
                 }
 
-                // Non-empty row: count it regardless of validity
-                nonEmptyDataRows++;
+                for (let i = 0; i < results.data.length; i++) {
+                    const rowData = results.data[i];
+                    const logicalRow = i + 2; // +1 for 0-index, +1 for header
 
-                if (nonEmptyDataRows > MAX_BULK_UPLOAD_ITEMS) {
-                    finishWithError(
-                        `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
-                        parser
-                    );
-                    return;
-                }
+                    const allEmpty = Object.values(rowData).every((v) => v === "" || v === undefined);
+                    if (allEmpty) continue;
 
-                if (errors && errors.length > 0) {
-                    const reason = errors.map((e) => e.message).join(", ");
-                    failedRows.push({ row: logicalRow, reason });
-                    return;
-                }
+                    nonEmptyDataRows++;
 
-                // Normalise empty strings to undefined for Zod optional fields
-                const normalised: Record<string, any> = {};
-                for (const key of Object.keys(rowData)) {
-                    const val = rowData[key];
-                    normalised[key] = val === "" ? undefined : val;
-                }
+                    if (nonEmptyDataRows > MAX_BULK_UPLOAD_ITEMS) {
+                        return resolve({
+                            successfulInserts,
+                            failedRows,
+                            totalRows: nonEmptyDataRows,
+                            error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
+                        });
+                    }
 
-                const validationResult = inventoryRowSchema.safeParse(normalised);
-                if (!validationResult.success) {
-                    const reason = validationResult.error.issues.map((i) => i.message).join(", ");
-                    failedRows.push({ row: logicalRow, reason });
-                    return;
-                }
+                    // Log parsing errors for this specific row (if any)
+                    const rowErrors = parseErrors.filter(e => e.row === i);
+                    if (rowErrors.length > 0) {
+                        failedRows.push({ row: logicalRow, reason: rowErrors.map((e) => e.message).join(", ") });
+                        continue;
+                    }
 
-                rowsToInsert.push({
-                    pharmacy_id: pharmacyId,
-                    medicine_name: validationResult.data.medicine_name,
-                    batch_number: validationResult.data.batch_number,
-                    expiry_date: validationResult.data.expiry_date,
-                    quantity: validationResult.data.quantity,
-                    mrp: validationResult.data.mrp,
-                });
+                    const normalised: Record<string, any> = {};
+                    for (const key of Object.keys(rowData)) {
+                        const val = rowData[key];
+                        normalised[key] = val === "" ? undefined : val;
+                    }
 
-                if (rowsToInsert.length >= BATCH_SIZE) {
-                    parser.pause();
-                    const batch = [...rowsToInsert];
-                    rowsToInsert = []; // Free up heap memory
+                    const validationResult = inventoryRowSchema.safeParse(normalised);
+                    if (!validationResult.success) {
+                        const reason = validationResult.error.issues.map((issue) => issue.message).join(", ");
+                        failedRows.push({ row: logicalRow, reason });
+                        continue;
+                    }
 
-                    Promise.resolve(supabase.from("pharmacy_inventory").insert(batch))
-                        .then(({ error }) => {
-                            if (error) {
-                                logger.error(`Database bulk insertion failed: ${error.message}`);
-                                finishWithError(
-                                    "Database operation failed during insertion.",
-                                    parser
-                                );
-                            } else {
-                                successfulInserts += batch.length;
+                    rowsToInsert.push({
+                        pharmacy_id: pharmacyId,
+                        medicine_name: validationResult.data.medicine_name,
+                        batch_number: validationResult.data.batch_number,
+                        expiry_date: validationResult.data.expiry_date,
+                        quantity: validationResult.data.quantity,
+                        mrp: validationResult.data.mrp,
+                    });
+
+                    // Flush batch if full or if it is the last row
+                    if (rowsToInsert.length >= BATCH_SIZE || i === results.data.length - 1) {
+                        if (rowsToInsert.length > 0) {
+                            try {
+                                const { error } = await client.from("pharmacy_inventory").insert(rowsToInsert);
+                                if (error) {
+                                    logger.error(`Database bulk insertion failed: ${error.message}`);
+                                    return resolve({
+                                        successfulInserts,
+                                        failedRows,
+                                        totalRows: nonEmptyDataRows,
+                                        error: "Database operation failed during insertion.",
+                                    });
+                                }
+                                
+                                successfulInserts += rowsToInsert.length;
                                 if (onProgress) {
                                     onProgress({
                                         successfulInserts,
@@ -270,63 +274,30 @@ async function parseCsvIncremental(
                                         failedRows: failedRows.length,
                                     });
                                 }
-                                if (!isDone) parser.resume();
-                            }
-                        })
-                        .catch((err: any) => {
-                            logger.error(
-                                `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
-                            );
-                            finishWithError("Database operation failed during insertion.", parser);
-                        });
-                }
-            },
-            complete: () => {
-                if (isDone) return;
-
-                if (rowsToInsert.length > 0) {
-                    Promise.resolve(supabase.from("pharmacy_inventory").insert(rowsToInsert))
-                        .then(({ error }) => {
-                            if (isDone) return;
-                            isDone = true;
-                            if (error) {
-                                logger.error(`Database bulk insertion failed: ${error.message}`);
-                                resolve({
+                                rowsToInsert = [];
+                            } catch (err: any) {
+                                logger.error(`Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`);
+                                return resolve({
                                     successfulInserts,
                                     failedRows,
                                     totalRows: nonEmptyDataRows,
                                     error: "Database operation failed during insertion.",
                                 });
-                            } else {
-                                successfulInserts += rowsToInsert.length;
-                                resolve({
-                                    successfulInserts,
-                                    failedRows,
-                                    totalRows: nonEmptyDataRows,
-                                });
                             }
-                        })
-                        .catch((err: any) => {
-                            if (isDone) return;
-                            isDone = true;
-                            logger.error(
-                                `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
-                            );
-                            resolve({
-                                successfulInserts,
-                                failedRows,
-                                totalRows: nonEmptyDataRows,
-                                error: "Database operation failed during insertion.",
-                            });
-                        });
-                } else {
-                    isDone = true;
-                    resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows });
+                        }
+                    }
                 }
+
+                resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows });
             },
-            error: (err, parser) => {
+            error: (err) => {
                 const errMsg = err instanceof Error ? err.message : String(err);
-                finishWithError(errMsg || "CSV Parsing error", parser);
+                resolve({
+                    successfulInserts: 0,
+                    failedRows: [],
+                    totalRows: 0,
+                    error: errMsg || "CSV Parsing error",
+                });
             },
         });
     });
@@ -360,9 +331,13 @@ router.post(
 
             const pharmacy = await pharmacyService.registerPharmacy(parsed.data, req.user.id);
             res.status(201).json({ pharmacy });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -594,12 +569,18 @@ router.get(
 
             const result = await pharmacyService.searchByMedicine(rawQuery);
             res.json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
-            logger.error("Pharmacy medicine search failed", { error: err.message });
+            logger.error("Pharmacy medicine search failed", {
+                error: err instanceof Error ? err.message : String(err),
+            });
             res.status(500).json({ error: "Database query failed" });
         }
     }
@@ -894,8 +875,9 @@ router.post(
             const fileContent = rawFileContent.replace(/^\uFEFF/, "");
 
             const pharmacyId = req.body.pharmacyId || req.query.pharmacyId;
+            const client = req.supabase || supabase;
 
-            let query = supabase.from("pharmacies").select("id").eq("created_by", req.user.id);
+            let query = client.from("pharmacies").select("id").eq("created_by", req.user.id);
 
             if (pharmacyId) {
                 query = query.eq("id", pharmacyId);
@@ -926,6 +908,7 @@ router.post(
 
             // Incremental parsing using the reusable helper (pharmacyId is already known)
             const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
+                client,
                 fileContent,
                 pharmacy.id,
                 (stats) => {
@@ -972,7 +955,7 @@ router.post(
                 );
                 res.end();
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Unknown error";
             logger.error(`Exception in bulk operations handler: ${message}`);
             if (!res.headersSent) {
@@ -1011,9 +994,13 @@ router.put(
                 req.body
             );
             res.status(200).json({ pharmacy });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -1038,9 +1025,13 @@ router.delete(
             const pharmacyId = String(req.params.id);
             await pharmacyService.deletePharmacy(pharmacyId, req.user!.id, req.user!.role);
             res.status(200).json({ message: "Pharmacy deleted successfully" });
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
             next(err);
@@ -1072,15 +1063,170 @@ router.post(
                 fileContent
             );
             res.status(200).json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+        } catch (err: unknown) {
+            const status =
+                err && typeof err === "object" && "status" in err ? (err as any).status : null;
+            if (status) {
+                res.status(status).json({
+                    error: err instanceof Error ? err.message : String(err),
+                });
                 return;
             }
-            logger.error(`Exception in specific pharmacy upload handler: ${err.message}`);
+            logger.error(
+                `Exception in specific pharmacy upload handler: ${err instanceof Error ? err.message : String(err)}`
+            );
             next(err);
         }
     }
 );
+
+/**
+ * @openapi
+ * /api/pharmacies/nearest-open:
+ *   get:
+ *     summary: Find nearest open pharmacies using PostGIS KNN
+ *     description: >
+ *       Returns the K nearest pharmacies to a given location using PostGIS's
+ *       K-Nearest Neighbor (KNN) search with the <-> operator. Results are
+ *       filtered by operating hours to only show pharmacies that are currently open.
+ *       Uses the GiST spatial index for efficient queries.
+ *     tags:
+ *       - Pharmacies
+ *     parameters:
+ *       - in: query
+ *         name: lat
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: -90
+ *           maximum: 90
+ *         description: Latitude of the search location
+ *         example: 28.5672
+ *       - in: query
+ *         name: lng
+ *         required: true
+ *         schema:
+ *           type: number
+ *           minimum: -180
+ *           maximum: 180
+ *         description: Longitude of the search location
+ *         example: 77.2088
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Maximum number of results to return
+ *     responses:
+ *       200:
+ *         description: List of nearest open pharmacies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pharmacies:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       name:
+ *                         type: string
+ *                         example: "HealthFirst Pharmacy"
+ *                       address:
+ *                         type: string
+ *                         example: "123 Main Street, Karol Bagh"
+ *                       lat:
+ *                         type: number
+ *                         example: 28.6518
+ *                       lng:
+ *                         type: number
+ *                         example: 77.2219
+ *                       distance:
+ *                         type: string
+ *                         description: Distance in kilometers
+ *                         example: "2.3 km"
+ *                       phone_number:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "+91-11-23555555"
+ *                       is_verified:
+ *                         type: boolean
+ *                         example: true
+ *                       district:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "Central Delhi"
+ *                       state:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "Delhi"
+ *                       operating_hours:
+ *                         type: object
+ *                         description: Operating hours JSON object
+ *                 count:
+ *                   type: integer
+ *                   description: Number of pharmacies returned
+ *       400:
+ *         description: Invalid coordinates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 details:
+ *                   type: object
+ */
+router.get("/nearest-open", limiter, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = nearestOpenSchema.safeParse(req.query);
+
+        if (!result.success) {
+            res.status(400).json({
+                error: "Invalid coordinates or parameters",
+                details: result.error.flatten().fieldErrors,
+            });
+            return;
+        }
+
+        const { lat, lng, limit } = result.data;
+
+        const { data, error } = await pharmacyService.getNearestOpen(lat, lng, limit);
+
+        if (error) {
+            handleFetchError(error, res);
+            return;
+        }
+
+        const pharmacies = (data || []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            lat: p.lat,
+            lng: p.lng,
+            distance: `${p.distance} km`,
+            phone_number: p.phone_number,
+            is_verified: p.is_verified,
+            district: p.district,
+            state: p.state,
+            operating_hours: p.operating_hours,
+        }));
+
+        res.json({
+            pharmacies,
+            count: pharmacies.length,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 export default router;

@@ -75,13 +75,21 @@ async def run(
     raw_comm_path: Path | None = None
 
     if not skip_scrape:
-        logger.info("STEP 1a/3 — Scraping Jan Aushadhi (headless browser, ~30–60s)...")
-        raw_ja_path = await JanAushadhiScraper().scrape()
+        try:
+            logger.info("STEP 1a/3 — Scraping Jan Aushadhi (headless browser, ~30–60s)...")
+            raw_ja_path = await JanAushadhiScraper().scrape()
 
-        logger.info("STEP 1b/3 — Downloading Commercial Medicine Dataset...")
-        raw_comm_path = CommercialMedicineScraper().scrape()
-    else:
-        logger.info("STEP 1/3 — Skipping scrape (--skip-scrape)")
+            logger.info("STEP 1b/3 — Downloading Commercial Medicine Dataset...")
+            raw_comm_path = CommercialMedicineScraper().scrape()
+        except Exception as scrape_error:
+            logger.warning(
+                f"Scraping failed: {scrape_error}. "
+                "Gracefully falling back to cached raw files."
+            )
+            skip_scrape = True
+
+    if skip_scrape:
+        logger.info("STEP 1/3 — Skipping scrape or using cached raw files")
         # Jan Aushadhi raw
         ja_files = sorted(RAW_DIR.glob("janaushadhi_raw_*.csv"))
         if not ja_files:

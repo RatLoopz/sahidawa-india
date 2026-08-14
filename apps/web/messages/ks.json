@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "تُہند صحت، تصدیق شُدہ تہِ مَحمُوظ۔",
         "subtitle": "ہندوستانُک اکھ اوپن سورس شَہَری پلیٹ فارم دَواہَن ہِنٛز اَصلیَت سُرَعژ سان چاک کَرنہِ، مَحفُوظ میڈیکل سٹور لبنہِ، تہِ اَہَم طبی اِطلاع اِنتھ پاوَنہِ خاطِر۔",
         "scan_button": "دَوا سکین کَریو",
@@ -205,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "نَتیجہِ شیئر کَریو",
+            "whatsapp_button": "WhatsApp شیئر کَریو",
             "title": "صحیح دَوا تصدیق نَتیجہِ",
             "real_status": "تصدیق شُدہ اَصلی",
             "suspicious_status": "شَک دار مَشہُور",
@@ -1376,7 +1379,9 @@
         "abhaSetup": "ABHA سیٹ اپ",
         "abhaRecords": "ABHA ریکارڈ",
         "notificationSettings": "اطلاعی ترتیٖباں",
-        "privacySecurity": "رازداری تہٕ حفاظت"
+        "privacySecurity": "رازداری تہٕ حفاظت",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1681,6 +1686,8 @@
         "no_search_results": "کوئی دوا آپ کی تلاش سے مماثل نہیں ہے۔",
         "item_status_label": "حیثیت:",
         "item_delete_button": "حذف کریں۔",
+        "sync_auth_title": "سائن اِن کٔریو تاہِ ہیٚتھہٕچ ہسٹری سِنک کٔرِو",
+        "sync_auth_action": "سائن اِن",
         "item_copy_success": "دوا کا نام نقل کیا گیا!"
     },
     "MyReports": {

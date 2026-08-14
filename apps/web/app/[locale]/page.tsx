@@ -158,6 +158,48 @@ function getConfidenceValueLabel(
 
     const key = keyMap[confidence.id as keyof typeof keyMap];
     return t(key ?? "confidence_values.unavailable");
+    Camera,
+    Mic,
+    MapPin,
+    ShieldCheck,
+    AlertTriangle,
+    Globe,
+    ChevronRight,
+    Activity,
+    MessageCircle,
+    Syringe,
+    ArrowRight,
+    Quote,
+    Star,
+    Pause,
+    Play,
+} from "lucide-react";
+
+import { useRouter, useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+const SearchBar = dynamic(() => import("./components/SearchBar"));
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+const SafetyStatsBanner = dynamic(() => import("@/components/SafetyStatsBanner"));
+import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
+import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
+
+function formatRelativeTime(dateString: string | null, locale: string): string {
+    if (!dateString) return "—";
+
+    const now = new Date();
+    const past = new Date(dateString);
+    const elapsed = now.getTime() - past.getTime();
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+    if (Math.abs(elapsed) < 60000) return rtf.format(0, "second");
+
+    if (Math.abs(elapsed) < 3600000) return rtf.format(-Math.round(elapsed / 60000), "minute");
+
+    if (Math.abs(elapsed) < 86400000) return rtf.format(-Math.round(elapsed / 3600000), "hour");
+
+    return rtf.format(-Math.round(elapsed / 86400000), "day");
 }
 
 export default function VoiceTriagePage() {
@@ -167,6 +209,26 @@ export default function VoiceTriagePage() {
     const [, copyToClipboard] = useCopyToClipboard({
         successMessage: t("copy_success"),
         errorMessage: t("share_failure"),
+    const params = useParams();
+    const locale = Array.isArray(params.locale) ? params.locale[0] : (params.locale ?? "en");
+    const tHome = useTranslations("Home");
+    const tContact = useTranslations("contact");
+
+    const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
+    const [isMarqueePaused, setIsMarqueePaused] = useState<boolean>(false);
+
+    const { isOffline } = useOfflineStatus();
+    const {
+        pendingSearches,
+        isSyncing,
+        isLoading: isSearchQueueLoading,
+        executingId,
+        execute: executeQueuedSearch,
+        refresh: refreshSearchQueue,
+    } = usePendingSearchQueue((query) => {
+        setActiveSearchQuery(query);
     });
     const [mode, setMode] = useState<"triage" | "verify">("triage");
     const [step, setStep] = useState<VoiceStep>("initial");

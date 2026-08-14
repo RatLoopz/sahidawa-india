@@ -5,19 +5,27 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  web-e2e:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v7
+    - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
         cache: 'npm'
 
     - name: Install dependencies
       run: npm install --legacy-peer-deps
+
+    - name: Setup Supabase CLI
+      uses: supabase/setup-cli@v1
+      with:
+        version: latest
+
+    - name: Start Supabase locally
+      run: npx supabase start
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
@@ -38,13 +46,44 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: apps/web
+
+  api-e2e:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Setup Supabase CLI
+      uses: supabase/setup-cli@v1
+      with:
+        version: latest
+
+    - name: Start Supabase locally
+      run: npx supabase start
+
+    - name: Build Shared Packages
+      run: |
+        npm run build -w @sahidawa/types --if-present || true
+        npm run build -w @sahidawa/validators --if-present || true
+        npm run build -w @sahidawa/shared --if-present || true
+
+    - name: Run API E2E tests
+      run: npx jest apps/api/tests/e2e --testPathIgnorePatterns=[]
+      working-directory: apps/api
       env:
-        # Use the production build via `next start` (set via playwright.config.ts)
         PLAYWRIGHT_CI: true
         NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
         NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
 
-    - uses: actions/upload-artifact@v7
+    - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: playwright-report

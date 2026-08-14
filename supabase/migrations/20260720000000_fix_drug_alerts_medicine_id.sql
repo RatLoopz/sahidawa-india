@@ -10,9 +10,17 @@ BEGIN
       FROM public.medicines 
       WHERE batch_number = NEW.batch_number 
         AND (
-          manufacturer = NEW.manufacturer 
-          OR brand_name = NEW.reported_brand_name
+          (NEW.manufacturer IS NOT NULL AND manufacturer = NEW.manufacturer)
+          OR (NEW.reported_brand_name IS NOT NULL AND brand_name = NEW.reported_brand_name)
         )
+      ORDER BY
+        (CASE WHEN (NEW.manufacturer IS NOT NULL AND manufacturer = NEW.manufacturer)
+               AND (NEW.reported_brand_name IS NOT NULL AND brand_name = NEW.reported_brand_name) THEN 0
+              WHEN (NEW.manufacturer IS NOT NULL AND manufacturer = NEW.manufacturer) THEN 1
+              WHEN (NEW.reported_brand_name IS NOT NULL AND brand_name = NEW.reported_brand_name) THEN 2
+              ELSE 3 END),
+        created_at DESC,
+        id ASC
       LIMIT 1
     );
   END IF;
@@ -30,8 +38,23 @@ CREATE TRIGGER trg_drug_alerts_link_medicine
 
 -- 3. Backfill existing records that have NULL medicine_id
 UPDATE public.drug_alerts da
-SET medicine_id = m.id
-FROM public.medicines m
-WHERE da.medicine_id IS NULL
-  AND m.batch_number = da.batch_number
-  AND (m.manufacturer = da.manufacturer OR m.brand_name = da.reported_brand_name);
+SET medicine_id = (
+  SELECT m.id
+  FROM public.medicines m
+  WHERE m.batch_number = da.batch_number
+    AND (
+      (da.manufacturer IS NOT NULL AND m.manufacturer = da.manufacturer)
+      OR (da.reported_brand_name IS NOT NULL AND m.brand_name = da.reported_brand_name)
+    )
+  ORDER BY
+    (CASE WHEN (da.manufacturer IS NOT NULL AND m.manufacturer = da.manufacturer)
+           AND (da.reported_brand_name IS NOT NULL AND m.brand_name = da.reported_brand_name) THEN 0
+          WHEN (da.manufacturer IS NOT NULL AND m.manufacturer = da.manufacturer) THEN 1
+          WHEN (da.reported_brand_name IS NOT NULL AND m.brand_name = da.reported_brand_name) THEN 2
+          ELSE 3 END),
+    m.created_at DESC,
+    m.id ASC
+  LIMIT 1
+)
+WHERE da.medicine_id IS NULL;
+

@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "உங்கள் ஆரோக்கியம், சரிபார்க்கப்பட்ட & பாதுகாக்கப்பட்ட.",
         "subtitle": "மருந்து நம்பகத்தன்மையை உடனடியாக சரிபார்க்கவும், பாதுகாப்பான மருந்தகங்களை கண்டறியவும், முக்கியமான சுகாதார எச்சரிக்கைகளைப் பெறவும் இந்தியாவின் திறந்த மூல குடிமக்கள் தளம்.",
         "scan_button": "மருந்தை ஸ்கேன் செய்",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "எப்படி வேலை செய்கிறது",
         "alerts": "எச்சரிக்கைகள்",
+        "tools": "கருவிகள்",
         "pharmacy_map": "மருந்தகம் வரைபடம்",
         "my_reports": "என் அறிக்கைகள்",
         "schedule": "அட்டவணை",
@@ -519,6 +522,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,7 +1435,9 @@
         "abhaSetup": "ABHA அமைப்பு",
         "abhaRecords": "ABHA பதிவுகள்",
         "notificationSettings": "அறிவிப்பு அமைப்புகள்",
-        "privacySecurity": "தனியுரிமை மற்றும் பாதுகாப்பு"
+        "privacySecurity": "தனியுரிமை மற்றும் பாதுகாப்பு",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1742,8 @@
         "no_search_results": "உங்கள் தேடலுக்கு எந்த மருந்தும் பொருந்தவில்லை.",
         "item_status_label": "நிலை:",
         "item_delete_button": "நீக்கு",
+        "sync_auth_title": "உங்கள் வரலாற்றை ஒத்திசைக்க உள்நுழைக",
+        "sync_auth_action": "உள்நுழை",
         "item_copy_success": "மருந்தின் பெயர் நகலெடுக்கப்பட்டது!"
     },
     "MyReports": {

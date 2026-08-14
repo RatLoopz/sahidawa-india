@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "آپ کی صحت، تصدیق شدہ اور محفوظ۔",
         "subtitle": "ہندوستان کا اوپن سورس شہری پلیٹ فارم — ادویات کی اصلیت کی فوری تصدیق کریں، محفوظ فارمیسیاں تلاش کریں، اور اہم صحت کے انتباہات حاصل کریں۔",
         "scan_button": "دوا اسکین کریں",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
         "alerts": "الرٹس",
+        "tools": "سঁজুলি",
         "pharmacy_map": "فارمیسی کا نقشہ",
         "my_reports": "میری رپورٹس",
         "schedule": "شیڈول",
@@ -519,6 +522,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1375,7 +1379,9 @@
         "abhaSetup": "ABHA سیٹ اپ",
         "abhaRecords": "ABHA ریکارڈز",
         "notificationSettings": "اطلاعی ترتیبات",
-        "privacySecurity": "رازداری اور تحفظ"
+        "privacySecurity": "رازداری اور تحفظ",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1680,6 +1686,8 @@
         "no_search_results": "کوئی دوا آپ کی تلاش سے مماثل نہیں ہے۔",
         "item_status_label": "حیثیت:",
         "item_delete_button": "حذف کریں۔",
+        "sync_auth_title": "اپنی تاریخ سنک کرنے کے لیے سائن ان کریں",
+        "sync_auth_action": "سائن ان",
         "item_copy_success": "دوا کا نام نقل کیا گیا!"
     },
     "MyReports": {

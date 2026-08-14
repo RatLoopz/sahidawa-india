@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Link } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
+import { buildLoginPath } from "@/lib/authReturn";
 import {
     Pill,
     AlertTriangle,
@@ -61,7 +63,31 @@ type PushAnalytics = {
 };
 
 type AuditLogsResponse = {
-    logs?: any[];
+    logs?: AuditLogEntry[];
+};
+
+type AuditLogEntry = {
+    id: string;
+    action: string;
+    userId: string | null;
+    details: string | null;
+    created_at: string;
+};
+
+type ReportEntry = {
+    id: string;
+    status: string;
+    district: string | null;
+    medicineName: string | null;
+    created_at: string;
+};
+
+type MedicineEntry = {
+    id: string;
+    name: string;
+    manufacturer: string | null;
+    status: string;
+    created_at: string;
 };
 
 const EMPTY_PUSH_ANALYTICS: PushAnalytics = {
@@ -95,6 +121,8 @@ function formatPercent(rate: number): string {
 
 export default function AnalyticsDashboard() {
     const { token, isLoading: authLoading } = useSession();
+    const locale = useLocale();
+    const pathname = usePathname();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d" | "all">("30d");
@@ -103,9 +131,9 @@ export default function AnalyticsDashboard() {
     const [reportCount, setReportCount] = useState(0);
     const [resolvedCount, setResolvedCount] = useState(0);
     const [districtCount, setDistrictCount] = useState(0);
-    const [reports, setReports] = useState<any[]>([]);
-    const [medicines, setMedicines] = useState<any[]>([]);
-    const [auditLogs, setAuditLogs] = useState<any[]>([]);
+    const [reports, setReports] = useState<ReportEntry[]>([]);
+    const [medicines, setMedicines] = useState<MedicineEntry[]>([]);
+    const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
     const [pushAnalytics, setPushAnalytics] = useState<PushAnalytics>(EMPTY_PUSH_ANALYTICS);
     const [pushAnalyticsError, setPushAnalyticsError] = useState<string | null>(null);
 
@@ -144,7 +172,11 @@ export default function AnalyticsDashboard() {
 
                 if (!pushAnalyticsRes.ok) {
                     if (pushAnalyticsRes.status === 401 && typeof window !== "undefined") {
-                        window.location.href = "/admin/login";
+                        // Session expired mid-flow: clear the stale auth state
+                        // (so the loop can't recur) and resume the intended
+                        // destination after re-authentication.
+                        void supabase.auth.signOut().catch(() => {});
+                        window.location.href = buildLoginPath(locale, pathname);
                         return;
                     }
                     const message =
@@ -164,7 +196,7 @@ export default function AnalyticsDashboard() {
             if (medicinesRes.error) console.error("Medicines fetch error:", medicinesRes.error);
             if (reportsRes.error) console.error("Reports fetch error:", reportsRes.error);
 
-            let allAudits: any[] = [];
+            let allAudits: AuditLogEntry[] = [];
             if (!auditRes.ok) {
                 console.error("Audit logs fetch error:", auditRes.status);
             } else {
@@ -190,10 +222,12 @@ export default function AnalyticsDashboard() {
             setReportCount(allReports.length);
             setResolvedCount(
                 allReports.filter(
-                    (r: any) => r.status === "verified_fake" || r.status === "false_alarm"
+                    (r: ReportEntry) => r.status === "verified_fake" || r.status === "false_alarm"
                 ).length
             );
-            setDistrictCount(new Set(allReports.map((r: any) => r.district).filter(Boolean)).size);
+            setDistrictCount(
+                new Set(allReports.map((r: ReportEntry) => r.district).filter(Boolean)).size
+            );
         } catch (err) {
             console.error("Failed to fetch analytics data:", err);
             setError("Failed to load analytics data. Please try again.");
@@ -223,8 +257,8 @@ export default function AnalyticsDashboard() {
             const d = new Date(item.created_at);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             if (!monthMap[key]) monthMap[key] = { medicines: 0, reports: 0 };
-            if (medicines.includes(item)) monthMap[key].medicines++;
-            if (reports.includes(item)) monthMap[key].reports++;
+            if ((medicines as any[]).includes(item)) monthMap[key].medicines++;
+            if ((reports as any[]).includes(item)) monthMap[key].reports++;
         });
 
         return Object.entries(monthMap)
@@ -662,12 +696,12 @@ function MetricCard({
 }: {
     label: string;
     value: string;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     color: string;
     bg: string;
     trend?: string;
     trendColor?: string;
-    TrendIcon?: any;
+    TrendIcon?: React.ComponentType<{ className?: string }>;
 }) {
     return (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">

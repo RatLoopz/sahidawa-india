@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "तुमचे आरोग्य, पडताळलेले आणि सुरक्षित.",
         "subtitle": "भारताची ओपन-सोर्स नागरिक प्रणाली जी तुमचे औषधाची प्रमाणिकता त्वरित तपासू शकते, सुरक्षित औषधालय शोधू शकते आणि महत्त्वाची स्वास्थ्य सूचना मिळवू शकते.",
         "scan_button": "औषध स्कॅन करा",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",
         "alerts": "सूचना",
+        "tools": "साधने",
         "pharmacy_map": "औषधालय नकाशा",
         "my_reports": "माझे अहवाल",
         "schedule": "वेळापत्रक",
@@ -519,6 +522,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,7 +1435,9 @@
         "abhaSetup": "ABHA सेटअप",
         "abhaRecords": "ABHA नोंदी",
         "notificationSettings": "सूचना सेटिंग्ज",
-        "privacySecurity": "गोपनीयता आणि सुरक्षा"
+        "privacySecurity": "गोपनीयता आणि सुरक्षा",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1736,6 +1742,8 @@
         "no_search_results": "कोणतीही औषधे तुमच्��ा शोधाशी जुळत नाहीत.",
         "item_status_label": "स्थिती:",
         "item_delete_button": "हटवा",
+        "sync_auth_title": "तुमचा इतिहास सिंक करण्यासाठी साइन इन करा",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "औषधाचे नाव कॉपी केले!"
     },
     "MyReports": {

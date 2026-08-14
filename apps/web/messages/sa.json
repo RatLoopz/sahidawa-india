@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "भवतः स्वास्थ्यम्, प्रमाणीकृतं सुरक्षितं च।",
         "subtitle": "भेषज-प्रामाणिकतां सद्यः सत्यापयितुं, सुरक्षित-औषधालयान् अन्वेष्टुं, तथा च आपत्कालीन-स्वास्थ्य-सूचनाः प्राप्तुं भारतस्य मुक्तस्रोत-नागरिक-मञ्चः।",
         "scan_button": "औषधं स्कैन् कुर्वन्तु",
@@ -516,6 +518,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1375,7 +1378,9 @@
         "abhaSetup": "ABHA सज्जीकरणम्",
         "abhaRecords": "ABHA अभिलेखाः",
         "notificationSettings": "सूचना विन्यासाः",
-        "privacySecurity": "गोपनीयता सुरक्षा च"
+        "privacySecurity": "गोपनीयता सुरक्षा च",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
@@ -1680,6 +1685,8 @@
         "no_search_results": "भवतः अन्वेषणेन सह कोऽपि औषधः न मेलति।",
         "item_status_label": "स्थितिः : १.",
         "item_delete_button": "विलोपयतु",
+        "sync_auth_title": "स्वस्य इतिहासं सिंक कर्तुं प्रवेशं कुरु",
+        "sync_auth_action": "प्रवेशं कुरु",
         "item_copy_success": "औषधस्य नाम प्रतिलिपिकृतम् !"
     },
     "MyReports": {

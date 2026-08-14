@@ -95,6 +95,7 @@ reportsRouter.post(
         const data = parsed.data;
         const district = data.district ?? data.city;
         const phone = data.phone ? formatPhoneNumber(data.phone) : null;
+        const client = req.supabase || supabase;
 
         try {
             const ipAddress = anonymizeIp(req.ip);
@@ -117,7 +118,7 @@ reportsRouter.post(
             );
 
             const reportHash = computeReportHash(validationPayload);
-            const { data: reports, error } = await supabase
+            const { data: reports, error } = await client
                 .from("counterfeit_reports")
                 .upsert(
                     {
@@ -161,7 +162,7 @@ reportsRouter.post(
 
             let statusCode = 201;
             if (!report) {
-                const { data: existingReport, error: fetchError } = await supabase
+                const { data: existingReport, error: fetchError } = await client
                     .from("counterfeit_reports")
                     .select(
                         "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
@@ -231,9 +232,10 @@ reportsRouter.get(
 
         const rawLimit = parseInt(req.query.limit as string, 10);
         const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
+        const client = req.supabase || supabase;
 
         try {
-            let query = supabase
+            let query = client
                 .from("counterfeit_reports")
                 .select(
                     "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
@@ -269,80 +271,86 @@ reportsRouter.get(
     }
 );
 
-reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Response) => {
-    const rawLimit = req.query.limit;
-    let limit = DEFAULT_ADMIN_REPORTS_LIMIT;
+reportsRouter.get(
+    "/",
+    requireAuth,
+    requireRole("admin"),
+    async (req: AuthenticatedRequest, res: Response) => {
+        const rawLimit = req.query.limit;
+        let limit = DEFAULT_ADMIN_REPORTS_LIMIT;
 
-    if (rawLimit !== undefined) {
-        if (typeof rawLimit !== "string") {
-            res.status(400).json({ error: "Invalid limit parameter" });
-            return;
+        if (rawLimit !== undefined) {
+            if (typeof rawLimit !== "string") {
+                res.status(400).json({ error: "Invalid limit parameter" });
+                return;
+            }
+
+            const parsedLimit = Number(rawLimit);
+
+            if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+                res.status(400).json({ error: "Invalid limit parameter" });
+                return;
+            }
+
+            limit = Math.min(parsedLimit, MAX_ADMIN_REPORTS_LIMIT);
         }
 
-        const parsedLimit = Number(rawLimit);
+        const cursor = req.query.cursor;
 
-        if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
-            res.status(400).json({ error: "Invalid limit parameter" });
-            return;
+        if (cursor !== undefined) {
+            if (typeof cursor !== "string" || Number.isNaN(Date.parse(cursor))) {
+                res.status(400).json({ error: "Invalid cursor parameter" });
+                return;
+            }
         }
+        const client = req.supabase || supabase;
 
-        limit = Math.min(parsedLimit, MAX_ADMIN_REPORTS_LIMIT);
+        try {
+            let query = client
+                .from("counterfeit_reports")
+                .select("*")
+                .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`)
+                .order("created_at", { ascending: false })
+                .limit(limit + 1);
+
+            if (cursor) {
+                query = query.lt("created_at", cursor);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                res.status(500).json({ error: "Failed to fetch counterfeit reports" });
+                return;
+            }
+
+            const reports = data ?? [];
+            const hasMore = reports.length > limit;
+            const pageReports = reports.slice(0, limit);
+            const nextCursor = hasMore
+                ? (pageReports[pageReports.length - 1]?.created_at ?? null)
+                : null;
+
+            res.json({
+                reports: pageReports,
+                pagination: {
+                    limit,
+                    hasMore,
+                    nextCursor,
+                },
+            });
+        } catch (err) {
+            logger.error({ message: "Unexpected error in GET /api/reports", error: err });
+            res.status(500).json({ error: "An unexpected error occurred" });
+        }
     }
-
-    const cursor = req.query.cursor;
-
-    if (cursor !== undefined) {
-        if (typeof cursor !== "string" || Number.isNaN(Date.parse(cursor))) {
-            res.status(400).json({ error: "Invalid cursor parameter" });
-            return;
-        }
-    }
-
-    try {
-        let query = supabase
-            .from("counterfeit_reports")
-            .select("*")
-            .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`)
-            .order("created_at", { ascending: false })
-            .limit(limit + 1);
-
-        if (cursor) {
-            query = query.lt("created_at", cursor);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-            res.status(500).json({ error: "Failed to fetch counterfeit reports" });
-            return;
-        }
-
-        const reports = data ?? [];
-        const hasMore = reports.length > limit;
-        const pageReports = reports.slice(0, limit);
-        const nextCursor = hasMore
-            ? (pageReports[pageReports.length - 1]?.created_at ?? null)
-            : null;
-
-        res.json({
-            reports: pageReports,
-            pagination: {
-                limit,
-                hasMore,
-                nextCursor,
-            },
-        });
-    } catch (err) {
-        logger.error({ message: "Unexpected error in GET /api/reports", error: err });
-        res.status(500).json({ error: "An unexpected error occurred" });
-    }
-});
+);
 
 reportsRouter.patch(
     "/:id/status",
     requireAuth,
     requireRole("admin"),
-    async (req, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const parsedId = uuidSchema.safeParse(req.params.id);
         if (!parsedId.success) {
             res.status(400).json({ error: "Invalid UUID format" });
@@ -365,13 +373,14 @@ reportsRouter.patch(
         }
 
         const { status } = parsedBody.data;
+        const client = req.supabase || supabase;
 
         try {
             // Verify the report exists before updating. Without this check a
             // caller can submit arbitrary IDs and receive a 500 instead of a
             // 404, leaking that the endpoint performs blind updates and
             // enabling IDOR-style enumeration across report IDs.
-            const { data: existing, error: fetchError } = await supabase
+            const { data: existing, error: fetchError } = await client
                 .from("counterfeit_reports")
                 .select("id")
                 .eq("id", req.params.id)
@@ -387,7 +396,7 @@ reportsRouter.patch(
                 updatePayload.is_escalated = false;
             }
 
-            const { data, error } = await supabase
+            const { data, error } = await client
                 .from("counterfeit_reports")
                 .update(updatePayload)
                 .eq("id", req.params.id)
@@ -405,7 +414,7 @@ reportsRouter.patch(
             // row per medicine, instead of the most recent upsert silently
             // overwriting any prior alert for a different medicine in that district.
             if (status === "verified_fake" && data.district && data.reported_brand_name) {
-                const { count } = await supabase
+                const { count } = await client
                     .from("counterfeit_reports")
                     .select("*", { count: "exact", head: true })
                     .eq("district", data.district)
@@ -420,8 +429,8 @@ reportsRouter.patch(
                     // Fetch the existing alert (if any) for this district+medicine
                     // pair first, so we only fire a push notification on genuine
                     // creation or escalation — not on every redundant upsert when
-                    // the level hasn't actually changed.
-                    const { data: existingAlert } = await supabase
+                    // level hasn't actually changed.
+                    const { data: existingAlert } = await client
                         .from("district_alerts")
                         .select("alert_level")
                         .eq("district", data.district)
@@ -431,7 +440,7 @@ reportsRouter.patch(
                     const previousAlertLevel = existingAlert?.alert_level ?? null;
                     const isNewOrEscalated = !existingAlert || previousAlertLevel !== alertLevel;
 
-                    const { data: upsertedAlert, error: alertError } = await supabase
+                    const { data: upsertedAlert, error: alertError } = await client
                         .from("district_alerts")
                         .upsert(
                             {
@@ -500,7 +509,7 @@ reportsRouter.patch(
     limiter,
     requireAuth,
     requireRole("admin", "moderator"),
-    async (req, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const parsedId = uuidSchema.safeParse(req.params.id);
         if (!parsedId.success) {
             res.status(400).json({ error: "Invalid UUID format" });
@@ -519,8 +528,9 @@ reportsRouter.patch(
 
         const snoozedUntil = new Date();
         snoozedUntil.setDate(snoozedUntil.getDate() + parsedBody.data.days);
+        const client = req.supabase || supabase;
 
-        const { error } = await supabase
+        const { error } = await client
             .from("counterfeit_reports")
             .update({ snoozed_until: snoozedUntil.toISOString() })
             .eq("id", req.params.id);

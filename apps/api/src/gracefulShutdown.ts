@@ -95,7 +95,7 @@ export function createGracefulShutdown(server: Server, options: ShutdownOptions 
         timeout.unref();
 
         try {
-            jobScheduler.shutdown();
+            await jobScheduler.shutdown();
             logger.info("Background jobs stopped during graceful shutdown", { reason });
 
             await closeServer(server);

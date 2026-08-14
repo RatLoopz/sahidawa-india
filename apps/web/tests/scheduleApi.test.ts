@@ -20,6 +20,7 @@ import {
     type Schedule,
     type TodaySchedule,
 } from "@/lib/scheduleApi";
+import { setSessionAccessToken } from "@/lib/accessToken";
 import { getCsrfToken } from "@/lib/api";
 import { fetchWithRetry } from "@/lib/apiWithRetry";
 
@@ -44,6 +45,7 @@ describe("scheduleApi", () => {
             writable: true,
         });
         localStorage.clear();
+        setSessionAccessToken(null);
         mockGetCsrfToken.mockReset();
         mockGetCsrfToken.mockResolvedValue("csrf-token-123");
         mockFetchWithRetry.mockReset();
@@ -87,7 +89,7 @@ describe("scheduleApi", () => {
     });
 
     it("sends createSchedule as a JSON POST with auth headers", async () => {
-        localStorage.setItem("sb-access-token", "token-123");
+        setSessionAccessToken("token-123");
         const payload = {
             medicine_name: "Paracetamol",
             dosage: "500mg",
@@ -119,7 +121,7 @@ describe("scheduleApi", () => {
     });
 
     it("adds CSRF protection to schedule updates and deletions", async () => {
-        localStorage.setItem("sb-access-token", "token-123");
+        setSessionAccessToken("token-123");
         mockFetchWithRetry
             .mockResolvedValueOnce({
                 ok: true,
@@ -172,7 +174,7 @@ describe("scheduleApi", () => {
             created_at: "2027-01-01T09:00:00Z",
             ...dosePayload,
         };
-        localStorage.setItem("sb-access-token", "token-123");
+        setSessionAccessToken("token-123");
         mockFetchWithRetry.mockResolvedValueOnce({
             ok: true,
             json: async () => ({ dose: createdDose }),

@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
 import ABHABadge from "@/components/ABHABadge";
+import FakeMedicineHunterBadge from "@/components/FakeMedicineHunterBadge";
 import { useSession } from "@/src/components/AuthProvider";
+import { setSessionAccessToken } from "@/lib/accessToken";
 import { clearReadCache } from "@/lib/offline/db";
-
-const ACCESS_TOKEN_KEY = "sb-access-token";
+import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { getVerifiedReportCount, FAKE_MEDICINE_HUNTER_THRESHOLD } from "@/lib/counterfeitReports";
 
 type ProfileSession =
     | { status: "checking" }
@@ -86,8 +89,11 @@ function readSessionFromToken(token: string | null): {
 export default function ProfilePage() {
     const t = useTranslations("Profile");
     const router = useRouter();
-    const { token, isLoading: authLoading } = useSession();
+    const { token, session: authSession, isLoading: authLoading } = useSession();
     const [session, setSession] = useState<ProfileSession>({ status: "checking" });
+    const [verifiedReportCount, setVerifiedReportCount] = useState<number | null>(null);
+
+    const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
 
     const accountTitle =
         session.status === "authenticated"
@@ -110,7 +116,7 @@ export default function ProfilePage() {
             const result = readSessionFromToken(token);
 
             if (result.clearToken) {
-                localStorage.removeItem(ACCESS_TOKEN_KEY);
+                setSessionAccessToken(null);
             }
 
             setSession(result.session);
@@ -119,19 +125,45 @@ export default function ProfilePage() {
         }
     }, [authLoading, token]);
 
+    // Fetch the user's verified counterfeit-report count for the
+    // "Fake Medicine Hunter" achievement badge. Runs only once signed in;
+    // failures are swallowed (resolves to null → no badge) so the profile
+    // page never breaks on a missing table or RLS denial.
+    useEffect(() => {
+        if (authLoading || !authSession?.user?.id) {
+            setVerifiedReportCount(null);
+            return;
+        }
+        const userId = authSession.user.id;
+        let cancelled = false;
+        getVerifiedReportCount(userId)
+            .then((count) => {
+                if (!cancelled) setVerifiedReportCount(count);
+            })
+            .catch(() => {
+                if (!cancelled) setVerifiedReportCount(null);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [authLoading, authSession?.user?.id]);
+
     const handleRetry = () => {
         setSession({ status: "checking" });
-        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
         try {
             const result = readSessionFromToken(token);
-            if (result.clearToken) localStorage.removeItem(ACCESS_TOKEN_KEY);
+            if (result.clearToken) setSessionAccessToken(null);
             setSession(result.session);
         } catch {
             setSession({ status: "error" });
         }
     };
     const handleSignOut = () => {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        setSessionAccessToken(null);
+        // Clear the cookie-backed session too. Without this, the middleware
+        // keeps seeing a valid session while the app is signed out, which
+        // causes protected flows to bounce between login and the app.
+        void supabase.auth.signOut().catch(() => {});
         // Wipe cached schedules/summary (PHI) so the next person on a shared
         // device can't read them offline. Fire-and-forget — never block sign-out.
         void clearReadCache();
@@ -220,8 +252,15 @@ export default function ProfilePage() {
                                 </p>
 
                                 {session.status === "authenticated" && (
-                                    <div className="mt-2">
+                                    <div className="mt-2 flex flex-wrap items-center gap-2">
                                         <ABHABadge linked={true} />
+                                        {verifiedReportCount !== null &&
+                                            verifiedReportCount >=
+                                                FAKE_MEDICINE_HUNTER_THRESHOLD && (
+                                                <FakeMedicineHunterBadge
+                                                    count={verifiedReportCount}
+                                                />
+                                            )}
                                     </div>
                                 )}
                             </div>

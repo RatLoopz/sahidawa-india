@@ -90,7 +90,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                 setProfile(result);
                 setIsLoading(false);
             }
-        });
+        }).catch(err => console.error("[SafetyPanel] Failed:", err));
 
         return () => {
             cancelled = true;
