@@ -286,13 +286,17 @@ export async function GET(request: NextRequest) {
                         { status: 404 }
                     );
                 }
-                return NextResponse.json(data.profile_json, {
-                    headers: {
-                        "X-Cache": "HIT",
-                        "X-Cache-Source": "supabase",
-                        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
-                    },
-                });
+
+                // Check for new schema fields (description & commonUses)
+                if (cachedProfile.description && cachedProfile.commonUses) {
+                    return NextResponse.json(data.profile_json, {
+                        headers: {
+                            "X-Cache": "HIT",
+                            "X-Cache-Source": "supabase",
+                            "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+                        },
+                    });
+                }
             }
         } catch {
             // non-fatal — proceed to LLM

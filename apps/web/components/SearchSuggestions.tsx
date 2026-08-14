@@ -86,19 +86,7 @@ function SearchSuggestions({
     if (!visible) return null;
     if (isHistory && (!historyItems || historyItems.length === 0)) return null;
 
-    if (isLoading) {
-        return (
-            <div
-                role="status"
-                className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
-            >
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-                    Searching medicines...
-                </div>
-            </div>
-        );
-    }
+
 
     if (error) {
         return (

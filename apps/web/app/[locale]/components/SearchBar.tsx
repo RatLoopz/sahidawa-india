@@ -427,11 +427,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 <div className="flex items-center gap-2 p-1.5 pl-3 sm:gap-3 sm:p-2 sm:pl-4">
                     <Search
                         className={`shrink-0 transition-all duration-300 ${
-                            isLoading
-                                ? "scale-110 animate-pulse text-emerald-400"
-                                : dark
-                                  ? "text-slate-500"
-                                  : "text-slate-400 dark:text-slate-500"
+                            dark
+                                ? "text-slate-500"
+                                : "text-slate-400 dark:text-slate-500"
                         }`}
                         size={20}
                         aria-hidden="true"
