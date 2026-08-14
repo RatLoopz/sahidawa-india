@@ -342,6 +342,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     // ── Select a suggestion ────────────────────────────────────────────────────
     const selectSuggestion = useCallback(
         (value: string) => {
+            abortControllerRef.current?.abort();
             setQuery(value);
             setIsOpen(false);
             setError(null);
@@ -357,6 +358,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         (value: string) => {
             const trimmed = value.trim();
             if (!trimmed) return;
+            abortControllerRef.current?.abort();
             setIsOpen(false);
             setError(null);
             setActiveIndex(-1);

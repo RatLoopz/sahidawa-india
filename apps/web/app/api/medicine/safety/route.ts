@@ -99,6 +99,8 @@ const GEMINI_SCHEMA: Schema = {
         isMedicine: { type: SchemaType.BOOLEAN },
         activeIngredient: { type: SchemaType.STRING },
         genericName: { type: SchemaType.STRING },
+        description: { type: SchemaType.STRING },
+        commonUses: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         brandAliases: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         sideEffects: {
             type: SchemaType.ARRAY,
@@ -148,6 +150,8 @@ const GEMINI_SCHEMA: Schema = {
         "isMedicine",
         "activeIngredient",
         "genericName",
+        "description",
+        "commonUses",
         "brandAliases",
         "sideEffects",
         "ageBasedDosage",
