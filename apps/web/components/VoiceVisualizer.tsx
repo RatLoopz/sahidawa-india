@@ -5,7 +5,8 @@ import { Mic, X } from "lucide-react";
 import { useVoiceNavigation } from "@/hooks/useVoiceNavigation";
 
 export function VoiceVisualizer() {
-    const { isListeningForIntent, cancelListening, transcript, toggleWakeWord, isWakeWordActive } = useVoiceNavigation();
+    const { isListeningForIntent, cancelListening, transcript, toggleWakeWord, isWakeWordActive } =
+        useVoiceNavigation();
 
     return (
         <AnimatePresence>
@@ -56,7 +57,7 @@ export function VoiceVisualizer() {
             {!isListeningForIntent && (
                 <button
                     onClick={toggleWakeWord}
-                    className={`fixed right-20 bottom-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors ${
+                    className={`fixed right-[5.5rem] bottom-[4.5rem] z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors md:right-24 md:bottom-6 ${
                         isWakeWordActive
                             ? "animate-pulse bg-emerald-600 text-white"
                             : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
