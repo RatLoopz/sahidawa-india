@@ -20,6 +20,8 @@ import logger from "../utils/logger";
 export interface MedicineSafetyProfile {
     activeIngredient: string;
     genericName: string;
+    description?: string;
+    commonUses?: string[];
     brandAliases?: string[];
     sideEffects: Array<{
         name: string;
@@ -51,6 +53,8 @@ const PROFILE_SCHEMA_DESCRIPTION = `
 {
   "activeIngredient": "string — INN generic name (e.g. 'telmisartan')",
   "genericName": "string — human display name (e.g. 'Telmisartan')",
+  "description": "string — a brief explanation of what this medicine is and how it works",
+  "commonUses": ["array of strings — what this medicine is primarily used to treat"],
   "brandAliases": ["array of common brand names, all lowercase"],
   "sideEffects": [
     {
@@ -103,6 +107,8 @@ const geminiResponseSchema: Schema = {
     properties: {
         activeIngredient: { type: SchemaType.STRING },
         genericName: { type: SchemaType.STRING },
+        description: { type: SchemaType.STRING },
+        commonUses: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         brandAliases: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         sideEffects: {
             type: SchemaType.ARRAY,
@@ -151,6 +157,8 @@ const geminiResponseSchema: Schema = {
     required: [
         "activeIngredient",
         "genericName",
+        "description",
+        "commonUses",
         "brandAliases",
         "sideEffects",
         "ageBasedDosage",

@@ -38,7 +38,7 @@ type MedicineSafetyPanelProps = {
     onClose?: () => void;
 };
 
-type TabType = "sideEffects" | "dosage" | "diet";
+type TabType = "overview" | "sideEffects" | "dosage" | "diet";
 type AgeGroupKey = AgeGroup["group"];
 
 // ── Lucide icon resolver for dietary cue icon names ───────────────────────────
@@ -75,7 +75,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     const t = useTranslations("medicineSafety");
     const [profile, setProfile] = useState<MedicineSafetyProfile | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
+    const [activeTab, setActiveTab] = useState<TabType>("overview");
     const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
 
     useEffect(() => {
@@ -85,12 +85,14 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
         setIsLoading(true);
         setProfile(null);
 
-        fetchSafetyProfile(searchQuery).then((result) => {
-            if (!cancelled) {
-                setProfile(result);
-                setIsLoading(false);
-            }
-        }).catch(err => console.error("[SafetyPanel] Failed:", err));
+        fetchSafetyProfile(searchQuery)
+            .then((result) => {
+                if (!cancelled) {
+                    setProfile(result);
+                    setIsLoading(false);
+                }
+            })
+            .catch((err) => console.error("[SafetyPanel] Failed:", err));
 
         return () => {
             cancelled = true;
@@ -128,6 +130,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     ];
 
     const TABS: { key: TabType; label: string; Icon: React.ElementType }[] = [
+        { key: "overview", label: "Overview & Usage", Icon: Info },
         { key: "sideEffects", label: t("tabs.sideEffects"), Icon: AlertTriangle },
         { key: "dosage", label: t("tabs.dosage"), Icon: Syringe },
         { key: "diet", label: t("tabs.dietaryIntake"), Icon: Utensils },
@@ -169,6 +172,41 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
 
             {/* Tab Content */}
             <div className="min-h-[140px] p-4 text-xs">
+                {/* Overview */}
+                {activeTab === "overview" && (
+                    <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+                        {profile.description && (
+                            <div>
+                                <h4 className="mb-1 font-semibold text-slate-900 dark:text-slate-100">
+                                    What is it?
+                                </h4>
+                                <p className="leading-relaxed">{profile.description}</p>
+                            </div>
+                        )}
+                        {profile.commonUses && profile.commonUses.length > 0 && (
+                            <div>
+                                <h4 className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
+                                    Common Uses
+                                </h4>
+                                <ul className="space-y-1">
+                                    {profile.commonUses.map((use, idx) => (
+                                        <li key={idx} className="flex items-start gap-1.5">
+                                            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                                            <span>{use}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {!profile.description &&
+                            (!profile.commonUses || profile.commonUses.length === 0) && (
+                                <p className="text-slate-500 italic">
+                                    No usage information available for this medicine.
+                                </p>
+                            )}
+                    </div>
+                )}
+
                 {/* Side Effects */}
                 {activeTab === "sideEffects" && (
                     <div className="space-y-3">

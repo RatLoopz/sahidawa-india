@@ -495,6 +495,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     )}
 
                     <button
+                        type="button"
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
                         aria-label={tHome("submit_search")}
