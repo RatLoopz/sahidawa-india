@@ -83,7 +83,7 @@ function SearchSuggestions({
         }
     }, [activeIndex, items.length, virtualizer]);
 
-    if (!visible && !isLoading && !error && !noResults) return null;
+    if (!visible) return null;
     if (isHistory && (!historyItems || historyItems.length === 0)) return null;
 
     if (isLoading) {

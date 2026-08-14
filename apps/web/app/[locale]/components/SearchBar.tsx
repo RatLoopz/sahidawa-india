@@ -344,6 +344,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         (value: string) => {
             setQuery(value);
             setIsOpen(false);
+            setError(null);
             setActiveIndex(-1);
             addToHistory(value);
             if (onSearchChange) onSearchChange(value);
@@ -357,6 +358,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             const trimmed = value.trim();
             if (!trimmed) return;
             setIsOpen(false);
+            setError(null);
             setActiveIndex(-1);
             addToHistory(trimmed);
             if (onSearchChange) onSearchChange(trimmed);
@@ -467,6 +469,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                                 setQuery("");
                                 setActiveIndex(-1);
                                 setSuggestions([]);
+                                setError(null);
                                 setIsOpen(false);
                                 onSearchChange?.("");
                                 inputRef.current?.focus();
