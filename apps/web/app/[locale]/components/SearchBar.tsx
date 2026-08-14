@@ -278,6 +278,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 }
             }
             // Supplement sparse database results with the existing fuzzy search endpoint.
+            // NOTE: fuzzyMatchBrand hits the Render backend which may be cold/unavailable.
+            // We intentionally swallow all errors here so a fuzzy-match failure never
+            // surfaces "Search temporarily unavailable" to the user.
             if (results.length < 3) {
                 try {
                     const fuzzyResults = await fuzzyMatchBrand(trimmed, controller.signal);
@@ -290,7 +293,8 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     }
                 } catch (fuzzyErr: unknown) {
                     if (isAbortError(fuzzyErr)) return;
-                    console.warn("[SearchBar] Fuzzy matching fallback error:", fuzzyErr);
+                    // Silently ignore — fuzzy endpoint is best-effort only
+                    console.info("[SearchBar] Fuzzy match unavailable, using Supabase results only.");
                 }
             }
 
@@ -302,10 +306,11 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         } catch (err: unknown) {
             if (isAbortError(err) || controller.signal.aborted) return;
             console.error("[SearchBar] Unexpected error fetching suggestions:", err);
+            // Do NOT show a blocking error UI — silently fail so the user can
+            // still type and use the search button directly.
             setSuggestions([]);
             setNoResults(false);
-            setError(SEARCH_UNAVAILABLE_MESSAGE);
-            setIsOpen(true);
+            setIsOpen(false);
         } finally {
             if (!controller.signal.aborted) {
                 setIsLoading(false);

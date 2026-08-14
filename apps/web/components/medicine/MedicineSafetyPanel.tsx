@@ -89,10 +89,21 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
             .then((result) => {
                 if (!cancelled) {
                     setProfile(result);
+                    // If the profile has description/commonUses, default to overview tab
+                    if (result?.description || result?.commonUses?.length) {
+                        setActiveTab("overview");
+                    } else {
+                        setActiveTab("sideEffects");
+                    }
                     setIsLoading(false);
                 }
             })
-            .catch((err) => console.error("[SafetyPanel] Failed:", err));
+            .catch((err) => {
+                if (!cancelled) {
+                    console.error("[SafetyPanel] Failed:", err);
+                    setIsLoading(false);
+                }
+            });
 
         return () => {
             cancelled = true;

@@ -42,9 +42,9 @@ export async function fetchSafetyProfile(
 
     const cacheKey = query.toLowerCase().trim();
 
-    // 1. Return from in-memory cache if still fresh
+    // 1. Return from in-memory cache if still fresh AND has the new required fields
     const cached = getCached(cacheKey);
-    if (cached) return cached;
+    if (cached && cached.description && cached.commonUses) return cached;
 
     // 2. Skip network entirely if browser reports offline
     if (typeof navigator !== "undefined" && !navigator.onLine) {
