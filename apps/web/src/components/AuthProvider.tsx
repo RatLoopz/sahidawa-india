@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { setSessionAccessToken } from "@/lib/accessToken";
 import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { clearSyncQueueForLogout, registerCurrentUser } from "@/lib/syncUserScoping";
@@ -35,24 +36,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const s = data.session ?? null;
                 setSession(s);
                 setIsLoading(false);
-                if (s?.access_token) {
-                    localStorage.setItem("sb-access-token", s.access_token);
-                } else {
-                    localStorage.removeItem("sb-access-token");
-                }
+                setSessionAccessToken(s?.access_token ?? null);
                 syncServiceWorkerSession(s);
             })
-            .catch((err) => console.error("[AuthProvider] Failed:", err));
+            .catch((err) => {
+                console.error("[AuthProvider] Failed:", err);
+                // Never leave consumers stuck in an infinite loading state:
+                // treat an unreadable session as signed-out so protected pages
+                // render their graceful re-authentication state.
+                setIsLoading(false);
+                setSessionAccessToken(null);
+                syncServiceWorkerSession(null);
+            });
 
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
-            if (session?.access_token) {
-                localStorage.setItem("sb-access-token", session.access_token);
-            } else {
-                localStorage.removeItem("sb-access-token");
-            }
+            setSessionAccessToken(session?.access_token ?? null);
             syncServiceWorkerSession(session);
         });
 

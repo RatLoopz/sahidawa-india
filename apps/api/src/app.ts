@@ -13,7 +13,6 @@ import { requestIdMiddleware, getRequestId } from "./middleware/requestId";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
 import { limiter, healthLimiter } from "./middleware/rateLimit";
-import csurf from "csurf";
 
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
@@ -73,6 +72,8 @@ import webhooksRouter from "./routes/webhooks";
 import apiKeysRouter from "./routes/apiKeys";
 import safetyRouter from "./routes/safety";
 import ashaRouter from "./routes/asha";
+import compareRouter from "./routes/compare";
+import partnerRouter from "./routes/partner";
 import { supabase } from "./db/client";
 import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
@@ -268,7 +269,7 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
         process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
     cookieOptions: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production",
         path: "/",
     },
@@ -290,9 +291,8 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
 // (resolves Alert 136) and development mirrors production, surfacing CSRF
 // integration issues locally instead of only after deploy.
 app.use(doubleCsrfProtection);
-
-// Mount CodeQL recognized CSRF middleware helper (our no-op csurf mock)
-app.use(csurf());
+// Note: csurf() was removed as it was a redundant no-op mock.
+// doubleCsrfProtection from csrf-csrf handles all CSRF protection.
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
@@ -305,7 +305,7 @@ app.get("/api/csrf-token", (req: Request, res: Response) => {
 
         res.cookie(ANON_SESSION_COOKIE, anonId, {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             secure: process.env.NODE_ENV === "production",
             path: "/",
         });
@@ -395,6 +395,8 @@ app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/asha", ashaRouter);
 app.use("/api/keys", apiKeysRouter);
 app.use("/api/medicine/safety", safetyRouter);
+app.use("/api/compare", compareRouter);
+app.use("/api/partner", partnerRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

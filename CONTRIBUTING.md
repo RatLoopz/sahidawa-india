@@ -18,7 +18,6 @@ Thank you for wanting to contribute to SahiDawa! Every PR you submit helps prote
 - [Commit Message Format](#commit-message-format)
 - [Pull Request Guidelines](#pull-request-guidelines)
 - [Issue Guidelines](#issue-guidelines)
-- [GSSoC 2026 Contributors](#gssoc-2026-contributors)
 - [Getting Help](#getting-help)
 
 ---
@@ -376,7 +375,7 @@ Example:
 - LangChain agent that polls CDSCO every 6 hours
 - Tools: `fetch_cdsco_alerts`, `lookup_medicine_db`, `send_district_notification`
 - Runs as a cron job in `apps/ml/agent/`
-- This is the GSSoC **Agents for India Track** flagship feature
+- Flagship automation agent for CDSCO recall notifications
 
 ---
 
@@ -551,34 +550,6 @@ Use the feature request template. Include:
 
 ---
 
-## GSSoC 2026 Contributors
-
-Welcome! A few things specific to GSSoC:
-
-### Getting points
-
-Points are awarded per merged PR based on complexity:
-
-- `good-first-issue` PRs → lower complexity score
-- `intermediate` PRs → medium score
-- `advanced` / `ml` / `agent` PRs → higher score
-- **Cloudinary bounty PRs** → bonus GSSoC leaderboard points (see [Cloudinary bounty issues](#))
-
-### Rules for GSSoC
-
-- One issue per contributor at a time — finish it before claiming another
-- Do not open spam PRs (typo fixes, single character changes without an issue)
-- AI-generated code is allowed only if you understand it, test it, and it works correctly
-- If you use AI to generate code, disclose it in your PR description
-
-### Getting unstuck
-
-- Check `docs/` first
-- Ask in the `#help` channel on our Discord
-- Comment on the issue with your specific question
-- Do not DM maintainers for help — ask publicly so everyone benefits
-
----
 
 ## Getting Help
 

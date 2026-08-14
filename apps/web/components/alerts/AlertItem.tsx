@@ -8,9 +8,11 @@ import {
     Building2,
     MapPin,
     BellOff,
+    Share2,
 } from "lucide-react";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Alert } from "@/app/[locale]/alerts/page";
+import { toast } from "sonner";
 
 interface AlertItemProps {
     alert: Alert;
@@ -52,6 +54,33 @@ export function AlertItem({
         alert.alert_type === "Banned";
     const isCollapsible = !isSystem;
     const isExpanded = expandedAlertId === alert.id;
+
+    const handleShareAlert = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const brand =
+            alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
+        const shareText = `⚠️ SahiDawa CDSCO Drug Safety Alert:\n\nBrand: ${brand}\nBatch: ${alert.batch_number || "N/A"}\n\nPlease check safety logs.`;
+
+        const writeToClipboard = () => {
+            navigator.clipboard
+                .writeText(shareText)
+                .then(() => {
+                    toast.success("Alert details copied to clipboard!");
+                })
+                .catch((err) => {
+                    console.error("Clipboard copy failed:", err);
+                    toast.error("Failed to copy alert details to clipboard.");
+                });
+        };
+
+        if (navigator.share) {
+            navigator.share({ title: `Safety Alert: ${brand}`, text: shareText }).catch(() => {
+                writeToClipboard();
+            });
+        } else {
+            writeToClipboard();
+        }
+    };
 
     return (
         <motion.div
@@ -106,6 +135,16 @@ export function AlertItem({
                         </h4>
                         <div className="flex items-center gap-3">
                             <button
+                                type="button"
+                                onClick={handleShareAlert}
+                                className="text-slate-400 transition-colors hover:text-emerald-500"
+                                title="Share Alert"
+                                aria-label="Share Alert"
+                            >
+                                <Share2 size={16} />
+                            </button>
+                            <button
+                                type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     snoozeAlert(alert.id);

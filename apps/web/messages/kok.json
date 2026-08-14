@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "तुमचें भलायकी, तपासिल्ली आनी राखिल्ली.",
         "subtitle": "वकतांची खात्रीखोरपणा रोकडीच तपासपाक, सुसज्जित आनी सुरक्षित वखदशाळां सोदपाक, आनी कडक भलायकी सुचोवण्यो मेळोवपाक भारताचें एक सुगम आनी मुक्त-स्त्रोत (open-source) नागरीक व्यासपीठ.",
         "scan_button": "वखद स्कॅन करात",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "हें कशें काम करता",
         "alerts": "सुचोवण्यो",
+        "tools": "साधनां",
         "pharmacy_map": "वखदशाळेचो नॅशा",
         "my_reports": "म्हज्यो नोंदी",
         "schedule": "वेळापत्रक",
@@ -204,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "निकाल शेअर करात",
+            "whatsapp_button": "WhatsApp शेअर करात",
             "title": "सहीदवा वखद खात्रीकरण निकाल",
             "real_status": "तपासणी उपरांत खरे",
             "suspicious_status": "दुबावीत म्हणून नोंद जाल्लें",
@@ -359,15 +363,10 @@
         "description": "सध्या तुमकां इंटरनेट कनेक्शन ना.",
         "subtitle": "ऑफलाइन आसताना काही वैशिश्ट्यां उपलब्ध आसनात. इंटरनेट कडेन जोडपाचो प्रयत्न करात वा सेव्ह केल्ली माहिती पळयात.",
         "tryAgain": "परतून प्रयत्न करात",
-
         "syncFailedTitle": "Queued actions were rejected",
-
         "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-
         "syncRetry": "Retry all",
-
         "syncDiscard": "Discard",
-
         "goHome": "मुखेल पानाचेर वचात",
         "footer": "कनेक्शन परत आयल्यार सहीदवा आपोआप माहिती सिंक करतलो.",
         "cachedContent": "तुमी आधी पळयल्ली माहिती अजूनय पळोवंक शकतात",
@@ -381,7 +380,7 @@
         "browsedMedicines": "पळयल्लीं वखदां"
     },
     "contact": {
-        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "आमच्या कडेन ",
             "highlight": "संपर्क करात"
@@ -418,7 +417,7 @@
     },
     "Footer": {
         "brandSubtitle": "भारताचें पयलें मुक्त-स्रोता औषध प्रमाणीकरण मंच. तुमच्या औषधांचे स्कॅन, प्रमाणीकरण आनी विस्वास दवरात.",
-        "madeForGssoc": "GSSoC 2026 खातीर तयार केल्लें",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "खळबळ लिंक्स",
             "expiry_tracker": "एक्सपायरी ट्रॅकर",
@@ -444,7 +443,7 @@
         "builtWithSuffix": "सयत तयार केलां"
     },
     "about": {
-        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>सहीदवा</highlight> विशीं",
         "heroSubtitle": "भारताचें पयलें ओपन-सोर्स नागरीक वखद खात्रीकरण व्यासपीठ आनी ग्रामीण भलायकी पूल. भारता खातीर उबारिल्लें.",
         "features": {
@@ -511,7 +510,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "badge": "Free & Open Source Project",
         "title": "नेहमी विचारले वचपी",
         "title_highlight": "प्रश्न",
         "subtitle": "सहीदवा विशीं तुमकां जाय ती सगळी माहिती — भारताचें फुकट, ओपन-सोर्स वखद खात्रीकरण व्यासपीठ.",
@@ -547,7 +546,7 @@
             },
             "6": {
                 "question": "हांव सहीदवांत कशें योगदान दिवंक शकता?",
-                "answer": "सहीदवा MIT लायसन्स अंतर्गत ओपन सोर्स आसा. तुमी GitHub चेर योगदान दिवंक शकतात, बग नोंद करूंक शकतात, नव्या वैशिश्ट्यांचो सुचोवणी दिवंक शकतात, वा GSSoC 2026 वांगडी म्हणून जोडूंक शकतात."
+                "answer": "सहीदवा MIT लायसन्स अंतर्गत ओपन सोर्स आसा. तुमी GitHub चेर योगदान दिवंक शकतात, बग नोंद करूंक शकतात, नव्या वैशिश्ट्यांचो सुचोवणी दिवंक शकतात, वा open source वांगडी म्हणून जोडूंक शकतात."
             },
             "7": {
                 "question": "CDSCO म्हणजे कितें?",
@@ -1225,6 +1224,8 @@
         "empty_description": "तुमचीं सत्यापीत केल्लीं वखदां हांगा दिसतलीं.",
         "item_status_label": "स्थिती: १.",
         "item_delete_button": "काडून उडोवप",
+        "sync_auth_title": "तुमचो इतिहास सिंक करपाक सायन इन करात",
+        "sync_auth_action": "सायन इन",
         "item_copy_success": "वखदाचें नांव नकल केलें!",
         "sync_status_synced": "सिंक केलें",
         "sync_status_offline": "ऑफलायन (सिंक प्रलंबित)",
@@ -1493,11 +1494,13 @@
         "abhaSetup": "ABHA सेटअप",
         "abhaRecords": "ABHA नोंदी",
         "notificationSettings": "सूचोवणी सेटिंग्ज",
-        "privacySecurity": "खासगीपण आनी सुरक्षा"
+        "privacySecurity": "खासगीपण आनी सुरक्षा",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 मुक्त स्रोत प्रकल्प",
+            "badge": "Free & Open Source Project",
             "title": "गुप्तता",
             "titleHighlight": "धोरण",
             "subtitle": "आमी पारदर्शकतेचेर विश्वास दवरतात. आमी नेमके काय गोळा करतात, कित्याक करतात आनी ताचे वांगडा आमी केंनाच काय करिनात, हे हांगा दिलां.",

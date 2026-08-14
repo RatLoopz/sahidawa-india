@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "உங்கள் ஆரோக்கியம், சரிபார்க்கப்பட்ட & பாதுகாக்கப்பட்ட.",
         "subtitle": "மருந்து நம்பகத்தன்மையை உடனடியாக சரிபார்க்கவும், பாதுகாப்பான மருந்தகங்களை கண்டறியவும், முக்கியமான சுகாதார எச்சரிக்கைகளைப் பெறவும் இந்தியாவின் திறந்த மூல குடிமக்கள் தளம்.",
         "scan_button": "மருந்தை ஸ்கேன் செய்",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "எப்படி வேலை செய்கிறது",
         "alerts": "எச்சரிக்கைகள்",
+        "tools": "கருவிகள்",
         "pharmacy_map": "மருந்தகம் வரைபடம்",
         "my_reports": "என் அறிக்கைகள்",
         "schedule": "அட்டவணை",
@@ -319,15 +322,10 @@
         "description": "தற்போது உங்களுக்கு இணைய இணைப்பு இல்லை.",
         "subtitle": "ஆஃப்லைனில் இருக்கும்போது சில அம்சங்கள் கிடைக்காது. இணையத்துடன் இணைக்க முயற்சிக்கவும் அல்லது தற்காலிக சேமிப்பில் உள்ள உள்ளடக்கத்தை உலாவவும்.",
         "tryAgain": "மீண்டும் முயற்சி",
-
         "syncFailedTitle": "வரிசையிலுள்ள செயல்கள் நிராகரிக்கப்பட்டன",
-
         "syncFailedDescription": "சர்வர் சில வரிசை செயல்களை நிராகரித்தது. மீண்டும் இணைந்த பிறகு மீண்டும் முயற்சிக்கவும் அல்லது அவற்றை அகற்றவும்.",
-
         "syncRetry": "அனைத்தையும் மீண்டும் முயற்சிக்கவும்",
-
         "syncDiscard": "அகற்று",
-
         "goHome": "முகப்பிற்குச் செல்",
         "footer": "இணைப்பு மீண்டும் வரும்போது SahiDawa தானாகவே ஒத்திசைக்கும்.",
         "cachedContent": "முன்பு ஏற்றப்பட்ட உள்ளடக்கத்தை நீங்கள் இன்னும் அணுகலாம்",
@@ -341,7 +339,7 @@
         "browsedMedicines": "பார்வையிட்ட மருந்துகள்"
     },
     "contact": {
-        "badge": "GSSoC 2026 திறந்த மூல திட்டம்",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "தொடர்பு",
             "highlight": "கொள்ளுங்கள்"
@@ -378,7 +376,7 @@
     },
     "Footer": {
         "brandSubtitle": "இந்தியாவின் முதல் திறந்த மூல மருந்து சரிபார்ப்பு தளம். சமூகம் சார்ந்த வெளிப்படைத்தன்மையுடன் உங்கள் மருந்துகளை ஸ்கேன் செய்து, சரிபார்த்து, நம்புங்கள்.",
-        "madeForGssoc": "GSSoC 2026 க்காக உருவாக்கப்பட்டது",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "விரைவு இணைப்புகள்",
             "expiry_tracker": "காலாவதி கண்காணிப்பாளர்",
@@ -404,7 +402,7 @@
         "builtWithSuffix": "உடன் உருவாக்கப்பட்டது"
     },
     "about": {
-        "badge": "GSSoC 2026 திறந்த மூலத் திட்டம்",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> பற்றி",
         "heroSubtitle": "இந்தியாவின் முதல் ஓப்பன் சோர்ஸ் குடிமக்கள் மருந்து சரிபார்ப்பு தளம் மற்றும் கிராமப்புற சுகாதார சேது. பாரதத்திற்காக உருவாக்கப்பட்டது. இந்தியாவுக்காக மட்டுமல்ல.",
         "features": {
@@ -470,7 +468,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 ஓப்பன் சோர்ஸ் திட்டம்",
+        "badge": "Free & Open Source Project",
         "title": "அடிக்கடி கேட்கப்படும்",
         "title_highlight": "கேள்விகள்",
         "subtitle": "SahiDawa பற்றி நீங்கள் தெரிந்துகொள்ள வேண்டிய அனைத்தும் — இந்தியாவின் இலவச, ஓப்பன்-சோர்ஸ் மருந்து சரிபார்ப்பு தளம்.",
@@ -506,7 +504,7 @@
             },
             "6": {
                 "question": "SahiDawa-க்கு நான் எப்படி பங்களிக்கலாம்?",
-                "answer": "SahiDawa MIT உரிமத்தின் கீழ் ஓப்பன் சோர்ஸ் ஆகும். நீங்கள் GitHub-ல் பங்களிக்கலாம், பிழைகளைப் புகாரளிக்கலாம், அம்சங்களைப் பரிந்துரைக்கலாம் அல்லது GSSoC 2026 பங்கேற்பாளராக சேரலாம்."
+                "answer": "SahiDawa MIT உரிமத்தின் கீழ் ஓப்பன் சோர்ஸ் ஆகும். நீங்கள் GitHub-ல் பங்களிக்கலாம், பிழைகளைப் புகாரளிக்கலாம், அம்சங்களைப் பரிந்துரைக்கலாம் அல்லது open source பங்கேற்பாளராக சேரலாம்."
             },
             "7": {
                 "question": "CDSCO என்றால் என்ன?",
@@ -519,6 +517,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,11 +1430,13 @@
         "abhaSetup": "ABHA அமைப்பு",
         "abhaRecords": "ABHA பதிவுகள்",
         "notificationSettings": "அறிவிப்பு அமைப்புகள்",
-        "privacySecurity": "தனியுரிமை மற்றும் பாதுகாப்பு"
+        "privacySecurity": "தனியுரிமை மற்றும் பாதுகாப்பு",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ஓப்பன் சோர்ஸ் திட்டம்",
+            "badge": "Free & Open Source Project",
             "title": "தனியுரிமைக்",
             "titleHighlight": "கொள்கை",
             "subtitle": "நாங்கள் வெளிப்படைத்தன்மையை நம்புகிறோம். நாங்கள் எதைச் சேகரிக்கிறோம், ஏன் சேகரிக்கிறோம், எதை ஒருபோதும் செய்ய மாட்டோம் என்பது இங்கே தெளிவாக உள்ளது.",
@@ -1736,6 +1737,8 @@
         "no_search_results": "உங்கள் தேடலுக்கு எந்த மருந்தும் பொருந்தவில்லை.",
         "item_status_label": "நிலை:",
         "item_delete_button": "நீக்கு",
+        "sync_auth_title": "உங்கள் வரலாற்றை ஒத்திசைக்க உள்நுழைக",
+        "sync_auth_action": "உள்நுழை",
         "item_copy_success": "மருந்தின் பெயர் நகலெடுக்கப்பட்டது!"
     },
     "MyReports": {

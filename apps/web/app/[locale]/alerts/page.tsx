@@ -19,8 +19,8 @@ import { LiveMessage } from "@/components/ui/LiveMessage";
 import BackToTopButton from "@/app/[locale]/components/BackToTopButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { useInView } from "react-intersection-observer";
 import { useAlerts } from "@/hooks/useAlerts";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AlertItem } from "@/components/alerts/AlertItem";
 
 // Debounce hook for search inputs - prevents API calls on every keystroke
@@ -71,10 +71,10 @@ export default function FullAlertsLogPage() {
     const {
         allAlerts,
         loading,
-        loadingMore,
         error,
-        fetchNextPage,
-        hasNextPage,
+        page,
+        setPage,
+        totalPages,
         totalCount,
         totalCriticalCount,
         totalImpactedRegionsCount,
@@ -82,51 +82,14 @@ export default function FullAlertsLogPage() {
         refetch,
     } = useAlerts({ debouncedBrandSearch, debouncedRegionSearch });
 
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedBrandSearch, debouncedRegionSearch, setPage]);
+
     // Accordion active expanded state
     const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
-
-    // Intersection Observer for infinite scroll
-    const { ref: inViewRef } = useInView({
-        triggerOnce: false,
-        threshold: 0.1,
-        rootMargin: "0px 0px 100px 0px",
-        onChange: (inView) => {
-            if (inView && !loadingMore && hasNextPage && !loading) {
-                fetchNextPage();
-            }
-        },
-    });
-
     const toggleExpand = (id: string) => {
         setExpandedAlertId((prev) => (prev === id ? null : id));
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleShareAlert = (e: React.MouseEvent, alert: Alert) => {
-        e.stopPropagation();
-        const brand =
-            alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
-        const shareText = `⚠️ SahiDawa CDSCO Drug Safety Alert:\n\nBrand: ${brand}\nBatch: ${alert.batch_number || "N/A"}\n\nPlease check safety logs.`;
-
-        const writeToClipboard = () => {
-            navigator.clipboard
-                .writeText(shareText)
-                .then(() => {
-                    toast.success("Alert details copied to clipboard!");
-                })
-                .catch((err) => {
-                    console.error("Clipboard copy failed:", err);
-                    toast.error("Failed to copy alert details to clipboard.");
-                });
-        };
-
-        if (navigator.share) {
-            navigator.share({ title: `Safety Alert: ${brand}`, text: shareText }).catch(() => {
-                writeToClipboard();
-            });
-        } else {
-            writeToClipboard();
-        }
     };
 
     const handleExportCSV = () => {
@@ -374,34 +337,32 @@ export default function FullAlertsLogPage() {
                     </div>
                 )}
 
-                {/* Infinite Scroll Load More Trigger */}
+                {/* Pagination Controls */}
                 {!loading && allAlerts.length > 0 && (
-                    <div className="mt-8">
-                        {loadingMore && (
-                            <div className="flex justify-center py-4">
-                                <div className="flex items-center gap-3 text-sm font-semibold text-(--color-text-muted)">
-                                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></span>
-                                    Loading more alerts...
-                                </div>
-                            </div>
-                        )}
-                        {hasNextPage && !loadingMore && (
-                            <div
-                                ref={inViewRef}
-                                className="w-full rounded-2xl border border-dashed border-(--color-border-muted) bg-(--color-surface-muted)/30 py-4 text-center text-sm font-semibold text-(--color-text-muted) transition-all hover:bg-(--color-surface-muted)"
+                    <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
+                        <div className="text-sm font-semibold text-(--color-text-muted)">
+                            Showing page <span className="text-(--color-text-primary)">{page}</span>{" "}
+                            of <span className="text-(--color-text-primary)">{totalPages}</span> (
+                            {totalCount} total alerts)
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="inline-flex items-center gap-1 rounded-xl border border-(--color-border-muted) bg-white px-4 py-2 text-sm font-bold text-(--color-text-primary) shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-slate-800"
                             >
-                                <span className="inline-flex items-center gap-2">
-                                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-400"></span>
-                                    Scroll for more alerts
-                                </span>
-                            </div>
-                        )}
-
-                        {!hasNextPage && totalCount > 0 && (
-                            <div className="text-center text-sm font-semibold text-(--color-text-muted)">
-                                ✅ You've seen all {totalCount} safety alerts
-                            </div>
-                        )}
+                                <ChevronLeft size={16} />
+                                Previous
+                            </button>
+                            <button
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                                className="inline-flex items-center gap-1 rounded-xl border border-(--color-border-muted) bg-white px-4 py-2 text-sm font-bold text-(--color-text-primary) shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-slate-800"
+                            >
+                                Next
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

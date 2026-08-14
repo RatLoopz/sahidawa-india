@@ -153,54 +153,63 @@ router.get(
                 pharmacies = Array.isArray(rpcData)
                     ? (rpcData as PharmacyRpcResult[]).map(formatNearbyPharmacy)
                     : [];
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.warn({
                     message: "get_nearest_pharmacies RPC failed, falling back to db query",
                     error: err,
                 });
                 // Note: Only select columns that are guaranteed to exist in the schema.
                 // status and is_active may not be present if migrations haven't run yet.
-                const { data: fallbackData, error: fallbackError } = await supabase
-                    .from("pharmacies")
-                    .select(
-                        "id, name, address, location, phone_number, is_verified, district, state"
-                    )
-                    .limit(1000);
+                try {
+                    const { data: fallbackData, error: fallbackError } = await supabase
+                        .from("pharmacies")
+                        .select(
+                            "id, name, address, location, phone_number, is_verified, district, state"
+                        )
+                        .limit(1000);
 
-                if (fallbackError) {
+                    if (fallbackError) {
+                        logger.error({
+                            message: "Fallback pharmacies fetch failed",
+                            error: fallbackError,
+                        });
+                    } else if (fallbackData) {
+                        pharmacies = (fallbackData as any[])
+                            .map((p) => {
+                                const coords = extractCoordinatesForNearby(p);
+                                const distanceKm = calculateDistanceKM(
+                                    lat,
+                                    lng,
+                                    coords.lat,
+                                    coords.lng
+                                );
+                                return {
+                                    id: p.id,
+                                    name: p.name,
+                                    type: "Jan Aushadhi",
+                                    lat: coords.lat,
+                                    lng: coords.lng,
+                                    address: p.address,
+                                    district: p.district,
+                                    state: p.state,
+                                    phone_number: p.phone_number,
+                                    is_verified: p.is_verified ?? false,
+                                    verified: p.is_verified ?? false,
+                                    distance: distanceKm,
+                                    distance_km: distanceKm,
+                                };
+                            })
+                            .filter(
+                                (p) => p.lat !== 0 && p.lng !== 0 && p.distance_km <= clampedRadius
+                            )
+                            .sort((a, b) => a.distance_km - b.distance_km)
+                            .slice(0, 200);
+                    }
+                } catch (fallbackEx) {
                     logger.error({
-                        message: "Fallback pharmacies fetch failed",
-                        error: fallbackError,
+                        message: "Fallback DB fetch threw an exception",
+                        error: fallbackEx,
                     });
-                } else if (fallbackData) {
-                    pharmacies = (fallbackData as any[])
-                        .map((p) => {
-                            const coords = extractCoordinatesForNearby(p);
-                            const distanceKm = calculateDistanceKM(
-                                lat,
-                                lng,
-                                coords.lat,
-                                coords.lng
-                            );
-                            return {
-                                id: p.id,
-                                name: p.name,
-                                type: "Jan Aushadhi",
-                                lat: coords.lat,
-                                lng: coords.lng,
-                                address: p.address,
-                                district: p.district,
-                                state: p.state,
-                                phone_number: p.phone_number,
-                                is_verified: p.is_verified ?? false,
-                                verified: p.is_verified ?? false,
-                                distance: distanceKm,
-                                distance_km: distanceKm,
-                            };
-                        })
-                        .filter((p) => p.lat !== 0 && p.lng !== 0 && p.distance_km <= clampedRadius)
-                        .sort((a, b) => a.distance_km - b.distance_km)
-                        .slice(0, 200);
                 }
             }
 
@@ -219,45 +228,54 @@ router.get(
                 if (rpcError) throw rpcError;
 
                 ashaWorkers = Array.isArray(rpcData) ? rpcData : [];
-            } catch (err: any) {
+            } catch (err: unknown) {
                 logger.warn({
                     message: "get_nearest_asha_workers RPC failed, falling back to db query",
                     error: err,
                 });
-                const { data: fallbackData, error: fallbackError } = await supabase
-                    .from("asha_workers")
-                    .select("id, name, district, state, location, phone_number")
-                    .limit(1000);
+                try {
+                    const { data: fallbackData, error: fallbackError } = await supabase
+                        .from("asha_workers")
+                        .select("id, name, district, state, location, phone_number")
+                        .limit(1000);
 
-                if (fallbackError) {
+                    if (fallbackError) {
+                        logger.error({
+                            message: "Fallback ASHA workers fetch failed",
+                            error: fallbackError,
+                        });
+                    } else if (fallbackData) {
+                        ashaWorkers = (fallbackData as any[])
+                            .map((a) => {
+                                const coords = extractCoordinatesForNearby(a);
+                                const distanceKm = calculateDistanceKM(
+                                    lat,
+                                    lng,
+                                    coords.lat,
+                                    coords.lng
+                                );
+                                return {
+                                    id: a.id,
+                                    name: a.name,
+                                    district: a.district,
+                                    state: a.state,
+                                    lat: coords.lat,
+                                    lng: coords.lng,
+                                    phone_number: a.phone_number,
+                                    distance_km: distanceKm,
+                                };
+                            })
+                            .filter(
+                                (a) => a.lat !== 0 && a.lng !== 0 && a.distance_km <= clampedRadius
+                            )
+                            .sort((a, b) => a.distance_km - b.distance_km)
+                            .slice(0, 200);
+                    }
+                } catch (fallbackEx) {
                     logger.error({
-                        message: "Fallback ASHA workers fetch failed",
-                        error: fallbackError,
+                        message: "Fallback DB fetch threw an exception",
+                        error: fallbackEx,
                     });
-                } else if (fallbackData) {
-                    ashaWorkers = (fallbackData as any[])
-                        .map((a) => {
-                            const coords = extractCoordinatesForNearby(a);
-                            const distanceKm = calculateDistanceKM(
-                                lat,
-                                lng,
-                                coords.lat,
-                                coords.lng
-                            );
-                            return {
-                                id: a.id,
-                                name: a.name,
-                                district: a.district,
-                                state: a.state,
-                                lat: coords.lat,
-                                lng: coords.lng,
-                                phone_number: a.phone_number,
-                                distance_km: distanceKm,
-                            };
-                        })
-                        .filter((a) => a.lat !== 0 && a.lng !== 0 && a.distance_km <= clampedRadius)
-                        .sort((a, b) => a.distance_km - b.distance_km)
-                        .slice(0, 200);
                 }
             }
 
@@ -269,7 +287,6 @@ router.get(
             logger.error({ message: "Error fetching nearby facilities", error: err });
             res.status(500).json({
                 error: "Internal server error",
-                details: err instanceof Error ? err.stack : String(err),
             });
         }
     }

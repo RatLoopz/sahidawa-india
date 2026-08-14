@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
 
 import {
@@ -11,9 +11,12 @@ import {
     ScanHistoryEntry,
 } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, Download, LogIn, RefreshCw, Trash2 } from "lucide-react";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Link, usePathname } from "@/i18n/routing";
+import { useSession } from "@/src/components/AuthProvider";
+import { buildLoginPath } from "@/lib/authReturn";
 
 const ExportModal = dynamic(() => import("./ExportModal"));
 
@@ -38,6 +41,9 @@ export default function HistoryPage() {
     );
 
     const t = useTranslations("ScanHistory");
+    const locale = useLocale();
+    const pathname = usePathname();
+    const { session } = useSession();
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     const loadHistory = useCallback(async () => {
@@ -279,6 +285,17 @@ export default function HistoryPage() {
                     </div>
                 )}
                 {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
+                {syncStatus === "error" && !session && (
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm">
+                        <span className="text-amber-300">{t("sync_auth_title")}</span>
+                        <Link
+                            href={buildLoginPath(locale, pathname) as any}
+                            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 font-semibold text-amber-950 transition hover:bg-amber-400"
+                        >
+                            <LogIn size={16} /> {t("sync_auth_action")}
+                        </Link>
+                    </div>
+                )}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <button
                         type="button"
@@ -294,19 +311,17 @@ export default function HistoryPage() {
 
                         <h2 className="mt-2 text-3xl font-bold">{history.length}</h2>
                     </button>
-
                     <button
-                        type="button"
-                        onClick={() => handleStatCardClick("verified")}
-                        aria-pressed={statusFilter === "verified"}
+                        onClick={() =>
+                            setStatusFilter(statusFilter === "verified" ? "all" : "verified")
+                        }
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "verified"
-                                ? "border-emerald-500/60 bg-emerald-500/20 ring-1 ring-emerald-500/60"
+                                ? "border-emerald-500/60 bg-emerald-500/20"
                                 : "border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/15"
                         }`}
                     >
                         <p className="text-sm text-emerald-300">{t("stat_verified")}</p>
-
                         <h2 className="mt-2 text-3xl font-bold text-emerald-400">
                             {verifiedCount}
                         </h2>
@@ -379,6 +394,7 @@ export default function HistoryPage() {
                         </select>
                     </div>
                 )}
+
                 {history.length === 0 ? (
                     <EmptyState
                         icon={<ClipboardList className="h-10 w-10 text-emerald-500" />}

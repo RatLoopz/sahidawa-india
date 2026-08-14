@@ -101,6 +101,16 @@ const COUNTERFEIT_REPORT_HOTSPOTS: RiskHotspot[] = [
     },
 ];
 
+// ── Error auto-dismiss timeouts (ms) ─────────────────────────────────────
+/** Duration before fetch-error toast disappears */
+const FETCH_ERROR_DISMISS_MS = 5000;
+/** Longer duration for specific error states */
+const FETCH_ERROR_LONG_DISMISS_MS = 6000;
+/** Duration before location-error banner disappears */
+const LOCATION_ERROR_DISMISS_MS = 3000;
+/** Duration before location-error persists in challenging areas */
+const LOCATION_ERROR_LONG_DISMISS_MS = 4000;
+
 function buildDensityHotspots(pharmacies: Pharmacy[]): RiskHotspot[] {
     const buckets = new Map<string, { count: number; lat: number; lng: number; named: number }>();
 
@@ -427,6 +437,7 @@ export default function PharmacyMapPage() {
     });
     const [showFilterPanel, setShowFilterPanel] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedLocationName, setSelectedLocationName] = useState("");
     const [selectedPharmacyId, setSelectedPharmacyId] = useState<number | null>(null);
     const [showBottomSheet, setShowBottomSheet] = useState(true);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -486,7 +497,11 @@ export default function PharmacyMapPage() {
         const delayDebounce = setTimeout(async () => {
             setIsSearchingLocation(true);
             try {
-                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&countrycodes=in&format=json&limit=3`;
+                const queryText = searchQuery.trim();
+                const isPincode = /^\d{6}$/.test(queryText);
+                const url = isPincode
+                    ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=3`
+                    : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=3`;
                 const res = await fetch(url, {
                     headers: { "Accept-Language": "en", "User-Agent": "SahiDawaApp/1.0" },
                 });
@@ -497,7 +512,9 @@ export default function PharmacyMapPage() {
                             data.map((item: any) => ({
                                 lat: parseFloat(item.lat),
                                 lng: parseFloat(item.lon),
-                                label: item.display_name,
+                                label:
+                                    item.display_name ||
+                                    `PIN Code ${queryText} (${item.lat}, ${item.lon})`,
                             }))
                         );
                     }
@@ -604,22 +621,31 @@ export default function PharmacyMapPage() {
                 const dedupedOsm = deduplicateOsm(verified, osm);
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
-                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+                const verifiedLoadFailed = verifiedResult.status === "rejected";
+                // Only try cache when BOTH sources failed and we have nothing to show
+                const shouldTryCache =
+                    merged.length === 0 && livePharmacyLoadFailed && verifiedLoadFailed;
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
                 }
 
-                if (livePharmacyLoadFailed) {
+                if (livePharmacyLoadFailed && verifiedLoadFailed && merged.length === 0) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
+
+                if (livePharmacyLoadFailed && merged.length > 0) {
                     setFetchError(
                         "Live search temporarily offline. Showing verified partners only."
                     );
-                    setTimeout(() => setFetchError(null), 6000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
                 } else if (merged.length === 0) {
                     setFetchError(
                         "No pharmacies found in this area. Try searching a wider region."
                     );
-                    setTimeout(() => setFetchError(null), 5000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
                 }
 
                 setPharmacies(merged);
@@ -642,7 +668,7 @@ export default function PharmacyMapPage() {
                 }
 
                 setFetchError("Could not load pharmacies. Try again.");
-                setTimeout(() => setFetchError(null), 5000);
+                setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
             } finally {
                 setIsLoading(false);
             }
@@ -684,14 +710,14 @@ export default function PharmacyMapPage() {
                     // Surface a localized message (e.g. permission denied) instead
                     // of silently falling back with no feedback to the user.
                     setLocationError(getGeolocationErrorMessage(err.code, t));
-                    setTimeout(() => setLocationError(null), 4000);
+                    setTimeout(() => setLocationError(null), LOCATION_ERROR_LONG_DISMISS_MS);
                     fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         } else {
             setLocationError(t("errors.generic"));
-            setTimeout(() => setLocationError(null), 4000);
+            setTimeout(() => setLocationError(null), LOCATION_ERROR_LONG_DISMISS_MS);
             fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
     }, [fetchNearby, t]);
@@ -754,22 +780,31 @@ export default function PharmacyMapPage() {
                 const dedupedOsm = deduplicateOsm(verified, osm);
                 const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
-                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+                const verifiedLoadFailed = verifiedResult.status === "rejected";
+                // Only try cache if BOTH sources failed AND we have nothing to show
+                const shouldTryCache =
+                    merged.length === 0 && livePharmacyLoadFailed && verifiedLoadFailed;
 
                 if (shouldTryCache && (await restoreFromCache(cacheKey))) {
                     return;
                 }
 
-                if (livePharmacyLoadFailed) {
+                if (livePharmacyLoadFailed && verifiedLoadFailed && merged.length === 0) {
+                    setFetchError("Live search temporarily offline. Showing cached offline data.");
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
+                    return;
+                }
+
+                if (livePharmacyLoadFailed && merged.length > 0) {
                     setFetchError(
                         "Live search temporarily offline. Showing verified partners only."
                     );
-                    setTimeout(() => setFetchError(null), 6000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_LONG_DISMISS_MS);
                 } else if (merged.length === 0) {
                     setFetchError(
                         "No pharmacies found in this area. Try searching a wider region."
                     );
-                    setTimeout(() => setFetchError(null), 5000);
+                    setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
                 }
 
                 setPharmacies(merged);
@@ -791,7 +826,7 @@ export default function PharmacyMapPage() {
                 }
 
                 setFetchError("Could not load pharmacies. Try again.");
-                setTimeout(() => setFetchError(null), 5000);
+                setTimeout(() => setFetchError(null), FETCH_ERROR_DISMISS_MS);
             } finally {
                 setIsLoading(false);
             }
@@ -803,7 +838,7 @@ export default function PharmacyMapPage() {
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
             setLocationError(t("errors.generic"));
-            setTimeout(() => setLocationError(null), 3000);
+            setTimeout(() => setLocationError(null), LOCATION_ERROR_DISMISS_MS);
             return;
         }
         setIsLocating(true);
@@ -818,7 +853,7 @@ export default function PharmacyMapPage() {
             (err) => {
                 setIsLocating(false);
                 setLocationError(getGeolocationErrorMessage(err.code, t));
-                setTimeout(() => setLocationError(null), 4000);
+                setTimeout(() => setLocationError(null), LOCATION_ERROR_LONG_DISMISS_MS);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
@@ -837,9 +872,8 @@ export default function PharmacyMapPage() {
             if (initialFetchDone.current) {
                 pendingBoundsRef.current = bounds;
 
-                // Accurately reflect loading state during debounce delay
+                // Auto-fetch immediately on map pan/zoom (debounced)
                 setIsLoading(true);
-                setShowSearchArea(false);
 
                 if (debounceTimerRef.current) {
                     clearTimeout(debounceTimerRef.current);
@@ -894,7 +928,7 @@ export default function PharmacyMapPage() {
             });
         }
 
-        if (searchQuery.trim()) {
+        if (searchQuery.trim() && searchQuery !== selectedLocationName) {
             const q = searchQuery.toLowerCase();
             list = list.filter(
                 (p) =>
@@ -902,7 +936,7 @@ export default function PharmacyMapPage() {
             );
         }
         return list;
-    }, [pharmacies, activeFilter, advancedFilters, searchQuery]);
+    }, [pharmacies, activeFilter, advancedFilters, searchQuery, selectedLocationName]);
 
     const activeAdvancedFilterCount = Object.values(advancedFilters).filter(Boolean).length;
     const densityHotspots = useMemo(
@@ -992,7 +1026,9 @@ export default function PharmacyMapPage() {
     }, []);
 
     const hasActiveMapFilters = Boolean(
-        searchQuery.trim() || activeFilter !== "all" || activeAdvancedFilterCount > 0
+        (searchQuery.trim() && searchQuery !== selectedLocationName) ||
+        activeFilter !== "all" ||
+        activeAdvancedFilterCount > 0
     );
 
     const pharmacyPanelProps = {
@@ -1039,13 +1075,69 @@ export default function PharmacyMapPage() {
                             type="text"
                             placeholder="Search verified pharmacies..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                if (e.target.value !== selectedLocationName) {
+                                    setSelectedLocationName("");
+                                }
+                            }}
+                            onKeyDown={async (e) => {
+                                if (e.key === "Enter" && searchQuery.trim()) {
+                                    const queryText = searchQuery.trim();
+                                    // If there are already suggestions, select the first one
+                                    if (locationSuggestions.length > 0) {
+                                        const suggestion = locationSuggestions[0];
+                                        const loc = { lat: suggestion.lat, lng: suggestion.lng };
+                                        setUserLocation(loc);
+                                        fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
+                                        // Keep searchQuery so user sees what they searched
+                                        setSelectedLocationName(queryText);
+                                        setLocationSuggestions([]);
+                                    } else {
+                                        // Otherwise perform immediate geocoding
+                                        const isPincode = /^\d{6}$/.test(queryText);
+                                        const url = isPincode
+                                            ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=1`
+                                            : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryText)}&countrycodes=in&format=json&limit=1`;
+                                        try {
+                                            setIsLoading(true);
+                                            const res = await fetch(url, {
+                                                headers: {
+                                                    "Accept-Language": "en",
+                                                    "User-Agent": "SahiDawaApp/1.0",
+                                                },
+                                            });
+                                            if (res.ok) {
+                                                const data = await res.json();
+                                                if (Array.isArray(data) && data.length > 0) {
+                                                    const loc = {
+                                                        lat: parseFloat(data[0].lat),
+                                                        lng: parseFloat(data[0].lon),
+                                                    };
+                                                    setUserLocation(loc);
+                                                    fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
+                                                    // Keep searchQuery so user sees what they searched
+                                                    setSelectedLocationName(queryText);
+                                                    setLocationSuggestions([]);
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error("Direct geocoding on Enter failed:", err);
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
+                                    }
+                                }
+                            }}
                             className="min-w-0 flex-1 border-none bg-transparent px-3 py-1 text-sm font-medium text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
                             aria-label="Search verified pharmacies"
                         />
                         {searchQuery && (
                             <button
-                                onClick={() => setSearchQuery("")}
+                                onClick={() => {
+                                    setSearchQuery("");
+                                    setSelectedLocationName("");
+                                }}
                                 className="shrink-0 rounded-full p-1 text-(--color-text-muted) transition-colors hover:bg-(--color-surface-muted) hover:text-(--color-text-primary)"
                                 aria-label="Clear pharmacy search"
                             >
@@ -1069,7 +1161,8 @@ export default function PharmacyMapPage() {
                                             };
                                             setUserLocation(loc);
                                             fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
-                                            setSearchQuery("");
+                                            // Keep searchQuery — user should see what area they searched
+                                            setSelectedLocationName(searchQuery);
                                             setLocationSuggestions([]);
                                         }}
                                         className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-(--color-text-primary) hover:bg-(--color-surface-muted)"

@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "ನಿಮ್ಮ ಆರೋಗ್ಯ, ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು ರಕ್ಷಿಸಲಾಗಿದೆ.",
         "subtitle": "ಔಷಧದ ನಿಜತ್ವವನ್ನು ತಕ್ಷಣವೇ ಪರಿಶೀಲಿಸಲು, ಸುರಕ್ಷಿತ ಔಷಧಾಲಯಗಳನ್ನು ಹುಡುಕಲು ಮತ್ತು ಮಹತ್ವದ ಆರೋಗ್ಯ ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪಡೆಯಲು ಭಾರತದ ಮುಕ್ತ-ಮೂಲ ನಾಗರಿಕ ವೇದಿಕೆ.",
         "scan_button": "ಔಷಧ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ",
         "alerts": "ಎಚ್ಚರಿಕೆಗಳು",
+        "tools": "ಉಪಕರಣಗಳು",
         "pharmacy_map": "ಔಷಧಾಲಯ ನಕ್ಷೆ",
         "my_reports": "ನನ್ನ ವರದಿಗಳು",
         "schedule": "ವೇಳಾಪಟ್ಟಿ",
@@ -319,15 +322,10 @@
         "description": "ಈಗ ನಿಮಗೆ ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಇಲ್ಲ.",
         "subtitle": "ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕೆಲವು ವೈಶಿಷ್ಟ್ಯಗಳು ಲಭ್ಯವಿಲ್ಲ. ಇಂಟರ್ನೆಟ್‌ಗೆ ಸಂಪರ್ಕಿಸಲು ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಕ್ಯಾಶ್ ಮಾಡಿದ ವಿಷಯ ನೋಡಿ.",
         "tryAgain": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
-
         "syncFailedTitle": "ಕ್ಯೂನಲ್ಲಿರುವ ಕ್ರಿಯೆಗಳನ್ನು ತಿರಸ್ಕರಿಸಲಾಗಿದೆ",
-
         "syncFailedDescription": "ಸರ್ವರ್ ಕೆಲವು ಕ್ಯೂ ಕ್ರಿಯೆಗಳನ್ನು ತಿರಸ್ಕರಿಸಿದೆ. ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಅವುಗಳನ್ನು ತೆಗೆದುಹಾಕಿ.",
-
         "syncRetry": "ಎಲ್ಲವನ್ನೂ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
-
         "syncDiscard": "ತೆಗೆದುಹಾಕಿ",
-
         "goHome": "ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ",
         "footer": "ನಿಮ್ಮ ಸಂಪರ್ಕ ಮರಳಿದಾಗ SahiDawa ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಿಂಕ್ ಆಗುತ್ತದೆ.",
         "cachedContent": "ಹಿಂದೆ ಲೋಡ್ ಮಾಡಿದ ವಿಷಯವನ್ನು ನೀವು ಇನ್ನೂ ಪ್ರವೇಶಿಸಬಹುದು",
@@ -341,7 +339,7 @@
         "browsedMedicines": "ಬ್ರೌಸ್ ಮಾಡಿದ ಔಷಧಿಗಳು"
     },
     "contact": {
-        "badge": "GSSoC 2026 ಮುಕ್ತ ಮೂಲ ಯೋಜನೆ",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "ಸಂಪರ್ಕದಲ್ಲಿ",
             "highlight": "ಇರಿ"
@@ -378,7 +376,7 @@
     },
     "Footer": {
         "brandSubtitle": "ಭಾರತದ ಮೊದಲ ಮುಕ್ತ-ಮೂಲ ಔಷಧ ಪರಿಶೀಲನಾ ವೇದಿಕೆ. ಸಮುದಾಯ ಪ್ರೇರಿತ ಪಾರದರ್ಶಕತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ಔಷಧಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ, ಪರಿಶೀಲಿಸಿ ಮತ್ತು ನಂಬಿರಿ.",
-        "madeForGssoc": "GSSoC 2026 ಗಾಗಿ ತಯಾರಿಸಲಾಗಿದೆ",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು",
             "expiry_tracker": "ಎಕ್ಸ್‌ಪೈರಿ ಟ್ರ್ಯಾಕರ್",
@@ -404,7 +402,7 @@
         "builtWithSuffix": "ನೊಂದಿಗೆ ತಯಾರಿಸಲಾಗಿದೆ"
     },
     "about": {
-        "badge": "GSSoC 2026 ಮುಕ್ತ ಆಕರ ಯೋಜನೆ",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> ಬಗ್ಗೆ",
         "heroSubtitle": "ಭಾರತದ ಮೊದಲ ಮುಕ್ತ-ಆಕರ (Open-Source) ನಾಗರಿಕ ಔಷಧ ಪರಿಶೀಲನಾ ಸಾಧನ ಮತ್ತು ಗ್ರಾಮೀಣ ಆರೋಗ್ಯ ಸೇತು. ಭಾರತಕ್ಕಾಗಿ ನಿರ್ಮಿಸಲಾಗಿದೆ. ಕೇವಲ ಇಂಡಿಯಾಗಾಗಿ ಅಲ್ಲ.",
         "features": {
@@ -470,7 +468,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 ಮುಕ್ತ ಮೂಲ ಯೋಜನೆ",
+        "badge": "Free & Open Source Project",
         "title": "ಪದೇ ಪದೇ ಕೇಳಲಾಗುವ",
         "title_highlight": "ಪ್ರಶ್ನೆಗಳು",
         "subtitle": "SahiDawa ಬಗ್ಗೆ ನಿಮಗೆ ತಿಳಿಯಬೇಕಾದ ಎಲ್ಲವೂ — ಭಾರತದ ಉಚಿತ, ಮುಕ್ತ ಮೂಲ ಔಷಧ ಪರಿಶೀಲನಾ ವೇದಿಕೆ.",
@@ -506,7 +504,7 @@
             },
             "6": {
                 "question": "ನಾನು SahiDawa ಗೆ ಹೇಗೆ ಕೊಡುಗೆ ನೀಡಬಹುದು?",
-                "answer": "SahiDawa MIT ಪರವಾನಗಿ ಅಡಿಯಲ್ಲಿ ಮುಕ್ತ ಮೂಲವಾಗಿದೆ. ನೀವು GitHub ನಲ್ಲಿ ಕೊಡುಗೆ ನೀಡಬಹುದು, ದೋಷಗಳನ್ನು ವರದಿ ಮಾಡಬಹುದು, ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಸೂಚಿಸಬಹುದು ಅಥವಾ GSSoC 2026 ಪಾಲ್ಗೊಳ್ಳುವವರಾಗಿ ಸೇರಬಹುದು."
+                "answer": "SahiDawa MIT ಪರವಾನಗಿ ಅಡಿಯಲ್ಲಿ ಮುಕ್ತ ಮೂಲವಾಗಿದೆ. ನೀವು GitHub ನಲ್ಲಿ ಕೊಡುಗೆ ನೀಡಬಹುದು, ದೋಷಗಳನ್ನು ವರದಿ ಮಾಡಬಹುದು, ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಸೂಚಿಸಬಹುದು ಅಥವಾ open source ಪಾಲ್ಗೊಳ್ಳುವವರಾಗಿ ಸೇರಬಹುದು."
             },
             "7": {
                 "question": "CDSCO ಎಂದರೇನು?",
@@ -519,6 +517,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,11 +1430,13 @@
         "abhaSetup": "ABHA ಸೆಟಪ್",
         "abhaRecords": "ABHA ದಾಖಲೆಗಳು",
         "notificationSettings": "ಅಧಿಸೂಚನೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-        "privacySecurity": "ಗೌಪ್ಯತೆ ಮತ್ತು ಭದ್ರತೆ"
+        "privacySecurity": "ಗೌಪ್ಯತೆ ಮತ್ತು ಭದ್ರತೆ",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ಓಪನ್ ಸೋರ್ಸ್ ಪ್ರಾಜೆಕ್ಟ್",
+            "badge": "Free & Open Source Project",
             "title": "ಗೌಪ್ಯತೆ",
             "titleHighlight": "ನೀತಿ",
             "subtitle": "ನಾವು ಪಾರದರ್ಶಕತೆಯಲ್ಲಿ ನಂಬಿಕೆ ಹೊಂದಿದ್ದೇವೆ. ನಾವು ಏನನ್ನು ಸಂಗ್ರಹಿಸುತ್ತೇವೆ, ಏಕೆ ಸಂಗ್ರಹಿಸುತ್ತೇವೆ ಮತ್ತು ಗೌಪ್ಯವಾಗಿ ಏನನ್ನು ಮಾಡುವುದಿಲ್ಲ ಎಂಬುದು ಇಲ್ಲಿದೆ.",
@@ -1736,6 +1737,8 @@
         "no_search_results": "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಔಷಧಿಗಳು ಹೊಂದಿಕೆಯಾಗುವುದಿಲ್ಲ.",
         "item_status_label": "ಸ್ಥಿತಿ:",
         "item_delete_button": "ಅಳಿಸಿ",
+        "sync_auth_title": "ನಿಮ್ಮ ಇತಿಹಾಸವನ್ನು ಸಿಂಕ್ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+        "sync_auth_action": "ಸೈನ್ ಇನ್",
         "item_copy_success": "ಔಷಧದ ಹೆಸರನ್ನು ನಕಲಿಸಲಾಗಿದೆ!"
     },
     "MyReports": {

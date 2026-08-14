@@ -174,7 +174,7 @@ export default function RecallPushSubscriber() {
                             Recall push alerts
                         </h2>
                         <p className="mt-1 max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 dark:text-(--color-text-secondary)">
-                            Get notified when the mock CDSCO recall feed flags a medicine you should
+                            Get notified when the CDSCO recall feed flags a medicine you should
                             avoid. Stay protected with real-time push alerts.
                         </p>
                         {message && (

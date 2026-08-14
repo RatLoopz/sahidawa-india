@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { cookies } from "next/headers";
-import { getAdminRoleFromSession } from "@/lib/adminAuth";
+import { getAdminRoleFromUser } from "@/lib/adminAuth";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
 import {
@@ -16,7 +16,7 @@ import {
  * Secure admin-only endpoint that exposes persisted rate limit analytics.
  * Returns blocked IPs, rejection counts, and metrics window information.
  *
- * Security: Admin/Moderator only (verified via Supabase session)
+ * Security: Admin/Moderator only (verified via supabase.auth.getUser())
  * Related: Issue #2699 — Unified Rate Limiter Monitoring & Metrics Dashboard
  */
 
@@ -53,16 +53,16 @@ export async function GET(req: NextRequest) {
             },
         });
         const {
-            data: { session },
-            error: sessionError,
-        } = await supabase.auth.getSession();
+            data: { user },
+            error: userError,
+        } = await supabase.auth.getUser();
 
-        if (sessionError || !session) {
+        if (userError || !user) {
             return NextResponse.json({ error: "Unauthorized: Please sign in" }, { status: 401 });
         }
 
-        // Check admin role
-        const adminRole = getAdminRoleFromSession(session);
+        // Check admin role from server-validated user
+        const adminRole = getAdminRoleFromUser(user);
         if (adminRole !== "admin" && adminRole !== "moderator") {
             return NextResponse.json(
                 { error: "Forbidden: Admin access required" },

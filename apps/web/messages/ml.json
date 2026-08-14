@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "നിങ്ങളുടെ ആരോഗ്യം, പരിശോധിക്കപ്പെട്ടതും സംരക്ഷിക്കപ്പെട്ടതും.",
         "subtitle": "മരുന്നിന്റെ ആധികാരികത ഉടനടി പരിശോധിക്കാനും, സുരക്ഷിതമായ ഫാർമസികൾ കണ്ടെത്താനും, നിർണ്ണായക ആരോഗ്യ അലേർട്ടുകൾ ലഭിക്കാനും ഉള്ള ഇന്ത്യയുടെ ഓപ്പൺ-സോഴ്‌സ് പൗര പ്ലാറ്റ്‌ഫോം.",
         "scan_button": "മരുന്ന് സ്കാൻ ചെയ്യുക",
@@ -319,15 +321,10 @@
         "description": "ഇപ്പോൾ നിങ്ങൾക്ക് ഇന്റർനെറ്റ് കണക്ഷൻ ഇല്ല.",
         "subtitle": "ഓഫ്‌ലൈനിൽ ആയിരിക്കുമ്പോൾ ചില സവിശേഷതകൾ ലഭ്യമല്ല. ഇന്റർനെറ്റിലേക്ക് കണക്ട് ചെയ്യാൻ ശ്രമിക്കുക അല്ലെങ്കിൽ കാഷ് ചെയ്ത ഉള്ളടക്കം ബ്രൗസ് ചെയ്യുക.",
         "tryAgain": "വീണ്ടും ശ്രമിക്കുക",
-
         "syncFailedTitle": "ക്യൂവിലുള്ള പ്രവർത്തനങ്ങൾ നിരസിച്ചു",
-
         "syncFailedDescription": "സെർവർ ചില ക്യൂ പ്രവർത്തനങ്ങൾ നിരസിച്ചു. വീണ്ടും ബന്ധിപ്പിച്ചതിന് ശേഷം ശ്രമിക്കുക അല്ലെങ്കിൽ അവ ഒഴിവാക്കുക.",
-
         "syncRetry": "എല്ലാം വീണ്ടും ശ്രമിക്കുക",
-
         "syncDiscard": "ഒഴിവാക്കുക",
-
         "goHome": "ഹോമിലേക്ക് പോകുക",
         "footer": "നിങ്ങളുടെ കണക്ഷൻ തിരിച്ചുവരുമ്പോൾ SahiDawa സ്വയമേ സമന്വയിക്കും.",
         "cachedContent": "മുമ്പ് ലോഡ് ചെയ്ത ഉള്ളടക്കം ഇപ്പോഴും ആക്സസ് ചെയ്യാം",
@@ -341,7 +338,7 @@
         "browsedMedicines": "ബ്രൗസ് ചെയ്ത മരുന്നുകൾ"
     },
     "contact": {
-        "badge": "GSSoC 2026 ഓപ്പൺ സോഴ്‌സ് പ്രോജക്ട്",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "ബന്ധപ്പെടൂ",
             "highlight": "ഞങ്ങളുമായി"
@@ -378,7 +375,7 @@
     },
     "Footer": {
         "brandSubtitle": "ഇന്ത്യയിലെ ആദ്യത്തെ ഓപ്പൺ സോഴ്സ് മരുന്ന് പരിശോധനാ പ്ലാറ്റ്ഫോം. കമ്മ്യൂണിറ്റി പിന്തുണയുള്ള സുതാര്യതയോടെ നിങ്ങളുടെ മരുന്നുകൾ സ്കാൻ ചെയ്യുക, പരിശോധിക്കുക, വിശ്വസിക്കുക.",
-        "madeForGssoc": "GSSoC 2026 നായി നിർമ്മിച്ചത്",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "ദ്രുത ലിങ്കുകൾ",
             "expiry_tracker": "എക്സ്പയറി ട്രാക്കർ",
@@ -404,7 +401,7 @@
         "builtWithSuffix": "ഉണ്ടാക്കിയത്"
     },
     "Faq": {
-        "badge": "GSSoC 2026 ഓപ്പൺ സോഴ്‌സ് പ്രോജക്ട്",
+        "badge": "Free & Open Source Project",
         "title": "പതിവായി ചോദിക്കുന്ന",
         "title_highlight": "ചോദ്യങ്ങൾ",
         "subtitle": "SahiDawa-നെക്കുറിച്ച് നിങ്ങൾ അറിയേണ്ടതെല്ലാം — ഇന്ത്യയുടെ സൗജന്യ, ഓപ്പൺ-സോഴ്‌സ് മരുന്ന് പരിശോധന പ്ലാറ്റ്‌ഫോം.",
@@ -440,7 +437,7 @@
             },
             "6": {
                 "question": "SahiDawa-ലേക്ക് എങ്ങനെ സംഭാവന ചെയ്യാം?",
-                "answer": "SahiDawa MIT ലൈസൻസ് പ്രകാരം ഓപ്പൺ സോഴ്‌സ് ആണ്. GitHub-ൽ സംഭാവന ചെയ്യാം, ബഗുകൾ റിപ്പോർട്ട് ചെയ്യാം, സവിശേഷതകൾ നിർദ്ദേശിക്കാം, അല്ലെങ്കിൽ GSSoC 2026 പങ്കാളിയായി ചേരാം."
+                "answer": "SahiDawa MIT ലൈസൻസ് പ്രകാരം ഓപ്പൺ സോഴ്‌സ് ആണ്. GitHub-ൽ സംഭാവന ചെയ്യാം, ബഗുകൾ റിപ്പോർട്ട് ചെയ്യാം, സവിശേഷതകൾ നിർദ്ദേശിക്കാം, അല്ലെങ്കിൽ open source പങ്കാളിയായി ചേരാം."
             },
             "7": {
                 "question": "CDSCO എന്താണ്?",
@@ -453,6 +450,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -518,7 +516,7 @@
         "clear": "ക്ലിയർ"
     },
     "about": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "heroTitle": "About <highlight>SahiDawa</highlight>",
         "heroSubtitle": "Open-source medicine safety infrastructure. Built for Bharat. Not just India.",
         "features": {
@@ -1375,11 +1373,13 @@
         "abhaSetup": "ABHA സെറ്റപ്പ്",
         "abhaRecords": "ABHA രേഖകൾ",
         "notificationSettings": "അറിയിപ്പ് ക്രമീകരണങ്ങൾ",
-        "privacySecurity": "സ്വകാര്യതയും സുരക്ഷയും"
+        "privacySecurity": "സ്വകാര്യതയും സുരക്ഷയും",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ഓപ്പൺ സോഴ്സ് പ്രോജക്റ്റ്",
+            "badge": "Free & Open Source Project",
             "title": "സ്വകാര്യതാ",
             "titleHighlight": "നയം",
             "subtitle": "ഞങ്ങൾ സുതാര്യതയിൽ വിശ്വസിക്കുന്നു. ഞങ്ങൾ എന്തൊക്കെ ശേഖരിക്കുന്നു, എന്തിനാണ് ശേഖരിക്കുന്നത്, ഞങ്ങൾ ഒരിക്കലും ചെയ്യാത്തത് എന്തൊക്കെയാണെന്ന് ഇവിടെ വ്യക്തമാക്കുന്നു.",
@@ -1680,6 +1680,8 @@
         "no_search_results": "നിങ്ങളുടെ തിരയലുമായി പൊരുത്തപ്പെടുന്ന മരുന്നുകളൊന്നും ഇല്ല.",
         "item_status_label": "നില:",
         "item_delete_button": "ഇല്ലാതാക്കുക",
+        "sync_auth_title": "നിങ്ങളുടെ ചരിത്രം സിൻക് ചെയ്യാൻ സൈൻ ഇൻ ചെയ്യുക",
+        "sync_auth_action": "സൈൻ ഇൻ",
         "item_copy_success": "മരുന്നിൻ്റെ പേര് പകർത്തി!"
     },
     "MyReports": {

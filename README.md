@@ -1,6 +1,5 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/GSSoC-2026-orange?style=for-the-badge&logo=girlscript&logoColor=white" alt="GSSoC 2026"/>
 <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License"/>
 <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome"/>
 <img src="https://img.shields.io/badge/Languages-22%20Indian-blue?style=for-the-badge" alt="22 Languages"/>
@@ -16,6 +15,8 @@
 
 _Built for Bharat. Not just India._
 
+SahiDawa is an open-source, anti-counterfeit medicine verification platform designed for India's healthcare ecosystem. By integrating AI-driven OCR and real-time CDSCO database checks, it empowers citizens to detect fake medicines, track drug recalls, and ensure medical safety.
+
 <br/>
 
 [**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](https://discord.gg/6Qa6VuE6) · [**Read the Docs**](./docs/)
@@ -25,6 +26,8 @@ _Built for Bharat. Not just India._
 ---
 
 ## 🔗 Quick Links
+
+- 🌐 [RatLoopz Collective Website](https://ratloopz.vercel.app/)
 
 - 📖 [Documentation](./docs/)
 - 📝 [Architecture Decision Records (ADRs)](./docs/adr/)
@@ -49,7 +52,6 @@ _Built for Bharat. Not just India._
 - [🤝 Contributing](#-contributing)
 - [🌏 Supported Languages](#-supported-languages)
 - [📊 Data Sources (All Free & Public)](#-data-sources-all-free--public)
-- [🏆 GSSoC 2026](#-gssoc-2026)
 - [💬 Community](#-community)
 - [📜 License](#-license)
 - [👥 Contributors](#-contributors)
@@ -86,17 +88,17 @@ SahiDawa operates as a flagship counterfeit intelligence network, prioritizing s
 - **🗺️ District Heatmap** ➔ Aggregate counterfeit reports to build public awareness.
 - **📢 Alert** ➔ Autonomous district-level safety notifications.
 
-### Core Features _(Currently in active development)_
+### Core Features
 
 | Feature                       | Description                                                   | Status      |
 | ----------------------------- | ------------------------------------------------------------- | ----------- |
-| 🔍 **Medicine Scanner**       | Scan barcode/QR → verify against CDSCO database               | 🚧 Building |
-| 🖼️ **AI Image Analysis**      | Cloudinary-powered packaging comparison (real vs fake visual) | 🔜 Planned  |
-| 🗣️ **Voice Health Assistant** | Symptoms in 22 Indian languages via Whisper + Sarvam AI       | 🔜 Planned  |
-| 🗺️ **Pharmacy & ASHA Map**    | Verified Jan Aushadhi stores + ASHA workers via PostGIS       | 🔜 Planned  |
-| 📊 **Counterfeit Heatmap**    | Community-reported fake medicines aggregated by district      | 🔜 Planned  |
-| 🤖 **CDSCO Alert Agent**      | Autonomous agent monitoring CDSCO drug recalls every 6h       | 🔜 Planned  |
-| 📶 **Offline-First PWA**      | Works without internet after first load (Workbox)             | 🔜 Planned  |
+| 🔍 **Medicine Scanner**       | Scan barcode/QR → verify against CDSCO database               | ✅ Complete |
+| 🖼️ **AI Image Analysis**      | Cloudinary-powered packaging comparison (real vs fake visual) | ✅ Complete |
+| 🗣️ **Voice Health Assistant** | Symptoms in 22 Indian languages via Whisper + Sarvam AI       | ✅ Complete |
+| 🗺️ **Pharmacy & ASHA Map**    | Verified Jan Aushadhi stores + ASHA workers via PostGIS       | ✅ Complete |
+| 📊 **Counterfeit Heatmap**    | Community-reported fake medicines aggregated by district      | ✅ Complete |
+| 🤖 **CDSCO Alert Agent**      | Autonomous agent monitoring CDSCO drug recalls every 6h       | ✅ Complete |
+| 📶 **Offline-First PWA**      | Works without internet after first load (Workbox)             | ✅ Complete |
 | 🆓 **100% Free**              | No ads, no premium plan, no data sold. Ever.                  | ✅ Always   |
 
 ---
@@ -172,32 +174,32 @@ flowchart TD
 - [x] CDSCO drug database scraper + PostgreSQL schema
 - [x] Barcode/QR scanner UI (ZXing)
 - [x] Medicine lookup REST API
-- [ ] Supabase integration
-- [ ] GitHub Actions CI pipeline
+- [x] Supabase integration
+- [x] GitHub Actions CI pipeline
 - [x] English UI with i18n setup
 
 ### Phase 2 — Map + Multilingual + Offline _(Coding Begins - Mid May)_
 
-- [ ] PostGIS pharmacy + ASHA worker map (Leaflet.js)
+- [x] PostGIS pharmacy + ASHA worker map (Leaflet.js)
 - [x] i18n system — 22 Indian language JSON files
 - [x] Cloudinary photo upload integration
-- [ ] Offline PWA (Workbox cache strategies)
-- [ ] FastAPI ML microservice scaffolding
-- [ ] Redis caching for drug lookups
-- [ ] OpenCV.js packaging geometry detection
+- [x] Offline PWA (Workbox cache strategies)
+- [x] FastAPI ML microservice scaffolding
+- [x] Redis caching for drug lookups
+- [x] OpenCV.js packaging geometry detection
 
 ### Phase 3 — AI Health Assistant + Agents _(Main Contribution Period - June)_
 
-- [ ] TF Lite medicine image classifier
-- [ ] Whisper ASR voice input (22 languages)
-- [ ] Sarvam AI + LangChain RAG health assistant
-- [ ] CDSCO drug alert monitoring agent (LangChain)
-- [ ] Counterfeit heatmap + D3.js visualization
-- [ ] Push notification system for district alerts
+- [x] TF Lite medicine image classifier
+- [x] Whisper ASR voice input (22 languages)
+- [x] Sarvam AI + LangChain RAG health assistant
+- [x] CDSCO drug alert monitoring agent (LangChain)
+- [x] Counterfeit heatmap + D3.js visualization
+- [x] Push notification system for district alerts
 
 ### Phase 4 — Polish, Security & Launch _(Final Evaluations - July)_
 
-- [ ] WCAG 2.1 accessibility audit
+- [x] WCAG 2.1 accessibility audit
 - [x] Lighthouse CI (target 90+ score)
 
 ### Running Lighthouse CI Locally
@@ -209,10 +211,10 @@ To test performance audits on your local machine before pushing:
 3. Run the audit: `lhci autorun` (inside `apps/web`)
 
 This will start a local server, run Lighthouse tests against it, and report the scores directly in your terminal.
-- [ ] Docker Compose for self-hosting
-- [ ] OpenAPI/Swagger documentation
-- [ ] ABHA health card integration (optional)
-- [ ] Public launch
+- [x] Docker Compose for self-hosting
+- [x] OpenAPI/Swagger documentation
+- [x] ABHA health card integration (optional)
+- [x] Public launch
 
 ---
 
@@ -238,35 +240,39 @@ cd sahidawa-india
 ### Configure Environment
 
 ```bash
+# Copy example environment files for both frontend and backend
 cp .env.example apps/web/.env.local
+cp .env.example apps/api/.env
 ```
 
-Update the environment variables before running the project.
+Update the environment variables in both files before running the project.
 
 ### Install Dependencies
 
+Install all dependencies for the entire monorepo workspaces from the root directory:
+
 ```bash
-cd apps/web
 npm install
 ```
 
 ### Run the Development Server
 
+Start all services (Next.js web app, Express API) concurrently using Turborepo:
+
 ```bash
 npm run dev
 ```
 
-Open **http://localhost:3000** in your browser.
-
-```
-
+- **Frontend:** http://localhost:3000
+- **API Server:** http://localhost:4000
+- **API Reference:** http://localhost:4000/api/docs
 
 | Command | Description |
 |---------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Start the development server |
-| `npm run build` | Build the project for production |
-| `npm run lint` | Run lint checks |
+| `npm install` | Install all workspace dependencies |
+| `npm run dev` | Start development servers concurrently |
+| `npm run build` | Build all projects for production |
+| `npm run lint` | Run lint checks across workspaces |
 
 
 ### ⚠️ Troubleshooting npm install Failures
@@ -455,8 +461,8 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | English            | 🚧 In Progress | Core Team   |
 | Hindi (हिन्दी)     | 🚧 In Progress | —           |
 | Tamil (தமிழ்)      | 🚧 In Progress | —           |
-| Telugu (తెలుగు)    | ✅ Complete    | GSSoC 2026  |
-| Kannada (ಕನ್ನಡ)    | ✅ Complete    | GSSoC 2026  |
+| Telugu (తెలుగు)    | ✅ Complete    | Community   |
+| Kannada (ಕನ್ನಡ)    | ✅ Complete    | Community   |
 | Malayalam (മലയാളം) | 🔜 Open        | —           |
 | Bengali (বাংলা)    | 🚧 In Progress | —           |
 | Gujarati (ગુજરાતી) | 🚧 In Progress | —           |
@@ -487,18 +493,7 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | [OpenStreetMap / Overpass API](https://overpass-api.de/)  | Pharmacy locations, routing                                          |
 | [NHP — National Health Portal](https://www.nhp.gov.in/)   | Drug monographs for RAG health assistant                             |
 
----
 
-## 🏆 GSSoC 2026
-
-This project is participating in **GirlScript Summer of Code 2026** under both:
-
-- 📂 **Open Source Track** — 10 labeled issues (Coming Soon) for all skill levels
-- 🤖 **Agents for India Track** — CDSCO autonomous alert agent (Coming Soon)
-
-We are also a **Cloudinary Bounty Partner project** — contributors who build features using Cloudinary's Media API earn bonus GSSoC leaderboard points.
-
----
 
 ## 💬 Community
 
@@ -551,10 +546,9 @@ Thank you to all the incredible people who have contributed to making SahiDawa a
 
 ## 🙏 Acknowledgements
 
-- [GirlScript Foundation](https://gssoc.girlscript.org/) for GSSoC 2026
 - [CDSCO](https://cdsco.gov.in/) for the public drug database
 - [Sarvam AI](https://www.sarvam.ai/) for Indian language models
-- [Cloudinary](https://cloudinary.com/) for media infrastructure & GSSoC bounty partnership
+- [Cloudinary](https://cloudinary.com/) for media infrastructure
 - Every contributor who believes healthcare is a right, not a privilege
 
 ---

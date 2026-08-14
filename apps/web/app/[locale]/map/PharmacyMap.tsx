@@ -108,22 +108,25 @@ export default function PharmacyMap({
     const [mapError, setMapError] = useState(false);
     const [isMapReady, setIsMapReady] = useState(false);
 
-    const isProgrammaticRef = useRef(false);
+    const programmaticMovesRef = useRef<number>(0);
 
     const performProgrammaticMove = (moveFn: () => void) => {
         if (!map.current) return;
+        programmaticMovesRef.current += 1;
+
         let started = false;
         const onMoveStart = () => {
             started = true;
         };
         map.current.once("movestart", onMoveStart);
-        isProgrammaticRef.current = true;
 
         moveFn();
 
         setTimeout(() => {
             if (!started) {
-                isProgrammaticRef.current = false;
+                if (programmaticMovesRef.current > 0) {
+                    programmaticMovesRef.current -= 1;
+                }
                 if (map.current) {
                     map.current.off("movestart", onMoveStart);
                 }
@@ -219,8 +222,8 @@ export default function PharmacyMap({
                     };
 
                     map.current.on("moveend", () => {
-                        if (isProgrammaticRef.current) {
-                            isProgrammaticRef.current = false;
+                        if (programmaticMovesRef.current > 0) {
+                            programmaticMovesRef.current -= 1;
                             return;
                         }
                         if (moveEndDebounceRef.current) {
@@ -477,9 +480,10 @@ export default function PharmacyMap({
 
             const isVerified = pharmacy.isVerified === true;
             const isGovt = pharmacy.type === "govt";
-            const markerColor = isVerified
-                ? "var(--color-brand-primary-hover)"
-                : "var(--color-brand-primary-hover)";
+            const markerColor =
+                isVerified || isGovt
+                    ? "var(--color-brand-primary-hover)"
+                    : "var(--color-brand-secondary)";
             const markerShadowColor =
                 isVerified || isGovt ? "rgba(5,150,105,0.25)" : "rgba(59,130,246,0.25)";
 
@@ -748,7 +752,13 @@ export default function PharmacyMap({
 
     // Handle selected pharmacy changes (Panels -> Map flight)
     useEffect(() => {
-        if (!isMapReady || !map.current || selectedPharmacyId == null) return;
+        if (
+            !isMapReady ||
+            !map.current ||
+            selectedPharmacyId === null ||
+            selectedPharmacyId === undefined
+        )
+            return;
 
         const marker = markersRef.current.get(selectedPharmacyId);
         if (marker) {

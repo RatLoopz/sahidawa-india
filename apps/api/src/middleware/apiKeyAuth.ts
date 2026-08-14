@@ -16,6 +16,26 @@ export interface ApiKeyRequest extends Request {
     apiKey?: ApiKeyInfo;
 }
 
+/**
+ * Route middleware that requires the authenticated API key to carry a specific
+ * scope. Must run after `requireApiKey` so `req.apiKey` is populated. Returns
+ * 403 when the key is valid but lacks the required scope, so a narrowly-scoped
+ * key can never act with elevated privileges.
+ */
+export const requireApiKeyScope = (scope: string) => {
+    return (req: ApiKeyRequest, res: Response, next: NextFunction) => {
+        if (!req.apiKey) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+        if (!req.apiKey.scopes?.includes(scope)) {
+            res.status(403).json({ error: "Forbidden: API key lacks required scope" });
+            return;
+        }
+        next();
+    };
+};
+
 export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: NextFunction) => {
     const apiKey = req.headers["x-api-secret"] as string | undefined;
 

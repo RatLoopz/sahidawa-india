@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
 import SearchSuggestions, { HistoryItem } from "@/components/SearchSuggestions";
-import { escapePostgrest } from "@/lib/supabase/utils";
+import { escapePostgrest } from "@sahidawa/shared";
 
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 interface PrefetchOptions {
     preloadQuery: () => Promise<unknown>; // The query/fetch framework trigger function
@@ -13,8 +13,13 @@ export const usePredictivePrefetch = <T extends HTMLElement>({
 }: PrefetchOptions) => {
     const elementRef = useRef<T | null>(null);
     const hasPrefetched = useRef<boolean>(false);
+    const preloadQueryRef = useRef(preloadQuery);
 
-    const shouldSkipPrefetch = (): boolean => {
+    useEffect(() => {
+        preloadQueryRef.current = preloadQuery;
+    }, [preloadQuery]);
+
+    const shouldSkipPrefetch = useCallback((): boolean => {
         if (disableOnDataSaver && typeof navigator !== "undefined") {
             const connection = (navigator as any).connection;
             if (
@@ -25,23 +30,23 @@ export const usePredictivePrefetch = <T extends HTMLElement>({
             }
         }
         return false;
-    };
+    }, [disableOnDataSaver]);
 
-    const triggerSafePrefetch = () => {
+    const triggerSafePrefetch = useCallback(() => {
         if (hasPrefetched.current || shouldSkipPrefetch()) return;
 
         if ("requestIdleCallback" in window) {
             window.requestIdleCallback(() => {
-                preloadQuery().catch((err) => console.error("Prefetch failed:", err));
+                preloadQueryRef.current().catch((err) => console.error("Prefetch failed:", err));
                 hasPrefetched.current = true;
             });
         } else {
             setTimeout(() => {
-                preloadQuery().catch((err) => console.error("Prefetch fallback failed:", err));
+                preloadQueryRef.current().catch((err) => console.error("Prefetch fallback failed:", err));
                 hasPrefetched.current = true;
             }, 1);
         }
-    };
+    }, [shouldSkipPrefetch]);
 
     useEffect(() => {
         const currentElement = elementRef.current;
@@ -72,7 +77,7 @@ export const usePredictivePrefetch = <T extends HTMLElement>({
                 currentElement.removeEventListener("mouseenter", handleMouseEnter);
             }
         };
-    }, [preloadQuery, threshold]);
+    }, [threshold, triggerSafePrefetch]);
 
     return elementRef;
 };

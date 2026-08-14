@@ -1,7 +1,7 @@
 import { VerifiedMedicine } from "@/lib/api";
 import { ShieldCheck } from "@/components/ui/Icons";
 import { CdscoStatusBadge } from "./CdscoStatusBadge";
-import { AlertTriangle, Check, Copy, Info, ArrowRight } from "lucide-react";
+import { AlertTriangle, Check, Copy, Info, ArrowRight, X } from "lucide-react";
 import { ExpiryBadge } from "../ExpiryBadge";
 import { ResultActions } from "./ResultActions";
 import { formatExpiryForBadge } from "@/lib/medicineDateUtils";
@@ -34,12 +34,21 @@ export function VerifiedSafeResult({
     const tScan = useTranslations("Scan");
     return (
         <div
-            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl"
+            className="relative w-full max-w-[640px] overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-10 text-(--color-text-primary) shadow-2xl"
             role="region"
             aria-label="Verification result - Medicine is verified and safe"
             aria-live="polite"
             aria-atomic="true"
         >
+            {/* Close Button */}
+            <button
+                onClick={onScanAgain}
+                className="absolute top-5 right-5 z-20 rounded-full bg-slate-100/80 p-2 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                aria-label="Close result"
+                title="Close"
+            >
+                <X size={16} strokeWidth={2.5} />
+            </button>
             <div className="absolute top-0 right-0 left-0 h-2 bg-emerald-500"></div>
             <div className="flex flex-col items-center space-y-4 text-center">
                 <div className="dark:text-emerald-450 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-inner dark:bg-emerald-950/30">

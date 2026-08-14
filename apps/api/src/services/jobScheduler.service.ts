@@ -2,11 +2,13 @@ import logger from "../utils/logger";
 import { startAlertBroadcaster } from "../cron/alert-broadcaster";
 import { startTempCleanupJob } from "../cron/tempCleanup";
 import { initExpiryCron } from "../cron/expiry-check";
+import { initDosageReminderCron } from "../cron/dosage-reminder";
 import { initDistrictAlertSyncCron } from "../cron/districtAlertSync";
 import { startPgCronMonitor } from "../cron/pgCronMonitor";
+import { startSmsWorker } from "../workers/smsWorker";
 
 interface StoppableJob {
-    stop: () => void;
+    stop: () => void | Promise<void>;
 }
 
 class JobScheduler {
@@ -18,16 +20,20 @@ class JobScheduler {
             return;
         }
 
-        this.jobs.push(startAlertBroadcaster());
-        this.jobs.push(startTempCleanupJob());
-        this.jobs.push(initExpiryCron());
-        this.jobs.push(initDistrictAlertSyncCron());
-        this.jobs.push(startPgCronMonitor());
+        this.jobs.push(
+            startAlertBroadcaster(),
+            startTempCleanupJob(),
+            initExpiryCron(),
+            initDosageReminderCron(),
+            initDistrictAlertSyncCron(),
+            startPgCronMonitor(),
+            startSmsWorker()
+        );
         logger.info("All background jobs have been started.");
     }
 
-    public shutdown(): void {
-        this.jobs.forEach((job) => job.stop());
+    public async shutdown(): Promise<void> {
+        await Promise.all(this.jobs.map((job) => job.stop()));
         logger.info("All background jobs have been stopped.");
         this.jobs = [];
     }

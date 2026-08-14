@@ -158,6 +158,48 @@ function getConfidenceValueLabel(
 
     const key = keyMap[confidence.id as keyof typeof keyMap];
     return t(key ?? "confidence_values.unavailable");
+    Camera,
+    Mic,
+    MapPin,
+    ShieldCheck,
+    AlertTriangle,
+    Globe,
+    ChevronRight,
+    Activity,
+    MessageCircle,
+    Syringe,
+    ArrowRight,
+    Quote,
+    Star,
+    Pause,
+    Play,
+} from "lucide-react";
+
+import { useRouter, useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+const SearchBar = dynamic(() => import("./components/SearchBar"));
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+const SafetyStatsBanner = dynamic(() => import("@/components/SafetyStatsBanner"));
+import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
+import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
+
+function formatRelativeTime(dateString: string | null, locale: string): string {
+    if (!dateString) return "—";
+
+    const now = new Date();
+    const past = new Date(dateString);
+    const elapsed = now.getTime() - past.getTime();
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+    if (Math.abs(elapsed) < 60000) return rtf.format(0, "second");
+
+    if (Math.abs(elapsed) < 3600000) return rtf.format(-Math.round(elapsed / 60000), "minute");
+
+    if (Math.abs(elapsed) < 86400000) return rtf.format(-Math.round(elapsed / 3600000), "hour");
+
+    return rtf.format(-Math.round(elapsed / 86400000), "day");
 }
 
 export default function VoiceTriagePage() {
@@ -167,6 +209,26 @@ export default function VoiceTriagePage() {
     const [, copyToClipboard] = useCopyToClipboard({
         successMessage: t("copy_success"),
         errorMessage: t("share_failure"),
+    const params = useParams();
+    const locale = Array.isArray(params.locale) ? params.locale[0] : (params.locale ?? "en");
+    const tHome = useTranslations("Home");
+    const tContact = useTranslations("contact");
+
+    const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
+    const [isMarqueePaused, setIsMarqueePaused] = useState<boolean>(false);
+
+    const { isOffline } = useOfflineStatus();
+    const {
+        pendingSearches,
+        isSyncing,
+        isLoading: isSearchQueueLoading,
+        executingId,
+        execute: executeQueuedSearch,
+        refresh: refreshSearchQueue,
+    } = usePendingSearchQueue((query) => {
+        setActiveSearchQuery(query);
     });
     const [mode, setMode] = useState<"triage" | "verify">("triage");
     const [step, setStep] = useState<VoiceStep>("initial");
@@ -1504,6 +1566,172 @@ export default function VoiceTriagePage() {
                                     ? t("stop_listening_label")
                                     : t("tap_to_speak")}
                             </p>
+                            </div>
+
+                            <div className="relative z-10 flex-1 bg-slate-50/30 p-6 sm:p-8 dark:bg-slate-950/30">
+                                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-6">
+                                    {loading ? (
+                                        <>
+                                            {[1, 2, 3, 4].map((i) => (
+                                                <div
+                                                    key={i}
+                                                    className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900"
+                                                >
+                                                    <div className="absolute top-0 bottom-0 left-0 w-2 bg-slate-200 dark:bg-slate-700" />
+                                                    <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
+                                                    <div className="flex-1 space-y-2 pt-1">
+                                                        <div className="flex items-start justify-between">
+                                                            <Skeleton className="h-4 w-1/2" />
+                                                            <Skeleton className="h-3 w-12" />
+                                                        </div>
+                                                        <Skeleton className="h-3 w-3/4" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : homepageAlerts && homepageAlerts.length > 0 ? (
+                                        homepageAlerts.map((alert) => {
+                                            const visibleBatchNumber = getVisibleAlertBatchNumber(
+                                                alert.composition,
+                                                alert.batch_number
+                                            );
+                                            return (
+                                                <div
+                                                    key={alert.id}
+                                                    className={`group relative flex cursor-pointer items-start gap-4 rounded-2xl border border-l-4 border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/50 ${
+                                                        alert.brand_name === "SYSTEM_UPDATE"
+                                                            ? "border-l-blue-500 hover:border-l-blue-600"
+                                                            : alert.cdsco_approval_status ===
+                                                                    "banned" ||
+                                                                alert.is_counterfeit_alert
+                                                              ? "border-l-red-500 hover:border-l-red-600"
+                                                              : "border-l-orange-500 hover:border-l-orange-600"
+                                                    }`}
+                                                    onClick={() => handleNavigation("alerts")}
+                                                >
+                                                    <div className="pointer-events-none absolute inset-0 z-0 rounded-r-2xl bg-linear-to-br from-transparent to-slate-50/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:to-slate-800/20" />
+
+                                                    {/* Icon */}
+                                                    <div
+                                                        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+                                                            alert.brand_name === "SYSTEM_UPDATE"
+                                                                ? "border-blue-100 bg-blue-50 text-blue-600 dark:border-blue-900/50 dark:bg-blue-500/10 dark:text-blue-400"
+                                                                : alert.cdsco_approval_status ===
+                                                                        "banned" ||
+                                                                    alert.is_counterfeit_alert
+                                                                  ? "border-red-100 bg-red-50 text-red-600 dark:border-red-900/50 dark:bg-red-500/10 dark:text-red-400"
+                                                                  : "border-orange-100 bg-orange-50 text-orange-600 dark:border-orange-900/50 dark:bg-orange-500/10 dark:text-orange-400"
+                                                        }`}
+                                                    >
+                                                        {alert.brand_name === "SYSTEM_UPDATE" ? (
+                                                            <Globe size={18} strokeWidth={2.5} />
+                                                        ) : (
+                                                            <AlertTriangle
+                                                                size={18}
+                                                                strokeWidth={2.5}
+                                                            />
+                                                        )}
+                                                    </div>
+
+                                                    <div className="relative z-10 min-w-0 flex-1 pt-0.5">
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <h4 className="truncate text-base font-bold tracking-tight text-slate-900 dark:text-white">
+                                                                {alert.brand_name}
+                                                            </h4>
+                                                            <span className="shrink-0 text-xs font-medium text-slate-400 dark:text-slate-500">
+                                                                {formatRelativeTime(
+                                                                    alert.created_at,
+                                                                    locale || "en"
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                            <span className="truncate">
+                                                                {alert.composition}
+                                                            </span>
+                                                            {visibleBatchNumber ? (
+                                                                <>
+                                                                    <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                                                    <span className="shrink-0 font-medium text-slate-600 dark:text-slate-300">
+                                                                        Batch{" "}
+                                                                        <span className="font-bold">
+                                                                            {visibleBatchNumber}
+                                                                        </span>
+                                                                    </span>
+                                                                </>
+                                                            ) : null}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="sm:col-span-2">
+                                            <EmptyState
+                                                icon={
+                                                    <ShieldCheck
+                                                        size={26}
+                                                        strokeWidth={2}
+                                                        className="text-emerald-500"
+                                                    />
+                                                }
+                                                title={tHome("alerts_empty_title")}
+                                                description={tHome("alerts_empty_description")}
+                                                className="border-none bg-transparent! p-6"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ── Alert Log CTA ── */}
+                            <div className="relative z-10 border-t border-slate-100 bg-white/50 p-6 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
+                                <Link href="/alerts" className="block w-full">
+                                    <button className="group/btn flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-slate-200 bg-white py-4 text-base font-extrabold text-slate-700 shadow-sm transition-all duration-300 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:ring-4 focus:ring-slate-100 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-white dark:focus:ring-slate-800">
+                                        <Activity
+                                            size={20}
+                                            className="transition-transform duration-300 group-hover/btn:scale-110"
+                                        />
+                                        {tHome("view_full_alert_log")}
+                                        <ChevronRight
+                                            size={20}
+                                            className="text-slate-400 transition-transform duration-300 group-hover/btn:translate-x-1"
+                                        />
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section className="mb-20 overflow-hidden rounded-3xl border border-slate-200/60 bg-white/70 py-10 shadow-sm backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-900/50">
+                        <div className="mb-8 flex flex-col gap-3 px-5 sm:px-8 md:flex-row md:items-end md:justify-between">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-[11px] font-extrabold tracking-widest text-emerald-600 uppercase dark:border-emerald-400/20 dark:text-emerald-400">
+                                    <Star size={13} className="fill-current" aria-hidden="true" />
+                                    {tHome("trusted_by_citizens")}
+                                </div>
+                                <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                                    {tHome("voices_title")}
+                                </h2>
+                            </div>
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                <p className="max-w-md text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
+                                    {tHome("voices_description")}
+                                </p>
+                                <button
+                                    onClick={() => setIsMarqueePaused(!isMarqueePaused)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setIsMarqueePaused(!isMarqueePaused);
+                                        }
+                                    }}
+                                    aria-label={isMarqueePaused ? tHome("play_testimonials") : tHome("pause_testimonials")}
+                                    className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:bg-slate-50 hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+                                >
+                                    {isMarqueePaused ? <Play size={18} aria-hidden="true" /> : <Pause size={18} aria-hidden="true" />}
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -1514,6 +1742,53 @@ export default function VoiceTriagePage() {
                     </footer>
                 </>
             )}
+                        <div className="testimonial-marquee relative flex overflow-hidden">
+                            <div 
+                                className="testimonial-marquee-track flex min-w-full shrink-0 gap-5 px-5 sm:px-8"
+                                style={{ animationPlayState: isMarqueePaused ? 'paused' : undefined }}
+                            >
+                                {[...testimonials, ...testimonials].map((testimonial, index) => (
+                                    <article
+                                        key={`${testimonial.name}-${index}`}
+                                        aria-hidden={index >= testimonials.length ? "true" : undefined}
+                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md sm:w-[360px] dark:border-slate-800 dark:bg-slate-900"
+                                    >
+                                        <div>
+                                            <Quote
+                                                size={24}
+                                                className="mb-4 text-emerald-500"
+                                                aria-hidden="true"
+                                            />
+                                            <p className="text-sm leading-relaxed font-medium text-slate-600 dark:text-slate-300">
+                                                {testimonial.quote}
+                                            </p>
+                                        </div>
+                                        <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 text-sm font-black text-white shadow-sm">
+                                                {testimonial.name
+                                                    .split(" ")
+                                                    .map((part) => part[0])
+                                                    .join("")}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                                                    {testimonial.name}
+                                                </h3>
+                                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                    {testimonial.role}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            {/* Spacer for mobile nav */}
+            <div className="h-16 md:hidden"></div>
         </div>
     );
 }

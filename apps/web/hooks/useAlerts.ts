@@ -1,7 +1,9 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE, getCsrfToken } from "@/lib/api";
 import { toast } from "sonner";
 import { Alert } from "@/app/[locale]/alerts/page";
+import { useSession } from "@/src/components/AuthProvider";
+import { useState } from "react";
 
 export interface UseAlertsParams {
     debouncedBrandSearch: string;
@@ -10,9 +12,13 @@ export interface UseAlertsParams {
 
 export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAlertsParams) {
     const queryClient = useQueryClient();
+    const { token } = useSession();
 
-    const fetchAlertsPage = async ({ pageParam = 1 }) => {
-        let url = `/api/v1/alerts?page=${pageParam}&limit=50`;
+    // Pagination state
+    const [page, setPage] = useState(1);
+
+    const fetchAlertsPage = async () => {
+        let url = `/api/v1/alerts?page=${page}&limit=50`;
         if (debouncedBrandSearch) url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
         if (debouncedRegionSearch) url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
 
@@ -23,19 +29,12 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
         return res.json();
     };
 
-    const queryKey = ["alerts", debouncedBrandSearch, debouncedRegionSearch];
+    const queryKey = ["alerts", debouncedBrandSearch, debouncedRegionSearch, page];
 
-    const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
-        useInfiniteQuery({
-            queryKey,
-            queryFn: fetchAlertsPage,
-            getNextPageParam: (lastPage, allPages) => {
-                const totalCount = lastPage?.totalCount || 0;
-                const fetchedCount = allPages.length * 50;
-                return fetchedCount < totalCount ? allPages.length + 1 : undefined;
-            },
-            initialPageParam: 1,
-        });
+    const { data, error, isLoading, isFetching, refetch } = useQuery({
+        queryKey,
+        queryFn: fetchAlertsPage,
+    });
 
     const snoozeAlertMutation = useMutation({
         mutationFn: async ({ id, days }: { id: string; days: number }) => {
@@ -65,11 +64,8 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
                 if (!old) return old;
                 return {
                     ...old,
-                    pages: old.pages.map((page: any) => ({
-                        ...page,
-                        data: page.data ? page.data.filter((alert: Alert) => alert.id !== id) : [],
-                        totalCount: Math.max(0, (page.totalCount || 1) - 1),
-                    })),
+                    data: old.data ? old.data.filter((alert: Alert) => alert.id !== id) : [],
+                    totalCount: Math.max(0, (old.totalCount || 1) - 1),
                 };
             });
 
@@ -78,7 +74,11 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
         onError: (err, newTodo, context) => {
             queryClient.setQueryData(queryKey, context?.previousData);
             console.error(err);
-            toast.error("Failed to snooze alert. Please try again.");
+            const message =
+                err instanceof Error && err.message.includes("401")
+                    ? "Your session expired. Please sign in again."
+                    : "Failed to snooze alert. Please try again.";
+            toast.error(message);
         },
         onSuccess: (data, variables) => {
             toast.success(`Alert snoozed for ${variables.days} days`);
@@ -86,24 +86,30 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
     });
 
     const snoozeAlert = (id: string, days: number = 7) => {
+        if (!token) {
+            toast.error("Please sign in to snooze alerts.");
+            return;
+        }
         snoozeAlertMutation.mutate({ id, days });
     };
 
-    const allAlerts = data?.pages.flatMap((page) => page.data || []) || [];
-    const totalCount = data?.pages[0]?.totalCount || 0;
-    // These are system-wide aggregates computed server-side over the full
-    // filtered table — NOT derived from `allAlerts`, which only holds the
-    // pages fetched so far. See issue #3001.
-    const totalCriticalCount = data?.pages[0]?.totalCriticalCount || 0;
-    const totalImpactedRegionsCount = data?.pages[0]?.totalImpactedRegionsCount || 0;
+    // Reset page to 1 if search filters change
+    // Handled in the component typically, but we can also do it via useEffect here,
+    // though it's safer to handle it where debounced values are defined or let the query handle it.
+
+    const allAlerts: Alert[] = data?.data || [];
+    const totalCount = data?.totalCount || 0;
+    const totalPages = data?.totalPageCount || 1;
+    const totalCriticalCount = data?.totalCriticalCount || 0;
+    const totalImpactedRegionsCount = data?.totalImpactedRegionsCount || 0;
 
     return {
         allAlerts,
-        loading: isLoading,
-        loadingMore: isFetchingNextPage,
+        loading: isLoading || isFetching,
         error: !!error,
-        fetchNextPage,
-        hasNextPage,
+        page,
+        setPage,
+        totalPages,
         totalCount,
         totalCriticalCount,
         totalImpactedRegionsCount,

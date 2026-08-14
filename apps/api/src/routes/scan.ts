@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import multer from "multer";
@@ -79,6 +79,60 @@ const upload = multer({
         }
     },
 });
+
+// ── Shared request-scoped temp-file cleanup ─────────────────────────────────
+// Deletes every path in the provided list exactly once.  Used by both /extract
+// and /submit via res.once("finish") / res.once("close") so that temp files
+// are removed the moment the response is done — regardless of success,
+// validation failure, processing error, or client disconnect.
+function cleanupTempFiles(filePaths: string[]): () => void {
+    let cleaned = false;
+    return () => {
+        if (cleaned) return;
+        cleaned = true;
+        for (const filePath of filePaths) {
+            if (fs.existsSync(filePath)) {
+                try {
+                    fs.unlinkSync(filePath);
+                    logger.info(`Cleaned up temp file: ${filePath}`);
+                } catch (err) {
+                    logger.error(`Failed to delete temp file ${filePath}:`, err);
+                }
+            }
+        }
+    };
+}
+
+/**
+ * Collects the temp-uploads paths multer wrote for this request. Both /extract
+ * and /submit write with the same disk storage engine (UPLOAD_DIR), so every
+ * uploaded file present on the request at cleanup-registration time is covered.
+ */
+function collectUploadedTempPaths(req: Request): string[] {
+    const uploadedFiles: Express.Multer.File[] = [
+        ...((req.files as any)?.image ?? []),
+        ...((req.files as any)?.voice ?? []),
+    ];
+    return uploadedFiles
+        .filter((f): f is Express.Multer.File => !!f?.filename)
+        .map((f) => path.join(UPLOAD_DIR, path.basename(f.filename)));
+}
+
+/**
+ * Registers res.once("finish") / res.once("close") cleanup for every temp
+ * upload immediately after multer has written the files — BEFORE the
+ * idempotency middleware runs. The idempotency middleware short-circuits on
+ * several paths (missing key → 400, Redis replay → 200, completed key → 200,
+ * in-flight duplicate → 409) and returns before the /submit handler body ever
+ * executes. Cleanup registered only inside the handler therefore leaked every
+ * replayed/retried upload to disk. Issue #4243.
+ */
+function registerTempUploadCleanup(req: Request, res: Response, next: NextFunction): void {
+    const cleanup = cleanupTempFiles(collectUploadedTempPaths(req));
+    res.once("finish", cleanup);
+    res.once("close", cleanup);
+    next();
+}
 
 /**
  * @openapi
@@ -172,21 +226,11 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             ? path.join(UPLOAD_DIR, path.basename(file.filename))
             : undefined;
 
-        const cleanupTempFile = () => {
-            if (tempFilePath && fs.existsSync(tempFilePath)) {
-                try {
-                    fs.unlinkSync(tempFilePath);
-                    logger.info(`Cleaned up temp file: ${tempFilePath}`);
-                } catch (err) {
-                    logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
-                }
-            }
-        };
-
         // Guarantees cleanup on every response outcome — success, thrown error,
         // or the client disconnecting before a response is ever sent.
-        res.on("finish", cleanupTempFile);
-        res.on("close", cleanupTempFile);
+        const cleanup = cleanupTempFiles(tempFilePath ? [tempFilePath] : []);
+        res.once("finish", cleanup);
+        res.once("close", cleanup);
 
         if (multerErr) {
             const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
@@ -293,7 +337,9 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             const confidence = data.confidence ?? 0;
 
             if (rawText.trim().length === 0) {
-                logger.warn(`OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`);
+                logger.warn(
+                    `OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`
+                );
                 res.status(400).json({
                     error: "No text could be extracted from the image.",
                     code: "OCR_EMPTY_TEXT",
@@ -532,6 +578,8 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                 "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
             )
             .ilike("brand_name", `%${escapedBrand}%`)
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: true })
             .limit(1)
             .maybeSingle();
 
@@ -551,6 +599,8 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                     "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
                 )
                 .ilike("generic_name", `%${escapedBrand}%`)
+                .order("created_at", { ascending: false })
+                .order("id", { ascending: true })
                 .limit(1)
                 .maybeSingle();
 
@@ -623,6 +673,10 @@ router.post(
     uploadRateLimiter,
     validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
+    // Register temp-file cleanup immediately after multer so the files are
+    // removed even on idempotency short-circuit paths (400/200/409) that
+    // return before this handler body runs (issue #4243).
+    registerTempUploadCleanup,
     idempotencyMiddleware,
     async (req: AuthenticatedRequest, res: Response) => {
         const idempotencyKey = (req as any).idempotencyKey;
@@ -713,8 +767,8 @@ router.post(
                 part_type,
                 status,
             }));
-            await supabase
-                .from("scan_submission_parts")
+            await req
+                .supabase!.from("scan_submission_parts")
                 .upsert(rows, { onConflict: "scan_id,part_type" });
 
             const result = { scanId: resolvedScanId, parts };
@@ -725,8 +779,8 @@ router.post(
                 });
             }
 
-            const { error: idemUpdateError } = await supabase
-                .from("submission_idempotency")
+            const { error: idemUpdateError } = await req
+                .supabase!.from("submission_idempotency")
                 .update({ scan_id: resolvedScanId })
                 .eq("idempotency_key", idempotencyKey);
 
@@ -750,8 +804,8 @@ router.post(
 
             if (idempotencyKey) {
                 try {
-                    await supabase
-                        .from("submission_idempotency")
+                    await req
+                        .supabase!.from("submission_idempotency")
                         .delete()
                         .eq("idempotency_key", idempotencyKey);
                 } catch {

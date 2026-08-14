@@ -13,7 +13,6 @@
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
         "@opentelemetry/api": "^1.9.1",
-        "csurf": "file:./src/mocks/csurf",
         "@opentelemetry/auto-instrumentations-node": "^0.77.0",
         "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
         "@opentelemetry/propagator-jaeger": "^2.9.0",

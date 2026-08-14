@@ -38,6 +38,8 @@ export default async function middleware(req: NextRequest) {
             [
                 "'self'",
                 getOrigin(supabaseUrl),
+                // Supabase Realtime uses WebSocket — must whitelist the wss:// origin explicitly.
+                getWsOrigin(supabaseUrl),
                 getOrigin(apiUrl),
                 getOrigin(mlUrl),
                 getWsOrigin(mlUrl),
@@ -49,7 +51,10 @@ export default async function middleware(req: NextRequest) {
                 "https://overpass.kumi.systems",
                 "https://lz4.overpass-api.de",
                 "https://z.overpass-api.de",
-                "https://unpkg.com"
+                "https://nominatim.openstreetmap.org",
+                "https://unpkg.com",
+                "https://cdn.jsdelivr.net",
+                "https://tessdata.projectnaptha.com",
             ].filter(Boolean)
         ),
     ].join(" ");
@@ -57,7 +62,14 @@ export default async function middleware(req: NextRequest) {
     // Nonce-based strict CSP
     const csp = [
         "default-src 'self'",
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+        // 'wasm-unsafe-eval' is the precise W3C directive that allows WebAssembly compilation
+        // (required by Tesseract.js OCR) without opening up arbitrary eval().
+        // 'unsafe-eval' is included as a fallback for older browsers.
+        // 'strict-dynamic' propagates trust from the nonce to dynamically loaded scripts.
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com`,
+        // CDN hosts are listed so the Tesseract worker script (fetched from jsdelivr/unpkg)
+        // is allowed to spawn a blob: Web Worker.
+        "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com",
         `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
         `connect-src ${connectSrc}`,
         "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
@@ -78,6 +90,9 @@ export default async function middleware(req: NextRequest) {
 
     // 3. Set CSP on the response
     res.headers.set("Content-Security-Policy", csp);
+    // Crucial for Next.js 13+ App Router to read the nonce and apply it to its inline scripts
+    res.headers.set("x-middleware-request-x-nonce", nonce);
+    res.headers.set("x-middleware-request-content-security-policy", csp);
 
     // 4. Supabase auth and Admin route protection
     const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
@@ -103,9 +118,10 @@ export default async function middleware(req: NextRequest) {
     if (/^\/[a-z]{2}\/admin\//.test(pathname) || /^\/[a-z]{2}\/admin$/.test(pathname)) {
         if (!session) {
             const locale = pathname.split("/")[1] ?? "en";
-            // Important: we need to redirect but also preserve the CSP headers?
-            // Actually NextResponse.redirect handles itself.
-            return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
+            // Preserve the intended destination so the user is returned to it
+            // after re-authenticating instead of being dumped at the home page.
+            const returnTo = encodeURIComponent(pathname);
+            return NextResponse.redirect(new URL(`/${locale}/login?returnTo=${returnTo}`, req.url));
         }
     }
 

@@ -1,5 +1,73 @@
 [
   {
+    "prNumber": 4222,
+    "title": "fix(web): remove unsafe-eval from production CSP",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-08-08",
+    "area": "Frontend",
+    "score": 25,
+    "docPath": "docs/devtrack/2026-08/PR-4222-fix-web-remove-unsafe-eval-from-production-csp.md",
+    "linkedIssue": "#4219",
+    "labels": "level:critical,quality:exceptional,gssoc:approved,type:testing,type:security,type:refactor",
+    "filesChanged": [
+      "apps/web/components/scanner/usePackagingHint.ts",
+      "apps/web/lib/vision/detectPackaging.ts",
+      "apps/web/lib/vision/loadOpenCv.ts",
+      "apps/web/next.config.mjs",
+      "apps/web/proxy.ts",
+      "apps/web/public/opencv/sandbox.html",
+      "apps/web/tests/e2e/csp-unsafe-eval.spec.ts"
+    ],
+    "adr": "docs/devtrack/adr/ADR-061-fix-web-remove-unsafe-eval-from-production-csp.md"
+    "prNumber": 4227,
+    "title": "feat: add image validation before medicine OCR",
+    "author": "0504Siddhi",
+    "mergedAt": "2026-08-08",
+    "area": "Frontend",
+    "score": 12,
+    "docPath": "docs/devtrack/2026-08/PR-4227-feat-add-image-validation-before-medicine-ocr.md",
+    "linkedIssue": "#4226",
+    "labels": "level:advanced,quality:clean,gssoc:approved,type:feature,type:testing",
+    "filesChanged": [
+      "apps/web/hooks/useMedicineImageUpload.ts",
+      "apps/web/lib/imageValidation.ts",
+      "apps/web/tests/image-validation.test.ts"
+    ],
+    "adr": null
+  },
+  {
+    "prNumber": 4187,
+    "title": "[BUG] Fix dead code and hook up share alert feature",
+    "author": "kumudasrip",
+    "mergedAt": "2026-08-06",
+    "area": "Frontend",
+    "score": 5,
+    "docPath": "docs/devtrack/2026-08/PR-4187-bug-fix-dead-code-and-hook-up-share-alert-feature.md",
+    "linkedIssue": "#4066",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
+    "filesChanged": [
+      "apps/web/app/[locale]/alerts/page.tsx",
+      "apps/web/components/alerts/AlertItem.tsx"
+    ],
+    "adr": null
+  },
+  {
+    "prNumber": 4122,
+    "title": "fix(scan): add request-scoped temp file cleanup to /submit endpoint",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-08-06",
+    "area": "Backend",
+    "score": 9,
+    "docPath": "docs/devtrack/2026-08/PR-4122-fix-scan-add-request-scoped-temp-file-cleanup-to-s.md",
+    "linkedIssue": "#4112",
+    "labels": "level:advanced,quality:exceptional,gssoc:approved,type:bug,type:testing,type:refactor",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "apps/api/tests/scanSubmitCleanup.test.ts"
+    ],
+    "adr": null
+  },
+  {
     "prNumber": 4067,
     "title": "fix: remove leaked console.log in usePackagingHint.ts",
     "author": "kumudasrip",

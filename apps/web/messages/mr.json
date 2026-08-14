@@ -133,6 +133,8 @@
         }
     },
     "Home": {
+        "pause_testimonials": "Pause testimonials",
+        "play_testimonials": "Play testimonials",
         "title": "तुमचे आरोग्य, पडताळलेले आणि सुरक्षित.",
         "subtitle": "भारताची ओपन-सोर्स नागरिक प्रणाली जी तुमचे औषधाची प्रमाणिकता त्वरित तपासू शकते, सुरक्षित औषधालय शोधू शकते आणि महत्त्वाची स्वास्थ्य सूचना मिळवू शकते.",
         "scan_button": "औषध स्कॅन करा",
@@ -189,6 +191,7 @@
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",
         "alerts": "सूचना",
+        "tools": "साधने",
         "pharmacy_map": "औषधालय नकाशा",
         "my_reports": "माझे अहवाल",
         "schedule": "वेळापत्रक",
@@ -319,15 +322,10 @@
         "description": "तुमच्याकडे सध्या इंटरनेट कनेक्शन नाही.",
         "subtitle": "ऑफलाइन असताना काही वैशिष्ट्ये अनुपलब्ध आहेत. इंटरनेटशी कनेक्ट करण्याचा प्रयत्न करा किंवा जतन केलेला मजकूर ब्राउझ करा.",
         "tryAgain": "पुन्हा प्रयत्न करा",
-
         "syncFailedTitle": "रांगेतील क्रिया नाकारल्या",
-
         "syncFailedDescription": "सर्व्हरने काही रांगेतील क्रिया नाकारल्या. पुन्हा जोडल्यानंतर पुन्हा प्रयत्न करा किंवा त्या काढून टाका.",
-
         "syncRetry": "सर्व पुन्हा प्रयत्न करा",
-
         "syncDiscard": "काढा",
-
         "goHome": "होमवर जा",
         "footer": "कनेक्शन परत आल्यावर SahiDawa आपोआप सिंक होईल.",
         "cachedContent": "तुम्ही अजूनही पूर्वी लोड केलेल्या मजकुरात प्रवेश करू शकता",
@@ -341,7 +339,7 @@
         "browsedMedicines": "शोधलेली औषधे"
     },
     "contact": {
-        "badge": "GSSoC 2026 ओपन सोर्स प्रकल्प",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "संपर्क",
             "highlight": "साधा"
@@ -378,7 +376,7 @@
     },
     "Footer": {
         "brandSubtitle": "भारतातील पहिले ओपन-सोर्स औषध पडताळणी प्लॅटफॉर्म. समुदाय-चालित पारदर्शकतेसह आपली औषधे स्कॅन करा, पडताळा आणि विश्वास ठेवा.",
-        "madeForGssoc": "GSSoC 2026 साठी बनवलेले",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "त्वरित लिंक्स",
             "expiry_tracker": "एक्सपायरी ट्रॅकर",
@@ -404,7 +402,7 @@
         "builtWithSuffix": "सह तयार केले"
     },
     "about": {
-        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> बद्दल",
         "heroSubtitle": "भारताचे पहिले मुक्त-स्रोत औषध-तपासणी साधन आणि ग्रामीण आरोग्य-सेतू. 'भारता'साठी निर्मित—केवळ 'इंडिया'साठी नव्हे.",
         "features": {
@@ -470,7 +468,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "badge": "Free & Open Source Project",
         "title": "वारंवार विचारले जाणारे",
         "title_highlight": "प्रश्न",
         "subtitle": "SahiDawa बद्दल तुम्हाला जाणून घ्यायच्या सर्व गोष्टी — भारताचे मोफत, ओपन-सोर्स औषध पडताळणी प्लॅटफॉर्म.",
@@ -506,7 +504,7 @@
             },
             "6": {
                 "question": "मी SahiDawa मध्ये कसे योगदान देऊ शकतो?",
-                "answer": "SahiDawa MIT लायसन्स अंतर्गत ओपन सोर्स आहे. तुम्ही GitHub वर योगदान देऊ शकता, बग रिपोर्ट करू शकता, फिचर सुचवू शकता किंवा GSSoC 2026 सहभागी म्हणून जोडू शकता."
+                "answer": "SahiDawa MIT लायसन्स अंतर्गत ओपन सोर्स आहे. तुम्ही GitHub वर योगदान देऊ शकता, बग रिपोर्ट करू शकता, फिचर सुचवू शकता किंवा open source सहभागी म्हणून जोडू शकता."
             },
             "7": {
                 "question": "CDSCO म्हणजे काय?",
@@ -519,6 +517,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1431,11 +1430,13 @@
         "abhaSetup": "ABHA सेटअप",
         "abhaRecords": "ABHA नोंदी",
         "notificationSettings": "सूचना सेटिंग्ज",
-        "privacySecurity": "गोपनीयता आणि सुरक्षा"
+        "privacySecurity": "गोपनीयता आणि सुरक्षा",
+        "fakeMedicineHunterBadge": "Fake Medicine Hunter",
+        "fakeMedicineHunterTooltip": "Awarded for reporting 5+ verified counterfeit medicines."
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ओपन सोर्स प्रकल्प",
+            "badge": "Free & Open Source Project",
             "title": "गोपनीयता",
             "titleHighlight": "धोरण",
             "subtitle": "आम्ही पारदर्शकतेवर विश्वास ठेवतो. आम्ही काय गोळा करतो, का गोळा करतो आणि आम्ही त्यासोबत काय कधीच करत नाही, हे येथे स्पष्ट दिले आहे.",
@@ -1736,6 +1737,8 @@
         "no_search_results": "कोणतीही औषधे तुमच्��ा शोधाशी जुळत नाहीत.",
         "item_status_label": "स्थिती:",
         "item_delete_button": "हटवा",
+        "sync_auth_title": "तुमचा इतिहास सिंक करण्यासाठी साइन इन करा",
+        "sync_auth_action": "साइन इन",
         "item_copy_success": "औषधाचे नाव कॉपी केले!"
     },
     "MyReports": {

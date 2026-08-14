@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { routing } from "../../i18n/routing";
 import { getSiteUrl } from "@/lib/env";
+import { headers } from "next/headers";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -91,9 +92,34 @@ export default async function LocaleLayout({
     const t = await getTranslations("VoicePage");
     const isRtl = ["ur", "ks"].includes(locale);
 
+    const headersList = await headers();
+    const nonce = headersList.get("x-nonce") || undefined;
+
     return (
         <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
-            <head></head>
+            <head>
+                <script
+                    type="application/ld+json"
+                    nonce={nonce}
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "Organization",
+                            name: "RatLoopz",
+                            alternateName: "SahiDawa",
+                            url: "https://github.com/RatLoopz",
+                            founder: {
+                                "@type": "Person",
+                                name: "Dipjyoti Das",
+                                sameAs: [
+                                    "https://www.linkedin.com/in/dipjyotidas",
+                                    "https://github.com/dipexplorer",
+                                ],
+                            },
+                        }),
+                    }}
+                />
+            </head>
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>
