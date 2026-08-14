@@ -240,35 +240,39 @@ cd sahidawa-india
 ### Configure Environment
 
 ```bash
+# Copy example environment files for both frontend and backend
 cp .env.example apps/web/.env.local
+cp .env.example apps/api/.env
 ```
 
-Update the environment variables before running the project.
+Update the environment variables in both files before running the project.
 
 ### Install Dependencies
 
+Install all dependencies for the entire monorepo workspaces from the root directory:
+
 ```bash
-cd apps/web
 npm install
 ```
 
 ### Run the Development Server
 
+Start all services (Next.js web app, Express API) concurrently using Turborepo:
+
 ```bash
 npm run dev
 ```
 
-Open **http://localhost:3000** in your browser.
-
-```
-
+- **Frontend:** http://localhost:3000
+- **API Server:** http://localhost:4000
+- **API Reference:** http://localhost:4000/api/docs
 
 | Command | Description |
 |---------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Start the development server |
-| `npm run build` | Build the project for production |
-| `npm run lint` | Run lint checks |
+| `npm install` | Install all workspace dependencies |
+| `npm run dev` | Start development servers concurrently |
+| `npm run build` | Build all projects for production |
+| `npm run lint` | Run lint checks across workspaces |
 
 
 ### ⚠️ Troubleshooting npm install Failures
