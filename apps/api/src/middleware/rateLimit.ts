@@ -269,24 +269,8 @@ export const analyticsLimiter = rateLimit({
     },
 });
 
-/** Authentication endpoints — strict limit to prevent credential brute-forcing and OTP bombing. */
-export const authLimiter = rateLimit({
-    skip: () => process.env.NODE_ENV === "test",
-    windowMs: 60 * 1000,
-    max: 5,
-    standardHeaders: true,
-    legacyHeaders: false,
-    store: buildStore("auth"),
-    validate: false,
-    handler: (_req, res) => {
-        res.status(429).json({
-            error: "Too many authentication attempts. Please try again later.",
-        });
-    },
-});
-
 /**
- * Builds the bucket key for {@link authTargetLimiter}.
+ * Builds the bucket key for authentication limiters.
  *
  * Exported so the key derivation can be unit-tested on its own - a mismatch
  * here silently degrades the limiter to per-IP instead of failing loudly.
@@ -319,6 +303,25 @@ export const authTargetKeyGenerator = (req: Request): string => {
     return (req.ip || "unknown").replace(/:/g, "_");
 };
 
+/** Authentication endpoints — strict limit to prevent credential brute-forcing and OTP bombing. */
+export const authLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 60 * 1000,
+    max: 5,
+    keyGenerator: authTargetKeyGenerator,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("auth"),
+    validate: false,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many authentication attempts. Please try again later.",
+        });
+    },
+});
+
+
+
 /** Target-based limiter to prevent OTP bombing against a specific user/target irrespective of IP */
 export const authTargetLimiter = rateLimit({
     skip: () => process.env.NODE_ENV === "test",
@@ -341,6 +344,7 @@ export const notificationRegisterLimiter = rateLimit({
     skip: () => process.env.NODE_ENV === "test",
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5,
+    keyGenerator: authTargetKeyGenerator,
     standardHeaders: true,
     legacyHeaders: false,
     validate: false,
