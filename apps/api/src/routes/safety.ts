@@ -132,11 +132,17 @@ router.get("/", scanQueryLimiter, async (req: Request, res: Response): Promise<v
         if (redisClient.isOpen) {
             const cached = await redisClient.get(redisCacheKey);
             if (cached) {
-                logger.info(`[safety] Redis HIT for "${genericName}"`);
-                res.setHeader("X-Cache", "HIT");
-                res.setHeader("X-Cache-Source", "redis");
-                res.json(JSON.parse(cached));
-                return;
+                const parsed = JSON.parse(cached);
+                // Force cache miss if the old profile is missing new fields
+                if (parsed.description && parsed.commonUses) {
+                    logger.info(`[safety] Redis HIT for "${genericName}"`);
+                    res.setHeader("X-Cache", "HIT");
+                    res.setHeader("X-Cache-Source", "redis");
+                    res.json(parsed);
+                    return;
+                } else {
+                    logger.info(`[safety] Redis HIT but missing new fields, forcing regeneration for "${genericName}"`);
+                }
             }
         }
     } catch (err) {
@@ -145,7 +151,11 @@ router.get("/", scanQueryLimiter, async (req: Request, res: Response): Promise<v
 
     // ── 4. Supabase L2 cache ──────────────────────────────────────────────────
     const dbCached = await getDbCachedProfile(genericName);
-    if (dbCached) {
+    
+    // Check if the cached profile has the newly required fields
+    const hasNewFields = dbCached && typeof dbCached === "object" && "description" in dbCached && "commonUses" in dbCached;
+
+    if (dbCached && hasNewFields) {
         logger.info(`[safety] Supabase DB HIT for "${genericName}"`);
 
         // Backfill Redis
@@ -163,6 +173,8 @@ router.get("/", scanQueryLimiter, async (req: Request, res: Response): Promise<v
         res.setHeader("X-Cache-Source", "supabase");
         res.json(dbCached);
         return;
+    } else if (dbCached && !hasNewFields) {
+        logger.info(`[safety] Supabase DB HIT but missing new fields, forcing regeneration for "${genericName}"`);
     }
 
     // ── 5. Cache miss → RAG + LLM generation ─────────────────────────────────
