@@ -1,13 +1,11 @@
 const cron = require("node-cron");
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
-import { redisClient } from "../utils/redis";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
+import { createLock, acquireLock, releaseLock } from "../utils/distributedLock";
 
-const LOCK_KEY = "dosage-reminder:lock";
-const LOCK_TTL_MS = 4 * 60 * 1000; // 4 minutes, shorter than the 5-min tick
-const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
+const LOCK = createLock("dosage-reminder:lock", 4 * 60 * 1000); // 4 minutes, shorter than the 5-min tick
 // How close "now" must be to a scheduled time to count as due. The cron ticks
 // every 5 minutes, so a 5-minute tolerance window ensures no slot is missed
 // while still being tight enough to feel like a "daily reminder", not spam.
@@ -19,36 +17,6 @@ interface DueSchedule {
     medicine_name: string;
     dosage: string;
     times: string[];
-}
-
-async function acquireLock(): Promise<boolean> {
-    if (!redisClient.isOpen) {
-        logger.warn("Redis not connected; skipping distributed lock for dosage reminder cron.");
-        return true;
-    }
-    try {
-        const result = await redisClient.set(LOCK_KEY, LOCK_VALUE, { NX: true, PX: LOCK_TTL_MS });
-        return result === "OK";
-    } catch (err) {
-        logger.error({ message: "Failed to acquire dosage reminder lock", error: err });
-        return false;
-    }
-}
-
-async function releaseLock(): Promise<void> {
-    if (!redisClient.isOpen) return;
-    try {
-        const script = `
-            if redis.call("get", KEYS[1]) == ARGV[1] then
-                return redis.call("del", KEYS[1])
-            else
-                return 0
-            end
-        `;
-        await redisClient.eval(script, { keys: [LOCK_KEY], arguments: [LOCK_VALUE] });
-    } catch (err) {
-        logger.error({ message: "Failed to release dosage reminder lock", error: err });
-    }
 }
 
 function isTimeDue(timeStr: string, now: Date): boolean {
@@ -169,7 +137,7 @@ export async function runDosageReminderCheck(now: Date = new Date()): Promise<vo
 export const initDosageReminderCron = (): { stop: () => void } => {
     // Every 5 minutes, matching MATCH_WINDOW_MINUTES so no slot is skipped.
     return cron.schedule("*/5 * * * *", async () => {
-        const acquired = await acquireLock();
+        const acquired = await acquireLock(LOCK, "dosage reminder cron");
         if (!acquired) {
             logger.info("Dosage reminder lock held by another instance — skipping this tick.");
             return;
@@ -181,7 +149,7 @@ export const initDosageReminderCron = (): { stop: () => void } => {
                 error: err,
             });
         } finally {
-            await releaseLock();
+            await releaseLock(LOCK, "dosage reminder cron");
         }
     });
 };
