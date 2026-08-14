@@ -1455,7 +1455,7 @@
         "sort_label": "Sort by",
         "sort_newest": "Newest first",
         "sort_oldest": "Oldest first",
-        "no_filtered_results": "No scans match the selected filters."
+        "no_filtered_results": "No scans match the selected filters.",
         "sync_auth_title": "Sign in to sync your history",
         "sync_auth_action": "Sign in",
         "item_copy_success": "Medicine name copied!"
