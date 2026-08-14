@@ -121,7 +121,28 @@ async function sendDosageReminder(schedule: DueSchedule): Promise<boolean> {
     const results = await Promise.allSettled(sendPromises);
     return results.some((r) => r.status === "fulfilled" && r.value);
 }
+async function processScheduleTime(
+    schedule: DueSchedule,
+    timeStr: string,
+    now: Date,
+    todayStr: string
+): Promise<void> {
+    if (!isTimeDue(timeStr, now)) return;
 
+    const sent = await alreadySent(schedule.id, timeStr, todayStr);
+    if (sent) return;
+
+    const delivered = await sendDosageReminder(schedule);
+    if (delivered) {
+        await markSent(schedule.id, timeStr, todayStr);
+        return;
+    }
+
+    logger.warn("Dosage reminder not delivered; will retry next tick.", {
+        scheduleId: schedule.id,
+        timeStr,
+    });
+}
 export async function runDosageReminderCheck(now: Date = new Date()): Promise<void> {
     const todayStr = now.toISOString().split("T")[0];
 
@@ -139,22 +160,8 @@ export async function runDosageReminderCheck(now: Date = new Date()): Promise<vo
 
     for (const schedule of (schedules as DueSchedule[]) ?? []) {
         const times: string[] = Array.isArray(schedule.times) ? schedule.times : [];
-
         for (const timeStr of times) {
-            if (!isTimeDue(timeStr, now)) continue;
-
-            const sent = await alreadySent(schedule.id, timeStr, todayStr);
-            if (sent) continue;
-
-            const delivered = await sendDosageReminder(schedule);
-            if (delivered) {
-                await markSent(schedule.id, timeStr, todayStr);
-            } else {
-                logger.warn("Dosage reminder not delivered; will retry next tick.", {
-                    scheduleId: schedule.id,
-                    timeStr,
-                });
-            }
+            await processScheduleTime(schedule, timeStr, now, todayStr);
         }
     }
 }

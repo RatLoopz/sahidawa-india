@@ -20,13 +20,15 @@ class JobScheduler {
             return;
         }
 
-        this.jobs.push(startAlertBroadcaster());
-        this.jobs.push(startTempCleanupJob());
-        this.jobs.push(initExpiryCron());
-        this.jobs.push(initDosageReminderCron());
-        this.jobs.push(initDistrictAlertSyncCron());
-        this.jobs.push(startPgCronMonitor());
-        this.jobs.push(startSmsWorker());
+        this.jobs.push(
+            startAlertBroadcaster(),
+            startTempCleanupJob(),
+            initExpiryCron(),
+            initDosageReminderCron(),
+            initDistrictAlertSyncCron(),
+            startPgCronMonitor(),
+            startSmsWorker()
+        );
         logger.info("All background jobs have been started.");
     }
 
