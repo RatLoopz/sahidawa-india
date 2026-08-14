@@ -432,7 +432,7 @@
         "empty": "No pending scans"
     },
     "contact": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "Get In",
             "highlight": "Touch"
@@ -469,7 +469,7 @@
     },
     "Footer": {
         "brandSubtitle": "Open-source medicine safety infrastructure. Scan, verify, and report risks with community-powered transparency.",
-        "madeForGssoc": "Made for GSSoC 2026",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "Quick Links",
             "expiry_tracker": "Expiry Tracker",
@@ -495,7 +495,7 @@
         "builtWithSuffix": "for the open-source community"
     },
     "about": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "heroTitle": "About <highlight>SahiDawa</highlight>",
         "heroSubtitle": "Open-source medicine safety infrastructure. Built for Bharat. Not just India.",
         "features": {
@@ -561,7 +561,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "title": "Frequently Asked",
         "title_highlight": "Questions",
         "subtitle": "Everything you need to know about SahiDawa — India's free, open-source medicine verification platform.",
@@ -597,7 +597,7 @@
             },
             "6": {
                 "question": "How can I contribute to SahiDawa?",
-                "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or join as a GSSoC 2026 participant."
+                "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or collaborate with us as a contributor."
             },
             "7": {
                 "question": "What is CDSCO?",
@@ -1457,8 +1457,7 @@
         "sort_oldest": "Oldest first",
         "no_filtered_results": "No scans match the selected filters.",
         "sync_auth_title": "Sign in to sync your history",
-        "sync_auth_action": "Sign in",
-        "item_copy_success": "Medicine name copied!"
+        "sync_auth_action": "Sign in"
     },
     "MyReports": {
         "header_title": "My Reports",
@@ -1744,7 +1743,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 Open Source Project",
+            "badge": "Free & Open Source Project",
             "title": "Privacy",
             "titleHighlight": "Policy",
             "subtitle": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it.",

@@ -1,6 +1,5 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/GSSoC-2026-orange?style=for-the-badge&logo=girlscript&logoColor=white" alt="GSSoC 2026"/>
 <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License"/>
 <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome"/>
 <img src="https://img.shields.io/badge/Languages-22%20Indian-blue?style=for-the-badge" alt="22 Languages"/>
@@ -53,7 +52,6 @@ SahiDawa is an open-source, anti-counterfeit medicine verification platform desi
 - [🤝 Contributing](#-contributing)
 - [🌏 Supported Languages](#-supported-languages)
 - [📊 Data Sources (All Free & Public)](#-data-sources-all-free--public)
-- [🏆 GSSoC 2026](#-gssoc-2026)
 - [💬 Community](#-community)
 - [📜 License](#-license)
 - [👥 Contributors](#-contributors)
@@ -459,8 +457,8 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | English            | 🚧 In Progress | Core Team   |
 | Hindi (हिन्दी)     | 🚧 In Progress | —           |
 | Tamil (தமிழ்)      | 🚧 In Progress | —           |
-| Telugu (తెలుగు)    | ✅ Complete    | GSSoC 2026  |
-| Kannada (ಕನ್ನಡ)    | ✅ Complete    | GSSoC 2026  |
+| Telugu (తెలుగు)    | ✅ Complete    | Community   |
+| Kannada (ಕನ್ನಡ)    | ✅ Complete    | Community   |
 | Malayalam (മലയാളം) | 🔜 Open        | —           |
 | Bengali (বাংলা)    | 🚧 In Progress | —           |
 | Gujarati (ગુજરાતી) | 🚧 In Progress | —           |
@@ -491,18 +489,7 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | [OpenStreetMap / Overpass API](https://overpass-api.de/)  | Pharmacy locations, routing                                          |
 | [NHP — National Health Portal](https://www.nhp.gov.in/)   | Drug monographs for RAG health assistant                             |
 
----
 
-## 🏆 GSSoC 2026
-
-This project is participating in **GirlScript Summer of Code 2026** under both:
-
-- 📂 **Open Source Track** — 10 labeled issues (Coming Soon) for all skill levels
-- 🤖 **Agents for India Track** — CDSCO autonomous alert agent (Coming Soon)
-
-We are also a **Cloudinary Bounty Partner project** — contributors who build features using Cloudinary's Media API earn bonus GSSoC leaderboard points.
-
----
 
 ## 💬 Community
 
@@ -555,10 +542,9 @@ Thank you to all the incredible people who have contributed to making SahiDawa a
 
 ## 🙏 Acknowledgements
 
-- [GirlScript Foundation](https://gssoc.girlscript.org/) for GSSoC 2026
 - [CDSCO](https://cdsco.gov.in/) for the public drug database
 - [Sarvam AI](https://www.sarvam.ai/) for Indian language models
-- [Cloudinary](https://cloudinary.com/) for media infrastructure & GSSoC bounty partnership
+- [Cloudinary](https://cloudinary.com/) for media infrastructure
 - Every contributor who believes healthcare is a right, not a privilege
 
 ---

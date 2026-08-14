@@ -318,15 +318,10 @@
         "description": "भवतः समीपे अस्मिन् समये अन्तर्जाल-सम्पर्कः नास्ति।",
         "subtitle": "अन्तर्जालं विना काश्चन सुविधाः अलभ्याः सन्ति। अन्तर्शालेन सह सम्बद्धुं प्रयतध्वम् अथवा सञ्चित-विषयवस्तु (cached content) पश्यन्तु।",
         "tryAgain": "पुनः प्रयतताम्",
-
         "syncFailedTitle": "Queued actions were rejected",
-
         "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-
         "syncRetry": "Retry all",
-
         "syncDiscard": "Discard",
-
         "goHome": "मुख्यपृष्ठं गच्छतु",
         "footer": "सम्पर्के प्रत्यागते सहीदवा स्वयमेव समकालनं करिष्यति।",
         "cachedContent": "भवान् अद्यापि पूर्व-लोद्-कृतं विषयवस्तु प्राप्तुं शक्नोति",
@@ -340,7 +335,7 @@
         "browsedMedicines": "वीक्षितानि औषधानि"
     },
     "contact": {
-        "badge": "GSSoC २०२६ मुक्तस्रोत-परियोजना (Open Source Project)",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "सम्पर्कं",
             "highlight": "कुर्वन्तु"
@@ -377,7 +372,7 @@
     },
     "Footer": {
         "brandSubtitle": "भारतस्य प्रथमं मुक्त-स्रोतः औषध-सत्यापन-मञ्चम्। स्वकीयम् औषधं स्कैन् कुर्वन्तु, सत्यापयन्तु, विश्वसन्तु च।",
-        "madeForGssoc": "GSSoC 2026 कृते निर्मितम्",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "सत्वर-सम्पर्काः",
             "expiry_tracker": "समाप्ति-अन्वेषकः",
@@ -403,7 +398,7 @@
         "builtWithSuffix": "सह निर्मितम्"
     },
     "about": {
-        "badge": "GSSoC 2026 मुक्त स्रोत परियोजना",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> विषये",
         "heroSubtitle": "भारतस्य प्रथमः मुक्त-स्रोत-नागरिक-चिकित्सा-सत्यापकः & ग्रामीण-स्वास्थ्य-सेतुः। भारतस्य कृते निर्मितम् । न केवलं भारतम्।",
         "features": {
@@ -469,7 +464,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 मुक्त-स्रोत-प्रकल्पः",
+        "badge": "Free & Open Source Project",
         "title": "प्रायः पृष्टाः",
         "title_highlight": "प्रश्नाः",
         "subtitle": "SahiDawa विषये ज्ञातव्यं सर्वम् — भारतस्य निःशुल्कं मुक्त-स्रोतं औषध-सत्यापन-मञ्चः।",
@@ -505,7 +500,7 @@
             },
             "6": {
                 "question": "SahiDawa मध्ये अहं कथं योगदानं दातुं शक्नोमि?",
-                "answer": "SahiDawa MIT अनुज्ञापत्रेण मुक्त-स्रोतः अस्ति। भवन्तः GitHub मध्ये योगदानं दातुं, दोषान् सूचयितुं, विशेषताः प्रस्तावयितुं वा GSSoC 2026 सहभागी रूपेण सम्बद्धुं शक्नुवन्ति।"
+                "answer": "SahiDawa MIT अनुज्ञापत्रेण मुक्त-स्रोतः अस्ति। भवन्तः GitHub मध्ये योगदानं दातुं, दोषान् सूचयितुं, विशेषताः प्रस्तावयितुं वा open source सहभागी रूपेण सम्बद्धुं शक्नुवन्ति।"
             },
             "7": {
                 "question": "CDSCO किम्?",
@@ -1384,7 +1379,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 मुक्तस्रोतपरियोजना",
+            "badge": "Free & Open Source Project",
             "title": "गोपनीयता",
             "titleHighlight": "नीतिः",
             "subtitle": "वयं पारदर्शकतायां विश्वसामः। वयं किं सङ्गृह्णीमः, किमर्थं सङ्गृह्णीमः, तथा च तेन सह वयं कदापि किं न कुर्मः इति अत्र स्पष्टं वर्तते।",

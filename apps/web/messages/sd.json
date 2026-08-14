@@ -362,15 +362,10 @@
         "description": "هن وقت توهان وٽ انٽرنيٽ ڪنيڪشن موجود ناهي.",
         "subtitle": "آف لائن هجڻ دوران ڪجهه فيچرز دستياب نه هوندا. انٽرنيٽ سان ڳنڍجڻ جي ڪوشش ڪريو يا محفوظ ٿيل مواد ڏسو.",
         "tryAgain": "ٻيهر ڪوشش ڪريو",
-
         "syncFailedTitle": "Queued actions were rejected",
-
         "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-
         "syncRetry": "Retry all",
-
         "syncDiscard": "Discard",
-
         "goHome": "گهر واري صفحي ڏانهن وڃو",
         "footer": "ڪنيڪشن بحال ٿيڻ تي SahiDawa پاڻمرادو هم وقت ساز ٿيندو.",
         "cachedContent": "توهان اڳ ۾ لوڊ ٿيل مواد تائين اڃا به رسائي حاصل ڪري سگهو ٿا",
@@ -393,7 +388,7 @@
         "empty": "ڪو به انتظار ۾ اسڪين موجود ناهي"
     },
     "contact": {
-        "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "رابطي ۾",
             "highlight": "اچو"
@@ -430,7 +425,7 @@
     },
     "Footer": {
         "brandSubtitle": "ڀارت جو پهريون اوپن سورس دوا جي تصديق جو پليٽ فارم. پنهنجي دوائن کي اسڪين, تصديق ۽ اعتماد ڪريو.",
-        "madeForGssoc": "GSSoC 2026 لاءِ ٺهيل",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "جلدي لنڪس",
             "expiry_tracker": "ايڪسپائري ٽريڪر",
@@ -456,7 +451,7 @@
         "builtWithSuffix": "سان ٺهيل"
     },
     "about": {
-        "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> بابت",
         "heroSubtitle": "ڀارت جو پهريون اوپن سورس شهري دوا تصديق ڪندڙ ۽ ڳوٺاڻي صحت جو پل. ڀارت لاءِ ٺهيل. صرف انڊيا لاءِ نه.",
         "features": {
@@ -522,7 +517,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
+        "badge": "Free & Open Source Project",
         "title": "اڪثر پڇيا ويندڙ",
         "title_highlight": "سوال",
         "subtitle": "SahiDawa بابت توهان کي ڄاڻڻ لاءِ هر شيءِ — ڀارت جو مفت، اوپن سورس دوا تصديق پليٽفارم.",
@@ -558,7 +553,7 @@
             },
             "6": {
                 "question": "مان SahiDawa ۾ ڪيئن تعاون ڪري سگهان ٿو؟",
-                "answer": "SahiDawa MIT لائسنس تحت اوپن سورس آهي. توهان GitHub تي تعاون ڪري سگهو ٿا، بگ رپورٽ ڪري سگهو ٿا، نوان فيچر تجويز ڪري سگهو ٿا يا GSSoC 2026 جي شرڪت ڪندڙ طور شامل ٿي سگهو ٿا."
+                "answer": "SahiDawa MIT لائسنس تحت اوپن سورس آهي. توهان GitHub تي تعاون ڪري سگهو ٿا، بگ رپورٽ ڪري سگهو ٿا، نوان فيچر تجويز ڪري سگهو ٿا يا open source جي شرڪت ڪندڙ طور شامل ٿي سگهو ٿا."
             },
             "7": {
                 "question": "CDSCO ڇا آهي؟",
@@ -1553,7 +1548,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+            "badge": "Free & Open Source Project",
             "title": "پرائيويسي",
             "titleHighlight": "پاليسي",
             "subtitle": "اسان شفافيت ۾ يقين رکون ٿا. هتي بلڪل اهو ڏنو ويو آهي جيڪو اسان گڏ ڪريون ٿا، ڇو گڏ ڪريون ٿا، ۽ جيڪو اسان ڪڏهن به نٿا ڪريون.",

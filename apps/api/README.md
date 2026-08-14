@@ -379,4 +379,4 @@ After running the script successfully, update your `.env` or deployment variable
 
 ---
 
-_Last updated: May 2025 — GSSoC Issue #301_
+_Last updated: May 2025_

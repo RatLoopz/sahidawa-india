@@ -362,15 +362,10 @@
         "description": "ꯍꯧꯖꯤꯛꯃꯛꯇꯗꯥ ꯅꯍꯥꯛꯀꯤ ꯏꯟꯇꯔꯅꯦꯠ ꯀꯅꯦꯛꯁꯟ ꯂꯩꯇꯦ꯫",
         "subtitle": "ꯑꯣꯐꯂꯥꯏꯟ ꯑꯣꯏꯔꯤꯉꯩꯗꯥ ꯐꯤꯆꯔ ꯈꯔꯥ ꯁꯤꯖꯤꯟꯅꯕꯥ ꯌꯥꯗ꯭ꯔꯦ꯫ ꯏꯟꯇꯔꯅꯦꯠꯇꯥ ꯁꯝꯅꯅꯕꯥ ꯍꯣꯠꯅꯕꯤꯌꯨ ꯅꯠꯇ꯭ꯔꯒꯥ ꯀꯦꯁ (cached) ꯇꯧꯔꯕꯥ ꯄꯣꯠꯂꯝꯁꯤꯡ ꯌꯦꯡꯕꯤꯌꯨ꯫",
         "tryAgain": "ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯍꯣꯠꯅꯕꯥ",
-
         "syncFailedTitle": "Queued actions were rejected",
-
         "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-
         "syncRetry": "Retry all",
-
         "syncDiscard": "Discard",
-
         "goHome": "ꯍꯣꯃꯗꯥ ꯆꯠꯄꯥ",
         "footer": "ꯅꯍꯥꯛꯀꯤ ꯀꯅꯦꯛꯁꯟ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯐꯪꯂꯀꯄꯥ ꯃꯇꯃꯗꯥ ꯁꯍꯤꯗꯋꯥꯅꯥ ꯃꯁꯥꯃꯛ ꯁꯤꯡꯛ (sync) ꯇꯧꯒꯅꯤ꯫",
         "cachedContent": "ꯅꯍꯥꯛꯅꯥ ꯃꯃꯥꯡꯗꯥ ꯍꯥꯡꯗꯣꯛꯈꯤꯕꯥ ꯄꯣꯠꯂꯝꯁꯤꯡ ꯍꯧꯖꯤꯛꯁꯨ ꯌꯦꯡꯕꯥ ꯌꯥꯒꯅꯤ",
@@ -393,7 +388,7 @@
         "empty": "ꯉꯥꯏꯔꯤꯕꯥ ꯁ꯭ꯀꯦꯟ ꯂꯩꯇꯦ"
     },
     "contact": {
-        "badge": "GSSoC 2026  ওপꯟ ꯁꯣꯔꯁ ꯄ꯭ꯔꯣꯖꯦꯛꯠ",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "ꯄꯥꯎ ꯐꯥꯎꯅꯕꯤꯌꯨ",
             "highlight": "ꯁꯝꯅꯕꯥ"
@@ -430,7 +425,7 @@
     },
     "Footer": {
         "brandSubtitle": "ভারতকী অহানবা ওপন-সোর্স হিদাক খঙদোকপা প্লেটফোর্ম। কম্যুনিটি-পাৱার্দ ওইবা অশেংবা মওংদা হিদাক স্কেন তৌবিয়ু, খঙদোকপিয়ু অমসুং থাজবিয়ু।",
-        "madeForGssoc": "GSSoC 2026 গীদমক শেমজবা",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "অথুবা লিঙ্কশিং",
             "expiry_tracker": "এক্সপায়রী ত্রেকর",
@@ -456,7 +451,7 @@
         "builtWithSuffix": "গা লোয়ননা শেমজবা"
     },
     "about": {
-        "badge": "GSSoC 2026 ওপꯟ ꯁꯣꯔꯁ ꯄ꯭ꯔꯣꯖꯦꯛꯠ",
+        "badge": "Free & Open Source Project",
         "heroTitle": "ꯑꯦꯕꯥꯎꯠ <highlight>ꯁꯍꯤꯗꯋꯥ</highlight>",
         "heroSubtitle": "ꯏꯟꯗꯤꯌꯥꯒꯤ ꯑꯍꯥꯟꯕꯥ ꯑꯣꯄꯟ-ꯁꯣꯔꯁ ꯅꯥꯒꯔꯤꯛ ꯍꯤꯗꯥꯛ ꯌꯦꯡꯁꯤꯟꯅꯕꯥ ꯑꯃꯁꯨꯡ ꯈꯨꯉꯪꯒꯤ ꯍꯦꯜꯊ ꯕ꯭ꯔꯤꯖꯅꯤ꯫ ꯚꯥꯔꯠꯀꯤꯗꯃꯛ ꯁꯦꯝꯕꯅꯤ꯫ ꯏꯟꯗꯤꯌꯥꯈꯛꯇꯒꯤꯗꯃꯛ ꯅꯠꯇꯦ꯫",
         "features": {
@@ -522,7 +517,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 ꯑꯣꯄꯟ ꯁꯣꯔꯁ ꯄ꯭ꯔꯣꯖꯦꯛꯠ",
+        "badge": "Free & Open Source Project",
         "title": "ꯆꯠꯅꯕꯤ ꯑꯣꯏꯅꯥ ꯍꯪꯅꯕꯥ",
         "title_highlight": "ꯋꯥꯍꯪꯁꯤꯡ",
         "subtitle": "ꯁꯍꯤꯗꯋꯥ (SahiDawa) — ꯚꯥꯔꯠꯀꯤ ꯃꯥꯡꯊꯥꯅꯕꯥ ꯂꯦꯃꯖꯗꯨꯅꯥ ꯐꯪꯕꯥ, ꯑꯣꯄꯟ-ꯁꯣꯔꯁ ꯍꯤꯗꯥꯛ-ꯂꯥꯡꯊꯛ ꯆꯦꯛ ꯇꯧꯐꯝ ꯄ꯭ꯂꯦꯠꯐꯣꯔꯃꯒꯤ ꯃꯇꯥꯡꯗꯥ ꯅꯍꯥꯛꯅꯥ ꯈꯉꯒꯗꯕꯥ ꯄꯨꯝꯅꯃꯛ꯫",
@@ -558,7 +553,7 @@
             },
             "6": {
                 "question": "ꯁꯍꯤꯗꯋꯥꯗꯥ ꯑꯩꯅꯥ ꯀꯔꯝꯅꯥ ꯃꯇꯦꯡ ꯄꯥꯡꯕꯥ (contribute) ꯌꯥꯒꯅꯤ?",
-                "answer": "ꯁꯍꯤꯗꯋꯥ ꯑꯁꯤ MIT ꯂꯥꯏꯁꯦꯟꯁꯀꯤ ꯃꯈꯥꯗꯥ ꯂꯩꯕꯥ ꯑꯣꯄꯟ ꯁꯣꯔꯁꯅꯤ꯫ ꯅꯍꯥꯛꯅꯥ GitHub ꯇꯥ ꯃꯇꯦꯡ ꯄꯥꯡꯕꯥ, ꯕꯒꯁꯤꯡ (bugs) ꯔꯤꯄꯣꯔꯠ ꯇꯧꯕꯥ, ꯐꯤꯆꯔꯁꯤꯡ ꯄꯥꯎꯇꯥꯛ ꯄꯤꯕꯥ, ꯅꯠꯇ꯭ꯔꯒꯥ GSSoC 2026 ꯒꯤ ꯁꯔꯨꯛ ꯌꯥꯔꯕꯥ ꯑꯃꯥ ꯑꯣꯏꯅꯥ ꯌꯥꯎꯕꯥ ꯌꯥꯒꯅꯤ꯫"
+                "answer": "ꯁꯍꯤꯗꯋꯥ ꯑꯁꯤ MIT ꯂꯥꯏꯁꯦꯟꯁꯀꯤ ꯃꯈꯥꯗꯥ ꯂꯩꯕꯥ ꯑꯣꯄꯟ ꯁꯣꯔꯁꯅꯤ꯫ ꯅꯍꯥꯛꯅꯥ GitHub ꯇꯥ ꯃꯇꯦꯡ ꯄꯥꯡꯕꯥ, ꯕꯒꯁꯤꯡ (bugs) ꯔꯤꯄꯣꯔꯠ ꯇꯧꯕꯥ, ꯐꯤꯆꯔꯁꯤꯡ ꯄꯥꯎꯇꯥꯛ ꯄꯤꯕꯥ, ꯅꯠꯇ꯭ꯔꯒꯥ open source ꯒꯤ ꯁꯔꯨꯛ ꯌꯥꯔꯕꯥ ꯑꯃꯥ ꯑꯣꯏꯅꯥ ꯌꯥꯎꯕꯥ ꯌꯥꯒꯅꯤ꯫"
             },
             "7": {
                 "question": "CDSCO ꯍꯥꯌꯕꯁꯤ ꯀꯔꯤꯅꯣ?",
@@ -1553,7 +1548,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ওপন সোর্স প্রোজেক্ট",
+            "badge": "Free & Open Source Project",
             "title": "প্রাইভেসী",
             "titleHighlight": "পোলিসী",
             "subtitle": "ঐখোয়না অশেংবা মওংদা থাজবা থম্মি। ঐখোয়না করি খোমগৎলিবগে, করিগী খোমগৎলিবগে অমসুং ঐখোয়না মসিনা করি অমত্তা কয়া তৌদবগে হায়বদু মসিদা পীরি।",
