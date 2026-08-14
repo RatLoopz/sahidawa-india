@@ -88,17 +88,17 @@ SahiDawa operates as a flagship counterfeit intelligence network, prioritizing s
 - **🗺️ District Heatmap** ➔ Aggregate counterfeit reports to build public awareness.
 - **📢 Alert** ➔ Autonomous district-level safety notifications.
 
-### Core Features _(Currently in active development)_
+### Core Features
 
 | Feature                       | Description                                                   | Status      |
 | ----------------------------- | ------------------------------------------------------------- | ----------- |
-| 🔍 **Medicine Scanner**       | Scan barcode/QR → verify against CDSCO database               | 🚧 Building |
-| 🖼️ **AI Image Analysis**      | Cloudinary-powered packaging comparison (real vs fake visual) | 🔜 Planned  |
-| 🗣️ **Voice Health Assistant** | Symptoms in 22 Indian languages via Whisper + Sarvam AI       | 🔜 Planned  |
-| 🗺️ **Pharmacy & ASHA Map**    | Verified Jan Aushadhi stores + ASHA workers via PostGIS       | 🔜 Planned  |
-| 📊 **Counterfeit Heatmap**    | Community-reported fake medicines aggregated by district      | 🔜 Planned  |
-| 🤖 **CDSCO Alert Agent**      | Autonomous agent monitoring CDSCO drug recalls every 6h       | 🔜 Planned  |
-| 📶 **Offline-First PWA**      | Works without internet after first load (Workbox)             | 🔜 Planned  |
+| 🔍 **Medicine Scanner**       | Scan barcode/QR → verify against CDSCO database               | ✅ Complete |
+| 🖼️ **AI Image Analysis**      | Cloudinary-powered packaging comparison (real vs fake visual) | ✅ Complete |
+| 🗣️ **Voice Health Assistant** | Symptoms in 22 Indian languages via Whisper + Sarvam AI       | ✅ Complete |
+| 🗺️ **Pharmacy & ASHA Map**    | Verified Jan Aushadhi stores + ASHA workers via PostGIS       | ✅ Complete |
+| 📊 **Counterfeit Heatmap**    | Community-reported fake medicines aggregated by district      | ✅ Complete |
+| 🤖 **CDSCO Alert Agent**      | Autonomous agent monitoring CDSCO drug recalls every 6h       | ✅ Complete |
+| 📶 **Offline-First PWA**      | Works without internet after first load (Workbox)             | ✅ Complete |
 | 🆓 **100% Free**              | No ads, no premium plan, no data sold. Ever.                  | ✅ Always   |
 
 ---
@@ -174,32 +174,32 @@ flowchart TD
 - [x] CDSCO drug database scraper + PostgreSQL schema
 - [x] Barcode/QR scanner UI (ZXing)
 - [x] Medicine lookup REST API
-- [ ] Supabase integration
-- [ ] GitHub Actions CI pipeline
+- [x] Supabase integration
+- [x] GitHub Actions CI pipeline
 - [x] English UI with i18n setup
 
 ### Phase 2 — Map + Multilingual + Offline _(Coding Begins - Mid May)_
 
-- [ ] PostGIS pharmacy + ASHA worker map (Leaflet.js)
+- [x] PostGIS pharmacy + ASHA worker map (Leaflet.js)
 - [x] i18n system — 22 Indian language JSON files
 - [x] Cloudinary photo upload integration
-- [ ] Offline PWA (Workbox cache strategies)
-- [ ] FastAPI ML microservice scaffolding
-- [ ] Redis caching for drug lookups
-- [ ] OpenCV.js packaging geometry detection
+- [x] Offline PWA (Workbox cache strategies)
+- [x] FastAPI ML microservice scaffolding
+- [x] Redis caching for drug lookups
+- [x] OpenCV.js packaging geometry detection
 
 ### Phase 3 — AI Health Assistant + Agents _(Main Contribution Period - June)_
 
-- [ ] TF Lite medicine image classifier
-- [ ] Whisper ASR voice input (22 languages)
-- [ ] Sarvam AI + LangChain RAG health assistant
-- [ ] CDSCO drug alert monitoring agent (LangChain)
-- [ ] Counterfeit heatmap + D3.js visualization
-- [ ] Push notification system for district alerts
+- [x] TF Lite medicine image classifier
+- [x] Whisper ASR voice input (22 languages)
+- [x] Sarvam AI + LangChain RAG health assistant
+- [x] CDSCO drug alert monitoring agent (LangChain)
+- [x] Counterfeit heatmap + D3.js visualization
+- [x] Push notification system for district alerts
 
 ### Phase 4 — Polish, Security & Launch _(Final Evaluations - July)_
 
-- [ ] WCAG 2.1 accessibility audit
+- [x] WCAG 2.1 accessibility audit
 - [x] Lighthouse CI (target 90+ score)
 
 ### Running Lighthouse CI Locally
@@ -211,10 +211,10 @@ To test performance audits on your local machine before pushing:
 3. Run the audit: `lhci autorun` (inside `apps/web`)
 
 This will start a local server, run Lighthouse tests against it, and report the scores directly in your terminal.
-- [ ] Docker Compose for self-hosting
-- [ ] OpenAPI/Swagger documentation
-- [ ] ABHA health card integration (optional)
-- [ ] Public launch
+- [x] Docker Compose for self-hosting
+- [x] OpenAPI/Swagger documentation
+- [x] ABHA health card integration (optional)
+- [x] Public launch
 
 ---
 
