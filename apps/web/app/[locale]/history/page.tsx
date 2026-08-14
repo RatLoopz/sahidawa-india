@@ -20,6 +20,9 @@ import { buildLoginPath } from "@/lib/authReturn";
 
 const ExportModal = dynamic(() => import("./ExportModal"));
 
+type StatusFilter = "all" | "verified" | "suspicious" | "fake";
+type SortOrder = "newest" | "oldest";
+
 export default function HistoryPage() {
     const exportButtonRef = useRef<HTMLButtonElement | null>(null);
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
@@ -28,10 +31,8 @@ export default function HistoryPage() {
     const [showClearConfirmation, setShowClearConfirmation] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "suspicious" | "fake">(
-        "all"
-    );
-    const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
     const [isOnline, setIsOnline] = useState<boolean>(() =>
         typeof window !== "undefined" ? window.navigator.onLine : true
     );
@@ -130,9 +131,7 @@ export default function HistoryPage() {
 
     const filteredHistory = history
         .filter((item) => item.medicineName.toLowerCase().includes(search.toLowerCase()))
-        .filter((item) =>
-            statusFilter === "all" ? true : item.status?.toLowerCase() === statusFilter
-        )
+        .filter((item) => statusFilter === "all" || item.status?.toLowerCase() === statusFilter)
         .sort((a, b) =>
             sortOrder === "newest" ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
         );
@@ -146,6 +145,12 @@ export default function HistoryPage() {
     ).length;
 
     const fakeCount = history.filter((item) => item.status?.toLowerCase() === "fake").length;
+
+    // Clicking an already-active stat card clears the filter back to "all",
+    // so the cards double as a toggleable shortcut rather than a one-way filter.
+    const handleStatCardClick = (status: StatusFilter) => {
+        setStatusFilter((current) => (current === status ? "all" : status));
+    };
 
     const openExportModal = () => {
         exportButtonRef.current?.focus();
@@ -293,10 +298,12 @@ export default function HistoryPage() {
                 )}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <button
-                        onClick={() => setStatusFilter("all")}
+                        type="button"
+                        onClick={() => handleStatCardClick("all")}
+                        aria-pressed={statusFilter === "all"}
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "all"
-                                ? "border-white/40 bg-white/10"
+                                ? "border-white/40 bg-white/10 ring-1 ring-white/40"
                                 : "border-white/10 bg-white/5 hover:bg-white/10"
                         }`}
                     >
@@ -321,6 +328,12 @@ export default function HistoryPage() {
                     </button>
 
                     <button
+                        type="button"
+                        onClick={() => handleStatCardClick("suspicious")}
+                        aria-pressed={statusFilter === "suspicious"}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "suspicious"
+                                ? "border-amber-500/60 bg-amber-500/20 ring-1 ring-amber-500/60"
                         onClick={() =>
                             setStatusFilter(statusFilter === "suspicious" ? "all" : "suspicious")
                         }
@@ -338,6 +351,12 @@ export default function HistoryPage() {
                     </button>
 
                     <button
+                        type="button"
+                        onClick={() => handleStatCardClick("fake")}
+                        aria-pressed={statusFilter === "fake"}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                            statusFilter === "fake"
+                                ? "border-red-500/60 bg-red-500/20 ring-1 ring-red-500/60"
                         onClick={() => setStatusFilter(statusFilter === "fake" ? "all" : "fake")}
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "fake"
@@ -362,6 +381,27 @@ export default function HistoryPage() {
                             className="min-w-[200px] flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
                         />
                         <select
+                            id="history-status-filter"
+                            aria-label={t("filter_status_label")}
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        >
+                            <option value="all">{t("status_all")}</option>
+                            <option value="verified">{t("status_verified")}</option>
+                            <option value="suspicious">{t("status_suspicious")}</option>
+                            <option value="fake">{t("status_fake")}</option>
+                        </select>
+                        <select
+                            id="history-sort-order"
+                            aria-label={t("sort_label")}
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                        >
+                            <option value="newest">{t("sort_newest")}</option>
+                            <option value="oldest">{t("sort_oldest")}</option>
+                        </select>
                             value={statusFilter}
                             onChange={(e) =>
                                 setStatusFilter(
@@ -393,7 +433,7 @@ export default function HistoryPage() {
                         description={t("empty_description")}
                     />
                 ) : filteredHistory.length === 0 ? (
-                    <p className="text-center text-sm opacity-50">{t("no_search_results")}</p>
+                    <p className="text-center text-sm opacity-50">{t("no_filtered_results")}</p>
                 ) : (
                     <div className="space-y-4">
                         {filteredHistory.map((item) => (
