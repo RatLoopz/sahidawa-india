@@ -207,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "ফলাফল শ্বেয়াৰ কৰক",
+            "whatsapp_button": "WhatsApp-ত শ্বেয়াৰ কৰক",
             "title": "SahiDawa ঔষধ যাচাই ফলাফল",
             "real_status": "প্ৰকৃত বুলি যাচাই কৰা হৈছে",
             "suspicious_status": "সন্দেহজনক বুলি চিহ্নিত",

@@ -207,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "निकाल शेअर करात",
+            "whatsapp_button": "WhatsApp शेअर करात",
             "title": "सहीदवा वखद खात्रीकरण निकाल",
             "real_status": "तपासणी उपरांत खरे",
             "suspicious_status": "दुबावीत म्हणून नोंद जाल्लें",
