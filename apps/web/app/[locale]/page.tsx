@@ -9,7 +9,7 @@ const MedicineSafetyPanel = dynamic(() =>
             throw err;
         })
 );
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { usePendingSearchQueue } from "@/hooks/usePendingSearchQueue";
 import { addToSearchQueue } from "@/lib/db/searchQueue";
@@ -110,6 +110,7 @@ export default function SahiDawaHome() {
     const [loading, setLoading] = useState<boolean>(true);
     const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
     const [isMarqueePaused, setIsMarqueePaused] = useState<boolean>(false);
+    const safetyPanelRef = useRef<HTMLDivElement>(null);
 
     const { isOffline } = useOfflineStatus();
     const {
@@ -123,7 +124,7 @@ export default function SahiDawaHome() {
         setActiveSearchQuery(query);
     });
 
-    const handleSearchSubmit = async (query: string) => {
+    const handleSearchSubmit = useCallback(async (query: string) => {
         if (!query) {
             setActiveSearchQuery("");
             return;
@@ -134,8 +135,17 @@ export default function SahiDawaHome() {
             await refreshSearchQueue();
         } else {
             setActiveSearchQuery(query);
+            // Smoothly scroll the results panel into view after a brief render tick
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    safetyPanelRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                    });
+                });
+            });
         }
-    };
+    }, [isOffline, refreshSearchQueue]);
 
     // 1. Define the predictive query layer
     const prefetchAlertsData = async () => {
@@ -233,7 +243,10 @@ export default function SahiDawaHome() {
 
                     {/* Medicine Safety Panel — shown inline on home page, NO redirect */}
                     {activeSearchQuery && (
-                        <div className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200">
+                        <div
+                            ref={safetyPanelRef}
+                            className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200"
+                        >
                             <MedicineSafetyPanel
                                 key={activeSearchQuery}
                                 searchQuery={activeSearchQuery}
