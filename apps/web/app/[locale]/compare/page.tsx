@@ -230,6 +230,7 @@ export default function ComparePage() {
     const [interactionsError, setInteractionsError] = useState<string | null>(null);
     const [similarityResult, setSimilarityResult] = useState<SimilarityResult | null>(null);
     const [similarityLoading, setSimilarityLoading] = useState(false);
+    const [similarityError, setSimilarityError] = useState<string | null>(null);
     const [medicineQuery, setMedicineQuery] = useQueryStates(compareMedicineQueryParsers, {
         history: "replace",
         shallow: true,
@@ -345,11 +346,13 @@ export default function ComparePage() {
         if (!medicine1 || !medicine2) {
             setSimilarityResult(null);
             setSimilarityLoading(false);
+            setSimilarityError(null);
             return;
         }
 
         const fetchAndSetSimilarity = async () => {
             setSimilarityLoading(true);
+            setSimilarityError(null);
             try {
                 const result = await fetchSimilarity(
                     medicine1.brand_name || medicine1.generic_name,
@@ -359,6 +362,7 @@ export default function ComparePage() {
             } catch (err) {
                 console.error("Failed to fetch similarity:", err);
                 setSimilarityResult(null);
+                setSimilarityError("Failed to verify similarity. Please try again.");
             } finally {
                 setSimilarityLoading(false);
             }
@@ -366,6 +370,28 @@ export default function ComparePage() {
 
         void fetchAndSetSimilarity();
     }, [selectedMedicines[0]?.id, selectedMedicines[1]?.id]);
+
+    const handleCheckSimilarity = async () => {
+        const medicine1 = selectedMedicines[0];
+        const medicine2 = selectedMedicines[1];
+        if (!medicine1 || !medicine2) return;
+
+        setSimilarityLoading(true);
+        setSimilarityError(null);
+        try {
+            const result = await fetchSimilarity(
+                medicine1.brand_name || medicine1.generic_name,
+                medicine2.brand_name || medicine2.generic_name
+            );
+            setSimilarityResult(result);
+        } catch (err) {
+            console.error("Failed to fetch similarity:", err);
+            setSimilarityResult(null);
+            setSimilarityError("Failed to verify similarity. Please try again.");
+        } finally {
+            setSimilarityLoading(false);
+        }
+    };
 
     const handleCopy = (text: string) => {
         void navigator.clipboard.writeText(text);
