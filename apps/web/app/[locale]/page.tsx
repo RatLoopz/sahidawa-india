@@ -1,13 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-const MedicineSafetyPanel = dynamic(() =>
-    import("@/components/medicine")
-        .then((mod) => mod.MedicineSafetyPanel)
-        .catch((err) => {
-            console.error("[Home] MedicineSafetyPanel dynamic import failed:", err);
-            throw err;
-        })
+const MedicineSafetyPanel = dynamic(
+    () =>
+        import("@/components/medicine")
+            .then((mod) => mod.MedicineSafetyPanel)
+            .catch((err) => {
+                console.error("[Home] MedicineSafetyPanel dynamic import failed:", err);
+                throw err;
+            }),
+    { loading: () => null } // No fullscreen spinner — the panel handles its own skeleton
 );
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
@@ -232,11 +234,10 @@ export default function SahiDawaHome() {
                         <SearchBar onSearchChange={handleSearchSubmit} />
                     </div>
 
-                    {/* Medicine Safety Panel — shown inline on home page, NO redirect */}
+                    {/* Medicine Safety Panel — shown inline below search, never remounts */}
                     {activeSearchQuery && (
                         <div className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200">
                             <MedicineSafetyPanel
-                                key={activeSearchQuery}
                                 searchQuery={activeSearchQuery}
                                 onClose={() => setActiveSearchQuery("")}
                             />
