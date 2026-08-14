@@ -81,7 +81,7 @@ export default function DesktopNavLinks() {
                     className={`${desktopNavLinkClassName} flex items-center gap-1 ${isFeaturesOpen ? "text-emerald-600 dark:text-emerald-400" : ""}`}
                     aria-expanded={isFeaturesOpen}
                 >
-                    <Wrench size={14} /> Tools
+                    <Wrench size={14} /> {tNav("tools")}
                     <ChevronDown
                         size={14}
                         className={`transition-transform duration-200 ${isFeaturesOpen ? "rotate-180" : ""}`}
