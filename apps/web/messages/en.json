@@ -869,6 +869,7 @@
         "success": "Account created successfully! Redirecting...",
         "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
         "errors": {
+            "fullNameInvalid": "Full name can only contain letters and spaces.",
             "databaseNotConfigured": "Authentication is not configured for this environment.",
             "generic": "Unable to create account. Please try again.",
             "fullNameRequired": "Full name is required.",
