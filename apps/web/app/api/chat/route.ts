@@ -622,7 +622,7 @@ export async function POST(req: Request) {
                 }
             }
 
-            let govtStores = uniqueStores.filter((s) => s.isGov);
+            const govtStores = uniqueStores.filter((s) => s.isGov);
             const storesToShow =
                 govtStores.length > 0 ? govtStores.slice(0, 5) : uniqueStores.slice(0, 5);
             const isGovHeading = govtStores.length > 0;

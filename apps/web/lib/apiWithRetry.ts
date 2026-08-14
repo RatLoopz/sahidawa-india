@@ -251,7 +251,12 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
             return reject(signal.reason || new Error("Request was cancelled."));
         }
 
-        let timeoutId: ReturnType<typeof setTimeout>;
+        const timeoutId = setTimeout(() => {
+            if (signal) {
+                signal.removeEventListener("abort", abortHandler);
+            }
+            resolve();
+        }, ms);
 
         const abortHandler = () => {
             clearTimeout(timeoutId);
@@ -261,13 +266,6 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
         if (signal) {
             signal.addEventListener("abort", abortHandler);
         }
-
-        timeoutId = setTimeout(() => {
-            if (signal) {
-                signal.removeEventListener("abort", abortHandler);
-            }
-            resolve();
-        }, ms);
     });
 }
 

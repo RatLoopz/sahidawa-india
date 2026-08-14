@@ -16,7 +16,6 @@ export { API_BASE, getCsrfToken, refreshCsrfToken };
 const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000); // 60s TTL
 const verifyBrandCache = createSWRCache<VerifyResult>(300_000); // 5min TTL
 
-async function fetchWithCsrf<T>(
 export class ApiHttpError extends Error {
     readonly status: number;
 

@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Copy, Loader2, Plus, Sparkles, ShieldCheck, X } from "lucide-react";
-import { AlertTriangle, Brain, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Brain, Copy, Loader2, Plus, Sparkles, ShieldCheck, X } from "lucide-react";
 import { parseAsString, useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
@@ -16,7 +15,7 @@ import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
-import { API_BASE, compareMedicineSimilarity, type CompareSimilarityResult } from "@/lib/api";
+import { API_BASE } from "@/lib/api";
 import { buildMedicineNameSearchFilter } from "@/lib/supabase/medicineSearch";
 
 type InteractionSeverity = "High Risk" | "Moderate" | "Safe";

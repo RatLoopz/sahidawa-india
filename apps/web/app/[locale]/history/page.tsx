@@ -334,12 +334,6 @@ export default function HistoryPage() {
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "suspicious"
                                 ? "border-amber-500/60 bg-amber-500/20 ring-1 ring-amber-500/60"
-                        onClick={() =>
-                            setStatusFilter(statusFilter === "suspicious" ? "all" : "suspicious")
-                        }
-                        className={`rounded-2xl border p-4 text-left transition ${
-                            statusFilter === "suspicious"
-                                ? "border-amber-500/60 bg-amber-500/20"
                                 : "border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/15"
                         }`}
                     >
@@ -357,10 +351,6 @@ export default function HistoryPage() {
                         className={`rounded-2xl border p-4 text-left transition ${
                             statusFilter === "fake"
                                 ? "border-red-500/60 bg-red-500/20 ring-1 ring-red-500/60"
-                        onClick={() => setStatusFilter(statusFilter === "fake" ? "all" : "fake")}
-                        className={`rounded-2xl border p-4 text-left transition ${
-                            statusFilter === "fake"
-                                ? "border-red-500/60 bg-red-500/20"
                                 : "border-red-500/20 bg-red-500/10 hover:bg-red-500/15"
                         }`}
                     >
@@ -402,27 +392,6 @@ export default function HistoryPage() {
                             <option value="newest">{t("sort_newest")}</option>
                             <option value="oldest">{t("sort_oldest")}</option>
                         </select>
-                            value={statusFilter}
-                            onChange={(e) =>
-                                setStatusFilter(
-                                    e.target.value as "all" | "verified" | "suspicious" | "fake"
-                                )
-                            }
-                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
-                        >
-                            <option value="all">All</option>
-                            <option value="verified">Verified</option>
-                            <option value="suspicious">Suspicious</option>
-                            <option value="fake">Fake</option>
-                        </select>
-                        <button
-                            onClick={() =>
-                                setSortOrder(sortOrder === "newest" ? "oldest" : "newest")
-                            }
-                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
-                        >
-                            {sortOrder === "newest" ? "Newest first" : "Oldest first"}
-                        </button>
                     </div>
                 )}
 

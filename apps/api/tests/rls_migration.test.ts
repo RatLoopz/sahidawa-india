@@ -129,6 +129,9 @@ describe("RPC Security Migration — REVOKE PUBLIC EXECUTE and search_path harde
         expect(newMigration).toContain(
             "GRANT EXECUTE ON FUNCTION public.get_failed_pg_cron_jobs(text, timestamptz) TO service_role;"
         );
+    });
+});
+
 describe("Drug Alerts Migration — Deterministic Medicine Linking Trigger", () => {
     const migrationPath = join(MIGRATIONS_DIR, "20260720000000_fix_drug_alerts_medicine_id.sql");
     const sql = readFileSync(migrationPath, "utf8");

@@ -65,18 +65,18 @@ If the image is too blurry, illegible, or does not contain a prescription, retur
         ]);
 
         const text = result.response.text();
-        
-        const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        const cleanedText = text
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
 
         let parsedData;
         try {
             parsedData = JSON.parse(cleanedText);
-        } catch (e) {
+        } catch {
             console.error("Failed to parse Gemini response:", cleanedText);
-            return NextResponse.json(
-                { error: "apiFailure" },
-                { status: 500 }
-            );
+            return NextResponse.json({ error: "apiFailure" }, { status: 500 });
         }
 
         if (parsedData.error === "blurry") {
@@ -86,9 +86,6 @@ If the image is too blurry, illegible, or does not contain a prescription, retur
         return NextResponse.json(parsedData, { status: 200 });
     } catch (error) {
         console.error("Prescription Scanner API Error:", error);
-        return NextResponse.json(
-            { error: "apiFailure" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "apiFailure" }, { status: 500 });
     }
 }
