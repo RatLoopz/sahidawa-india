@@ -24,14 +24,41 @@ function setCache(key: string, profile: MedicineSafetyProfile) {
     profileCache.set(key, { profile, fetchedAt: Date.now() });
 }
 
+/**
+ * Enriches an API profile with description/commonUses from the bundled static
+ * dataset when those fields are missing (e.g. older Supabase cached profiles).
+ * This guarantees the Overview & Usage tab always has content for known medicines.
+ */
+function enrichWithStaticData(
+    apiProfile: MedicineSafetyProfile,
+    query: string
+): MedicineSafetyProfile {
+    if (apiProfile.description && apiProfile.commonUses?.length) {
+        return apiProfile; // Already complete — nothing to do
+    }
+    const staticProfile = getStaticSafetyProfile(query);
+    if (!staticProfile) return apiProfile;
+
+    return {
+        ...apiProfile,
+        description: apiProfile.description || staticProfile.description,
+        commonUses: apiProfile.commonUses?.length
+            ? apiProfile.commonUses
+            : staticProfile.commonUses,
+    };
+}
+
 // ── Main fetch function ────────────────────────────────────────────────────
 /**
  * Fetches live safety data from the backend API.
  * Falls back to bundled static data if:
  *   - The device is offline
  *   - The API returns a non-OK response
- *   - The API times out (5 seconds)
+ *   - The API times out (30 seconds)
  *   - The response shape is invalid
+ *
+ * When the API returns valid data but description/commonUses are missing,
+ * they are transparently backfilled from the bundled static profiles.
  *
  * Never throws — always returns a profile or null.
  */
@@ -42,9 +69,9 @@ export async function fetchSafetyProfile(
 
     const cacheKey = query.toLowerCase().trim();
 
-    // 1. Return from in-memory cache if still fresh AND has the new required fields
+    // 1. Return from in-memory cache if still fresh
     const cached = getCached(cacheKey);
-    if (cached && cached.description && cached.commonUses) return cached;
+    if (cached) return cached;
 
     // 2. Skip network entirely if browser reports offline
     if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -52,11 +79,9 @@ export async function fetchSafetyProfile(
         return getStaticSafetyProfile(query);
     }
 
-    // 3. Attempt API fetch with a 5-second timeout
+    // 3. Attempt API fetch (30s timeout — first-ever request triggers LLM generation)
     try {
         const controller = new AbortController();
-        // 30 s — first-ever request for a drug triggers LLM generation (~5-15 s).
-        // Subsequent requests are served from cache and are near-instant.
         const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
         const res = await fetch(`/api/medicine/safety?q=${encodeURIComponent(query.trim())}`, {
@@ -93,9 +118,12 @@ export async function fetchSafetyProfile(
             return getStaticSafetyProfile(query);
         }
 
-        // 5. Cache and return the live result
-        setCache(cacheKey, data);
-        return data;
+        // 5. Backfill description/commonUses from static data if the LLM cache is stale
+        const enriched = enrichWithStaticData(data, query);
+
+        // 6. Cache and return the enriched result
+        setCache(cacheKey, enriched);
+        return enriched;
     } catch (err) {
         // AbortError = timeout; TypeError = network failure
         const reason = err instanceof Error ? err.name : "Unknown";

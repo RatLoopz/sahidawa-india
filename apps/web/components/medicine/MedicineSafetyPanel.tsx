@@ -110,23 +110,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
         };
     }, [searchQuery]);
 
-    if (isLoading) {
-        return (
-            <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
-                    <ShieldCheck className="h-4 w-4 animate-pulse text-emerald-500" />
-                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                        Loading safety data…
-                    </span>
-                </div>
-                <div className="space-y-2 p-4">
-                    <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                </div>
-            </div>
-        );
-    }
+
 
     if (!profile) return null;
 
