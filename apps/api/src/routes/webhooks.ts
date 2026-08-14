@@ -116,7 +116,8 @@ router.post(
 
             // 1. Invalidate drug lookup cache (helper scans and deletes matching keys)
             if (batchNumber) {
-                await invalidateCacheByPattern(`drug:batch:${batchNumber}*`);
+                const batchKeys = await invalidateCacheByPattern(`drug:batch:${batchNumber}*`);
+                keysToDelete.push(...batchKeys);
             }
 
             // 2. Invalidate voice search cache for matching brand and generic names
@@ -147,7 +148,8 @@ router.post(
             // entries keyed by any user-supplied substring (e.g. "dolo"), which exact-name
             // deletion above cannot enumerate — sweep the whole namespace on that rare event.
             if (verificationStatusChanged(oldRecord, record)) {
-                await invalidateCacheByPattern("brand_cache:*");
+                const brandCacheKeys = await invalidateCacheByPattern("brand_cache:*");
+                keysToDelete.push(...brandCacheKeys);
             }
 
             // 4. Perform deletion if keys exist
