@@ -111,6 +111,45 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     }, [searchQuery]);
 
 
+    if (isLoading) {
+        return (
+            <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                {/* Header */}
+                <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30">
+                        <div className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        Fetching safety info
+                        <span className="ml-1 font-normal text-slate-400">for</span>{" "}
+                        <span className="text-emerald-600 dark:text-emerald-400">{searchQuery}</span>
+                        <span className="ml-0.5 inline-flex gap-0.5">
+                            <span className="animate-bounce" style={{ animationDelay: "0ms" }}>.</span>
+                            <span className="animate-bounce" style={{ animationDelay: "150ms" }}>.</span>
+                            <span className="animate-bounce" style={{ animationDelay: "300ms" }}>.</span>
+                        </span>
+                    </span>
+                </div>
+                {/* Skeleton rows */}
+                <div className="space-y-3 p-4">
+                    <div className="h-3 w-4/5 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-3/5 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="mt-4 flex gap-2">
+                        {[40, 60, 50, 55].map((w, i) => (
+                            <div
+                                key={i}
+                                className="h-7 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800"
+                                style={{ width: `${w}px` }}
+                            />
+                        ))}
+                    </div>
+                    <div className="h-3 w-full animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-4/6 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-5/6 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                </div>
+            </div>
+        );
+    }
 
     if (!profile) return null;
 

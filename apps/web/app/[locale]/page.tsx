@@ -135,15 +135,6 @@ export default function SahiDawaHome() {
             await refreshSearchQueue();
         } else {
             setActiveSearchQuery(query);
-            // Smoothly scroll the results panel into view after a brief render tick
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    safetyPanelRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest",
-                    });
-                });
-            });
         }
     }, [isOffline, refreshSearchQueue]);
 
@@ -243,10 +234,7 @@ export default function SahiDawaHome() {
 
                     {/* Medicine Safety Panel — shown inline on home page, NO redirect */}
                     {activeSearchQuery && (
-                        <div
-                            ref={safetyPanelRef}
-                            className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200"
-                        >
+                        <div className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200">
                             <MedicineSafetyPanel
                                 key={activeSearchQuery}
                                 searchQuery={activeSearchQuery}
