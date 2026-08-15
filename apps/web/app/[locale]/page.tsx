@@ -32,7 +32,8 @@ import {
     Syringe,
     BookOpen,
     HelpCircle,
-    Mic
+    Mic,
+    Users
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa6";
 import { useRouter, useParams } from "next/navigation";
@@ -137,42 +138,63 @@ export default function SahiDawaHome() {
             </div>
 
             <main className="relative z-10 pb-20">
-                {/* ── 1. HERO SECTION ── */}
-                <section className="mx-auto max-w-4xl px-4 pt-14 pb-10 text-center">
-                    {/* Badge */}
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-bold text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        FREE & OPEN SOURCE
+                {/* ── 1. HERO SECTION (Premium & Trustworthy) ── */}
+                <section className="mx-auto max-w-5xl px-4 pt-16 pb-12 text-center md:pt-20">
+                    {/* Refined Glassmorphic Badge */}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold tracking-wide text-emerald-700 shadow-sm backdrop-blur-md dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Open Source Health Intelligence
                     </div>
 
-                    {/* Headline */}
-                    <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-slate-900 dark:text-white leading-tight">
-                        Scan a medicine.<br />
-                        Check its safety status.<br />
-                        <span className="text-emerald-600 dark:text-emerald-400">Stay ahead of recalls.</span>
+                    {/* High-Impact Headline */}
+                    <h1 className="mt-8 text-4xl font-extrabold tracking-tighter text-slate-900 sm:text-5xl md:text-6xl lg:text-[4.5rem] lg:leading-[1.1] dark:text-white">
+                        Scan a medicine. <br className="hidden sm:block" />
+                        Check its safety status. <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300">Stay ahead of recalls.</span>
                     </h1>
 
-                    {/* Supporting Text */}
-                    <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-500 dark:text-slate-400">
-                        Check available medicine and regulatory information, see safety alerts, and find trusted pharmacies with SahiDawa.
+                    {/* Upgraded Supporting Text */}
+                    <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300 sm:text-xl">
+                        Instantly access verified regulatory data, live safety alerts, and trusted pharmacies. <strong className="font-semibold text-slate-900 dark:text-white">SahiDawa</strong> is your independent guard against spurious drugs.
                     </p>
 
-                    {/* Compact CTAs */}
-                    <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                    {/* Premium App-like CTAs */}
+                    <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                         <button
                             onClick={() => handleNavigation("scan")}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 text-base font-bold text-white shadow-md shadow-emerald-600/10 hover:bg-emerald-700 hover:shadow-emerald-600/20 transition-all active:scale-[0.98]"
+                            className="group flex h-14 w-full sm:w-auto items-center justify-center gap-2.5 rounded-full bg-emerald-600 px-8 text-base font-bold text-white shadow-xl shadow-emerald-500/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-emerald-500/30 active:scale-95"
                         >
-                            <Camera size={18} />
-                            Scan Medicine
+                            <Camera size={20} className="transition-transform group-hover:scale-110" />
+                            Scan Medicine Now
                         </button>
                         <button
                             onClick={() => handleNavigation("map")}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-base font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-all active:scale-[0.98]"
+                            className="group flex h-14 w-full sm:w-auto items-center justify-center gap-2.5 rounded-full border-2 border-slate-200 bg-white px-8 text-base font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
                         >
-                            <MapPin size={18} />
+                            <MapPin size={20} className="text-slate-400 transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-300" />
                             Find a Pharmacy
                         </button>
+                    </div>
+
+                    {/* Trust Signals Row */}
+                    <div className="mx-auto mt-14 flex max-w-3xl flex-col items-center justify-center gap-6 border-t border-slate-200/60 pt-8 dark:border-slate-800/60 sm:flex-row sm:gap-10">
+                        <div className="flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-slate-400">
+                            <ShieldCheck size={20} className="text-emerald-500" />
+                            <span>Powered by <strong>CDSCO</strong> Data</span>
+                        </div>
+                        <div className="hidden h-1.5 w-1.5 rounded-full bg-slate-200 dark:bg-slate-800 sm:block"></div>
+                        <div className="flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-slate-400">
+                            <Eye size={20} className="text-blue-500" />
+                            <span>100% <strong>Privacy</strong> First</span>
+                        </div>
+                        <div className="hidden h-1.5 w-1.5 rounded-full bg-slate-200 dark:bg-slate-800 sm:block"></div>
+                        <div className="flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-slate-400">
+                            <Users size={20} className="text-indigo-500" />
+                            <span><strong>Community</strong> Driven</span>
+                        </div>
                     </div>
                 </section>
 
