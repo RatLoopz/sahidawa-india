@@ -10,12 +10,12 @@ import {
     QrCode,
     MapPin,
     Shield,
-    Github,
     FileText,
     Lock,
     Globe,
     CheckCircle2
 } from "lucide-react";
+import { FaGithub } from "react-icons/fa6";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 
@@ -90,7 +90,7 @@ const secondaryFeatures = [
 
 const trustPrinciples = [
     {
-        icon: <Github size={24} />,
+        icon: <FaGithub size={24} />,
         title: "Open Source",
         desc: "Transparent development and community contributions."
     },
@@ -150,7 +150,7 @@ export default function HowItWorksPage() {
                     </div>
 
                     <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500 sm:gap-6 dark:text-slate-500">
-                        <span className="flex items-center gap-1.5"><Github size={14} /> Open Source</span>
+                        <span className="flex items-center gap-1.5"><FaGithub size={14} /> Open Source</span>
                         <span className="flex items-center gap-1.5"><MapPin size={14} /> Built for India</span>
                         <span className="flex items-center gap-1.5"><Lock size={14} /> Privacy First</span>
                     </div>
