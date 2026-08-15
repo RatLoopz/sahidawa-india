@@ -65,10 +65,10 @@ export default function Footer() {
 
                     {/* Product */}
                     <div>
-                        <h3 className="mb-5 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-4 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             Product
                         </h3>
-                        <ul className="flex flex-col gap-4">
+                        <ul className="flex flex-col gap-3">
                             <li>
                                 <Link href="/scan" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
                                     Scan Medicine
@@ -94,10 +94,10 @@ export default function Footer() {
 
                     {/* Resources */}
                     <div>
-                        <h3 className="mb-5 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-4 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             {t("resources.title")}
                         </h3>
-                        <ul className="flex flex-col gap-4">
+                        <ul className="flex flex-col gap-3">
                             {resourceLinks.map((link) => (
                                 <li key={link.href}>
                                     <a
@@ -126,10 +126,10 @@ export default function Footer() {
 
                     {/* Community */}
                     <div>
-                        <h3 className="mb-5 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-4 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             Community
                         </h3>
-                        <ul className="flex flex-col gap-4">
+                        <ul className="flex flex-col gap-3">
                             {socialLinks.map((social) => (
                                 <li key={social.key}>
                                     <a
