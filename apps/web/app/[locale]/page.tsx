@@ -31,7 +31,8 @@ import {
     FileText,
     Syringe,
     BookOpen,
-    HelpCircle
+    HelpCircle,
+    Mic
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa6";
 import { useRouter, useParams } from "next/navigation";
@@ -418,87 +419,106 @@ export default function SahiDawaHome() {
                         </div>
                     </section>
 
-                    {/* ── 6. SECONDARY FEATURES ── */}
+                    {/* ── 6. QUICK ACTIONS / SECONDARY FEATURES ── */}
                     <section className="mb-14">
                         <div className="mb-6">
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                                Additional Tools
+                                Quick Actions
                             </h2>
                             <p className="text-xs text-slate-400 dark:text-slate-500">
-                                Explore other capabilities and medical resources.
+                                Fast access to essential tools and resources.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+                        {/* Horizontal scroll on mobile, 5-column grid on large screens */}
+                        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-6 sm:grid sm:grid-cols-3 lg:grid-cols-5 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-40 w-40 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 sm:h-44 sm:w-auto"
                             >
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
-                                    <Camera size={18} />
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 transition-transform group-hover:scale-110">
+                                    <Camera size={20} strokeWidth={2.5} />
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
-                                        Upload Photo
-                                    </h4>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        Check packaging using images
-                                    </p>
+                                <div className="relative z-10 mt-auto">
+                                    <h4 className="font-bold text-slate-900 dark:text-white">Upload Photo</h4>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Select from gallery</p>
                                 </div>
                             </button>
 
-                            {/* Report Fake Medicine */}
+                            {/* Voice Triage */}
                             <button
-                                onClick={() => handleNavigation("report")}
-                                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
+                                onClick={() => handleNavigation("health")}
+                                className="group relative flex h-40 w-40 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 dark:border-slate-800 dark:bg-slate-900 sm:h-44 sm:w-auto"
                             >
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400">
-                                    <AlertTriangle size={18} />
+                                {/* Decorative sound bars */}
+                                <div className="absolute right-4 bottom-5 flex items-end gap-1.5 opacity-10 transition-opacity group-hover:opacity-20 dark:opacity-5">
+                                    <div className="h-4 w-1.5 rounded-full bg-indigo-500"></div>
+                                    <div className="h-8 w-1.5 rounded-full bg-indigo-500"></div>
+                                    <div className="h-5 w-1.5 rounded-full bg-indigo-500"></div>
+                                    <div className="h-9 w-1.5 rounded-full bg-indigo-500"></div>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400">
-                                        Report Suspicious
-                                    </h4>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        Alert public health authorities
-                                    </p>
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 transition-transform group-hover:scale-110">
+                                    <Mic size={20} strokeWidth={2.5} />
+                                </div>
+                                <div className="relative z-10 mt-auto">
+                                    <h4 className="font-bold text-slate-900 dark:text-white">Voice Triage</h4>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Speak symptoms</p>
                                 </div>
                             </button>
 
-                            {/* Vaccine Hub */}
+                            {/* Pharmacy Map */}
                             <button
-                                onClick={() => handleNavigation("vaccine-hub")}
-                                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
+                                onClick={() => handleNavigation("map")}
+                                className="group relative flex h-40 w-40 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10 dark:border-slate-800 dark:bg-slate-900 sm:h-44 sm:w-auto"
                             >
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
-                                    <Syringe size={18} />
+                                {/* Decorative radar rings */}
+                                <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full border border-amber-500/20 opacity-50 transition-transform duration-500 group-hover:scale-[1.2] dark:border-amber-500/10"></div>
+                                <div className="absolute -right-2 -bottom-2 h-16 w-16 rounded-full border border-amber-500/20 opacity-50 transition-transform duration-500 group-hover:scale-[1.2] dark:border-amber-500/10"></div>
+                                
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 transition-transform group-hover:scale-110">
+                                    <MapPin size={20} strokeWidth={2.5} />
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                                        Vaccine Hub
-                                    </h4>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        Immunization schedules & safety
-                                    </p>
+                                <div className="relative z-10 mt-auto">
+                                    <h4 className="font-bold text-slate-900 dark:text-white">Pharmacy Map</h4>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Find verified stores</p>
                                 </div>
                             </button>
 
                             {/* Scheme Eligibility */}
                             <button
                                 onClick={() => handleNavigation("scheme-eligibility")}
-                                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-40 w-40 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-teal-500/10 dark:border-slate-800 dark:bg-slate-900 sm:h-44 sm:w-auto"
                             >
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                                    <ShieldCheck size={18} />
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-100 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 transition-transform group-hover:scale-110">
+                                    <ShieldCheck size={20} strokeWidth={2.5} />
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400">
-                                        Scheme Eligibility
-                                    </h4>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        Check healthcare assistance
-                                    </p>
+                                <div className="relative z-10 mt-auto">
+                                    <h4 className="font-bold text-slate-900 dark:text-white leading-tight">Scheme<br/>Eligibility</h4>
+                                    <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Check public health insurance</p>
+                                </div>
+                            </button>
+
+                            {/* Report Fake (Distinct Red Card) */}
+                            <button
+                                onClick={() => handleNavigation("report")}
+                                className="group relative flex h-40 w-40 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl border border-rose-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:border-rose-400 hover:shadow-xl hover:shadow-rose-500/20 dark:border-rose-900/50 dark:bg-slate-900 sm:h-44 sm:w-auto"
+                            >
+                                {/* Decorative red gradient blob */}
+                                <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-rose-500/10 blur-xl transition-transform duration-500 group-hover:scale-125 dark:bg-rose-500/10"></div>
+                                
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-md shadow-rose-500/30 transition-transform group-hover:-rotate-6 group-hover:scale-110">
+                                        <AlertTriangle size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-50 text-rose-500 transition-colors group-hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400">
+                                        <ChevronRight size={14} strokeWidth={3} />
+                                    </div>
+                                </div>
+                                
+                                <div className="relative z-10 mt-auto">
+                                    <h4 className="font-bold text-rose-700 dark:text-rose-400">Report Fake</h4>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Report suspicious medicine</p>
                                 </div>
                             </button>
                         </div>
