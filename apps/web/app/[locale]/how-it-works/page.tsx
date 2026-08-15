@@ -111,8 +111,8 @@ export default function HowItWorksPage() {
             <PageHeader backHref="/" variant="light" />
 
             {/* Hero Section */}
-            <section className="relative px-6 pt-24 pb-12 lg:pt-32 lg:pb-16">
-                <div className="mx-auto max-w-4xl text-center">
+            <section className="relative px-6 pt-20 pb-12 lg:pt-28 lg:pb-16">
+                <div className="relative mx-auto max-w-5xl text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
