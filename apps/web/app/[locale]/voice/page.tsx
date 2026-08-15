@@ -22,11 +22,14 @@ import {
     VOICE_FOCUS_RING_CLASS,
 } from "./lib/accessibility";
 import {
+    fetchSupportedVoiceLanguages,
     getVoiceLanguageOption,
     getVoiceLanguageForLocale,
     resolveVoiceWorkflowLanguage,
     VOICE_LANGUAGE_OPTIONS,
+    type VoiceLanguageOption,
 } from "./lib/languages";
+import { API_BASE } from "@/lib/apiConfig";
 import { formatVoiceShareReport } from "./lib/report";
 import {
     getPreferredRecordingMimeType,
@@ -168,6 +171,8 @@ export default function VoiceTriagePage() {
     const [mode, setMode] = useState<"triage" | "verify">("triage");
     const [step, setStep] = useState<VoiceStep>("initial");
     const [selectedLanguage, setSelectedLanguage] = useState(getVoiceLanguageForLocale(locale));
+    const [availableLanguageOptions, setAvailableLanguageOptions] =
+        useState<VoiceLanguageOption[]>(VOICE_LANGUAGE_OPTIONS);
     const [activeLanguageCode, setActiveLanguageCode] = useState<string | null>(null);
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -288,6 +293,30 @@ export default function VoiceTriagePage() {
             return null;
         }
     }
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        fetchSupportedVoiceLanguages(API_BASE, { signal: controller.signal }).then((options) => {
+            if (controller.signal.aborted) {
+                return;
+            }
+            setAvailableLanguageOptions(options);
+            // If the currently selected language got filtered out (e.g. the
+            // ML service temporarily dropped it), fall back to the first
+            // still-supported option rather than leaving the picker on a
+            // value that's no longer in its own option list.
+            setSelectedLanguage((current) =>
+                options.some((option) => option.value === current)
+                    ? current
+                    : (options[0]?.value ?? current)
+            );
+        });
+
+        return () => {
+            controller.abort();
+        };
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -1303,7 +1332,7 @@ export default function VoiceTriagePage() {
                                 disabled={isLanguageSelectionLocked}
                                 className={`w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 text-sm font-semibold text-(--color-text-primary) shadow-sm disabled:cursor-not-allowed disabled:bg-(--color-surface-muted) ${VOICE_FOCUS_RING_CLASS}`}
                             >
-                                {VOICE_LANGUAGE_OPTIONS.map((option) => (
+                                {availableLanguageOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
                                         {option.label}
                                     </option>
