@@ -306,6 +306,24 @@ export default function ScanPage() {
         }
     };
 
+    const handleShareToWhatsApp = () => {
+        const shareText = buildVerificationShareText({
+            result: verifyResult,
+            batchNumber: batchInput || parsedBatch,
+            brandName: parsedBrand,
+            copy: shareCopy,
+        });
+
+        // Deep-link straight to WhatsApp with the pre-filled, localized warning.
+        // Works on both the app (mobile) and web (desktop), unlike the OS share
+        // sheet that the generic handleShare relies on.
+        window.open(
+            `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    };
+
     const handleBatchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleVerify(batchInput);
@@ -539,8 +557,10 @@ export default function ScanPage() {
                                                 medicine={verifyResult.medicine}
                                                 onScanAgain={handleScanAgain}
                                                 onShare={handleShare}
+                                                onShareToWhatsApp={handleShareToWhatsApp}
                                                 onCopyMedicineDetails={handleCopyMedicineDetails}
                                                 shareLabel={tScan("share.button")}
+                                                whatsappLabel={tScan("share.whatsapp_button")}
                                                 copied={copied}
                                             />
                                         )}

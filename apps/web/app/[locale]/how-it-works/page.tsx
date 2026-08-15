@@ -10,248 +10,254 @@ import {
     QrCode,
     MapPin,
     Shield,
+    FileText,
+    Lock,
+    Globe,
+    CheckCircle2
 } from "lucide-react";
-// Locale-aware Link (not next/link) so CTAs preserve the active locale.
-// Hardcoded "/en/" hrefs were removed and this import was fixed in
-// commit 8359882 / PR #918 ("fix(web): use i18n routing link and remove
-// hardcoded locale in how-it-works"). Hrefs below are intentionally relative.
+import { FaGithub } from "react-icons/fa6";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
-import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
+import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 
-const steps = [
+const processSteps = [
     {
-        icon: <ShieldCheck size={34} />,
-        titleKey: "features.cards.verifyMedicines.title",
-        descriptionKey: "features.cards.verifyMedicines.description",
+        num: "01",
+        title: "Scan",
+        desc: "Scan a barcode, QR code, or medicine packaging.",
+        icon: <QrCode size={20} />
     },
     {
-        icon: <Search size={34} />,
-        titleKey: "features.cards.scanOrSearch.title",
-        descriptionKey: "features.cards.scanOrSearch.description",
+        num: "02",
+        title: "Check",
+        desc: "SahiDawa checks available medicine and regulatory information.",
+        icon: <Search size={20} />
     },
     {
-        icon: <Bot size={34} />,
-        titleKey: "features.cards.aiAssistant.title",
-        descriptionKey: "features.cards.aiAssistant.description",
+        num: "03",
+        title: "Alerts",
+        desc: "See recalls, warnings, or safety alerts.",
+        icon: <BellRing size={20} />
     },
     {
-        icon: <Store size={34} />,
-        titleKey: "features.cards.trustedPharmacies.title",
-        descriptionKey: "features.cards.trustedPharmacies.description",
+        num: "04",
+        title: "Find Care",
+        desc: "Locate trusted pharmacies and nearby healthcare resources.",
+        icon: <MapPin size={20} />
     },
     {
-        icon: <BellRing size={34} />,
-        titleKey: "features.cards.cdscoAlerts.title",
-        descriptionKey: "features.cards.cdscoAlerts.description",
-    },
-    {
-        icon: <AlertTriangle size={34} />,
-        titleKey: "features.cards.reportMedicines.title",
-        descriptionKey: "features.cards.reportMedicines.description",
-    },
+        num: "05",
+        title: "Stay Informed",
+        desc: "Keep your verification history and safety information accessible.",
+        icon: <Shield size={20} />
+    }
 ];
 
-const timelineSteps = [
-    {
-        icon: <QrCode size={24} />,
-        titleKey: "steps.scan.title",
-        descriptionKey: "steps.scan.description",
-        bgClass: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400",
-        badgeClass: "bg-emerald-600 dark:bg-emerald-500",
-        borderClass:
-            "hover:border-emerald-300 dark:hover:border-emerald-800 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)]",
-    },
+const primaryFeatures = [
     {
         icon: <ShieldCheck size={24} />,
-        titleKey: "steps.verify.title",
-        descriptionKey: "steps.verify.description",
-        bgClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400",
-        badgeClass: "bg-blue-600 dark:bg-blue-500",
-        borderClass:
-            "hover:border-blue-300 dark:hover:border-blue-800 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)]",
+        title: "Verify Medicines",
+        desc: "Cross-reference medicine details against available regulatory data.",
+    },
+    {
+        icon: <Search size={24} />,
+        title: "Scan or Search",
+        desc: "Scan packaging or manually search medicines for trusted healthcare information.",
+    },
+    {
+        icon: <Bot size={24} />,
+        title: "AI Health Assistant",
+        desc: "Get AI-powered guidance for symptoms, precautions, and medicine usage.",
+    }
+];
+
+const secondaryFeatures = [
+    {
+        icon: <Store size={24} />,
+        title: "Trusted Pharmacies",
+        desc: "Find verified pharmacies nearby with reliable medicine availability.",
     },
     {
         icon: <BellRing size={24} />,
-        titleKey: "steps.alerts.title",
-        descriptionKey: "steps.alerts.description",
-        bgClass: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400",
-        badgeClass: "bg-amber-600 dark:bg-amber-500",
-        borderClass:
-            "hover:border-amber-300 dark:hover:border-amber-800 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]",
+        title: "CDSCO Alerts",
+        desc: "Stay updated with official medicine recalls, warnings, and health alerts.",
     },
     {
-        icon: <MapPin size={24} />,
-        titleKey: "steps.pharmacies.title",
-        descriptionKey: "steps.pharmacies.description",
-        bgClass: "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400",
-        badgeClass: "bg-purple-600 dark:bg-purple-500",
-        borderClass:
-            "hover:border-purple-300 dark:hover:border-purple-800 hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.15)]",
-    },
-    {
-        icon: <Shield size={24} />,
-        titleKey: "steps.protect.title",
-        descriptionKey: "steps.protect.description",
-        bgClass: "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400",
-        badgeClass: "bg-rose-600 dark:bg-rose-500",
-        borderClass:
-            "hover:border-rose-300 dark:hover:border-rose-800 hover:shadow-[0_20px_40px_-15px_rgba(244,63,94,0.15)]",
-    },
+        icon: <AlertTriangle size={24} />,
+        title: "Report Suspicious Medicines",
+        desc: "Help the community by reporting counterfeit or suspicious medicines instantly.",
+    }
 ];
 
-const timelineContainerVariants = {
-    hidden: {},
-    visible: {
-        transition: {
-            staggerChildren: 0.15,
-        },
+const trustPrinciples = [
+    {
+        icon: <FaGithub size={24} />,
+        title: "Open Source",
+        desc: "Transparent development and community contributions."
     },
-};
-
-const timelineCardVariants = {
-    hidden: {
-        opacity: 0,
-        y: 20,
+    {
+        icon: <FileText size={24} />,
+        title: "Regulatory Awareness",
+        desc: "Medicine information and alerts are connected to available official/regulatory sources."
     },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.5,
-        },
+    {
+        icon: <Lock size={24} />,
+        title: "Privacy First",
+        desc: "We do not sell user health data or expose sensitive information."
     },
-};
+    {
+        icon: <Globe size={24} />,
+        title: "Designed for India",
+        desc: "Lightweight, multilingual and accessibility-conscious."
+    }
+];
 
 export default function HowItWorksPage() {
-    const t = useTranslations("howItWorks");
     return (
-        <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
+        <main className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
             <PageHeader backHref="/" variant="light" />
+            
             {/* Hero Section */}
-            <section className="relative px-6 pt-24 pb-20">
-                {/* Glow Effects */}
-                <div className="absolute top-10 left-0 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-                <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
-
-                <div className="relative mx-auto max-w-6xl text-center">
-                    <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        {t("badge")}
+            <section className="px-6 pt-16 pb-12 lg:pt-24 lg:pb-16 text-center">
+                <div className="mx-auto max-w-4xl">
+                    <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-900/20 dark:text-emerald-400">
+                        <CheckCircle2 size={14} className="text-emerald-500" />
+                        Safe Healthcare Platform
                     </div>
 
-                    <h1 className="text-4xl leading-tight font-black tracking-tight text-(--color-text-primary) sm:text-5xl md:text-7xl">
-                        {t.rich("heroTitle", {
-                            highlight: (chunks) => (
-                                <span className="text-emerald-600 dark:text-emerald-400">
-                                    {chunks}
-                                </span>
-                            ),
-                        })}
+                    <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
+                        How <span className="text-emerald-600 dark:text-emerald-400">SahiDawa</span> Works
                     </h1>
 
-                    <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-(--color-text-secondary) md:text-xl">
-                        {t("heroSubtitle")}
+                    <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg dark:text-slate-400">
+                        Scan medicines, check available regulatory information, receive safety alerts, and find trusted pharmacies — all from one place.
                     </p>
 
-                    {/* CTA Buttons */}
-                    <div className="mt-10 flex flex-wrap justify-center gap-4">
+                    <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                         <Link
                             href="/scan"
-                            className="rounded-2xl bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-700"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:bg-emerald-800"
                         >
-                            {t("ctaButtons.scan")}
+                            <span>Scan a Medicine</span>
+                            <QrCode size={18} />
                         </Link>
-
                         <Link
                             href="/map"
-                            className="rounded-2xl border border-(--color-border-muted) px-7 py-4 font-semibold text-(--color-text-secondary) transition-all duration-300 hover:border-emerald-500 hover:text-emerald-600"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-3.5 text-base font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
-                            {t("ctaButtons.map")}
+                            <span>Find a Pharmacy</span>
+                            <MapPin size={18} />
                         </Link>
+                    </div>
+
+                    <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500 sm:gap-6 dark:text-slate-500">
+                        <span className="flex items-center gap-1.5"><FaGithub size={14} /> Open Source</span>
+                        <span className="flex items-center gap-1.5"><MapPin size={14} /> Built for India</span>
+                        <span className="flex items-center gap-1.5"><Lock size={14} /> Privacy First</span>
                     </div>
                 </div>
             </section>
 
-            {/* Timeline Section */}
-            <section className="relative overflow-hidden px-6 py-10">
-                <h2 className="sr-only">How It Works Steps</h2>
-                <div className="relative mx-auto max-w-6xl">
-                    {/* Desktop Connected Path */}
-                    <motion.div
-                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 md:gap-6 md:overflow-x-visible md:pb-0 lg:grid-cols-3"
-                        variants={timelineContainerVariants}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true }}
-                    >
-                        {timelineSteps.map((step, index) => (
-                            <motion.div
-                                key={index}
-                                variants={timelineCardVariants}
-                                className="w-[calc(100%-3rem)] max-w-sm flex-shrink-0 snap-center md:w-auto md:max-w-none"
-                            >
-                                <div
-                                    className={`mt-2 flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] md:mt-0 ${step.borderClass}`}
-                                >
-                                    {/* Icon Container with Floating Number Badge */}
-                                    <div
-                                        className={`relative mb-5 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${step.bgClass}`}
-                                    >
-                                        {step.icon}
-                                        <span
-                                            className={`absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black text-white shadow-md ${step.badgeClass}`}
-                                        >
-                                            {index + 1}
-                                        </span>
+            {/* Process Timeline Section */}
+            <section className="border-t border-slate-200/60 bg-white px-6 py-16 dark:border-slate-800/60 dark:bg-slate-900/50">
+                <div className="mx-auto max-w-6xl">
+                    <h2 className="sr-only">How it Works Journey</h2>
+                    
+                    {/* Desktop Horizontal Timeline */}
+                    <div className="hidden lg:flex items-start justify-between relative">
+                        <div className="absolute top-6 left-6 right-6 h-[2px] bg-slate-100 dark:bg-slate-800" />
+                        
+                        {processSteps.map((step, idx) => (
+                            <div key={idx} className="relative z-10 flex w-48 flex-col items-center text-center group">
+                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-emerald-100 text-emerald-700 shadow-sm transition-transform duration-300 group-hover:-translate-y-1 dark:border-slate-900 dark:bg-emerald-900/40 dark:text-emerald-400">
+                                    {step.icon}
+                                </div>
+                                <div className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1 dark:text-slate-500">
+                                    {step.num}
+                                </div>
+                                <h3 className="mb-2 text-base font-bold text-slate-900 dark:text-white">
+                                    {step.title}
+                                </h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    {step.desc}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Mobile Vertical Timeline */}
+                    <div className="lg:hidden flex flex-col gap-8 relative pl-6">
+                        <div className="absolute top-2 bottom-2 left-[34px] w-[2px] bg-slate-100 dark:bg-slate-800" />
+                        
+                        {processSteps.map((step, idx) => (
+                            <div key={idx} className="relative z-10 flex items-start gap-4 group">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-emerald-100 text-emerald-700 shadow-sm transition-transform duration-300 group-hover:-translate-y-1 dark:border-slate-900 dark:bg-emerald-900/40 dark:text-emerald-400">
+                                    {step.icon}
+                                </div>
+                                <div className="pt-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs font-bold tracking-widest text-slate-400 uppercase dark:text-slate-500">{step.num}</span>
+                                        <h3 className="text-base font-bold text-slate-900 dark:text-white">{step.title}</h3>
                                     </div>
-
-                                    {/* Title */}
-                                    <h3 className="mb-2 text-base font-extrabold text-(--color-text-primary) md:text-lg">
-                                        {t(step.titleKey)}
-                                    </h3>
-
-                                    {/* Description */}
-                                    <p className="text-xs leading-relaxed text-(--color-text-secondary) md:text-sm">
-                                        {t(step.descriptionKey)}
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        {step.desc}
                                     </p>
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
             </section>
 
-            {/* Feature Cards */}
-            <section className="px-6 py-20">
-                <div className="mx-auto max-w-7xl">
-                    <div className="mb-16 text-center">
-                        <h2 className="text-4xl font-bold text-(--color-text-primary)">
-                            {t("features.title")}
+            {/* Platform Features Section */}
+            <section className="px-6 py-16 lg:py-24 bg-slate-50 dark:bg-slate-950">
+                <div className="mx-auto max-w-6xl">
+                    <div className="mb-12 md:text-center">
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                            Platform Features
                         </h2>
-
-                        <p className="mt-4 text-lg text-(--color-text-secondary)">
-                            {t("features.subtitle")}
+                        <p className="mt-3 text-base text-slate-600 dark:text-slate-400 md:mx-auto md:max-w-2xl">
+                            Everything you need to make safer healthcare decisions.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-                        {steps.map((step, index) => (
+                    {/* Primary Features */}
+                    <div className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+                        {primaryFeatures.map((feature, idx) => (
                             <div
-                                key={index}
-                                className="group rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg active:scale-[0.99]"
+                                key={idx}
+                                className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-emerald-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700"
                             >
-                                <div className="dark:text-emerald-450 mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 transition-all duration-300 group-hover:scale-105 dark:bg-emerald-950/40 dark:ring-emerald-900">
-                                    {step.icon}
+                                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:group-hover:bg-emerald-900/40">
+                                    {feature.icon}
                                 </div>
-
-                                <h3 className="mb-4 text-2xl font-bold text-(--color-text-primary)">
-                                    {t(step.titleKey)}
+                                <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-white">
+                                    {feature.title}
                                 </h3>
+                                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                                    {feature.desc}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
 
-                                <p className="text-base leading-relaxed text-(--color-text-secondary)">
-                                    {t(step.descriptionKey)}
+                    {/* Secondary Features */}
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                        {secondaryFeatures.map((feature, idx) => (
+                            <div
+                                key={idx}
+                                className="group flex flex-col rounded-2xl border border-slate-200/60 bg-white/50 p-6 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-slate-700 dark:hover:bg-slate-900"
+                            >
+                                <div className="mb-4 inline-flex items-center gap-3">
+                                    <div className="text-slate-500 dark:text-slate-400">
+                                        {feature.icon}
+                                    </div>
+                                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                                        {feature.title}
+                                    </h3>
+                                </div>
+                                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                                    {feature.desc}
                                 </p>
                             </div>
                         ))}
@@ -259,33 +265,60 @@ export default function HowItWorksPage() {
                 </div>
             </section>
 
-            {/* Bottom CTA */}
-            <section className="px-6 pb-24">
-                <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[40px] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 p-12 text-center text-white shadow-2xl">
-                    <div className="pointer-events-none absolute inset-0 rounded-[40px] ring-1 ring-white/10" />
+            {/* Live Data Proof Section */}
+            <section className="px-6 py-16 lg:py-24">
+                <SafetyStatsBanner />
+            </section>
 
-                    <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border-2 border-white/20" />
+            {/* Trust / Safety Section */}
+            <section className="border-t border-slate-200/60 bg-white px-6 py-16 lg:py-24 dark:border-slate-800/60 dark:bg-slate-900/50">
+                <div className="mx-auto max-w-6xl">
+                    <div className="mb-12 md:text-center">
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                            Built Around Safety, Transparency & Access
+                        </h2>
+                    </div>
 
-                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full border-2 border-white/20" />
-                    <h2 className="mb-6 text-4xl font-black md:text-5xl">{t("ctaBanner.title")}</h2>
+                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                        {trustPrinciples.map((principle, idx) => (
+                            <div key={idx} className="flex flex-col items-start md:items-center md:text-center">
+                                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                    {principle.icon}
+                                </div>
+                                <h3 className="mb-2 text-base font-bold text-slate-900 dark:text-white">
+                                    {principle.title}
+                                </h3>
+                                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                                    {principle.desc}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-                    <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-                        {t("ctaBanner.subtitle")}
+            {/* Final CTA */}
+            <section className="px-6 py-12 lg:py-16">
+                <div className="mx-auto max-w-4xl rounded-2xl bg-emerald-800 p-8 text-center text-white shadow-lg sm:p-12 dark:bg-emerald-900">
+                    <h2 className="mb-3 text-2xl font-bold sm:text-3xl">Check Before You Trust.</h2>
+                    <p className="mx-auto mb-8 max-w-xl text-sm text-emerald-100 sm:text-base">
+                        Verify medicine information, check safety alerts, and find trusted healthcare resources with SahiDawa.
                     </p>
 
-                    <div className="mt-10 flex flex-wrap justify-center gap-4">
+                    <div className="flex flex-col justify-center gap-3 sm:flex-row">
                         <Link
                             href="/scan"
-                            className="flex h-12 items-center justify-center rounded-2xl bg-white px-8 font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-white/50"
                         >
-                            {t("ctaBanner.buttons.scan")}
+                            <span>Scan Medicine</span>
+                            <QrCode size={16} />
                         </Link>
-
                         <Link
                             href="/alerts"
-                            className="flex h-12 items-center justify-center rounded-2xl border border-white/40 px-8 font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.98]"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-700/50 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-400"
                         >
-                            {t("ctaBanner.buttons.alerts")}
+                            <span>View Safety Alerts</span>
+                            <BellRing size={16} />
                         </Link>
                     </div>
                 </div>

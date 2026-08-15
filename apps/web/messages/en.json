@@ -203,6 +203,7 @@
     "Navigation": {
         "how_it_works": "How it Works",
         "alerts": "Alerts",
+        "tools": "Tools",
         "pharmacy_map": "Pharmacy Map",
         "my_reports": "My Reports",
         "schedule": "Schedule",
@@ -263,6 +264,7 @@
         "uploadPhoto": "Upload Photo",
         "share": {
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "title": "SahiDawa Medicine Verification Result",
             "real_status": "Verified REAL",
             "suspicious_status": "Marked SUSPICIOUS",
@@ -408,10 +410,6 @@
         "description": "You don't have an internet connection right now.",
         "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
         "tryAgain": "Try Again",
-        "syncFailedTitle": "Queued actions were rejected",
-        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-        "syncRetry": "Retry all",
-        "syncDiscard": "Discard",
         "goHome": "Go to Home",
         "footer": "SahiDawa will automatically sync when your connection returns.",
         "cachedContent": "You can still access previously loaded content",
@@ -434,7 +432,7 @@
         "empty": "No pending scans"
     },
     "contact": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "Get In",
             "highlight": "Touch"
@@ -471,7 +469,7 @@
     },
     "Footer": {
         "brandSubtitle": "Open-source medicine safety infrastructure. Scan, verify, and report risks with community-powered transparency.",
-        "madeForGssoc": "Made for GSSoC 2026",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "Quick Links",
             "expiry_tracker": "Expiry Tracker",
@@ -497,7 +495,7 @@
         "builtWithSuffix": "for the open-source community"
     },
     "about": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "heroTitle": "About <highlight>SahiDawa</highlight>",
         "heroSubtitle": "Open-source medicine safety infrastructure. Built for Bharat. Not just India.",
         "features": {
@@ -563,7 +561,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 Open Source Project",
+        "badge": "Free & Open Source Project",
         "title": "Frequently Asked",
         "title_highlight": "Questions",
         "subtitle": "Everything you need to know about SahiDawa — India's free, open-source medicine verification platform.",
@@ -599,7 +597,7 @@
             },
             "6": {
                 "question": "How can I contribute to SahiDawa?",
-                "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or join as a GSSoC 2026 participant."
+                "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or collaborate with us as a contributor."
             },
             "7": {
                 "question": "What is CDSCO?",
@@ -694,6 +692,14 @@
             "approved": "Approved",
             "recalled": "Recalled",
             "banned": "Banned"
+        },
+        "aiSimilarity": {
+            "checkButton": "Check AI similarity",
+            "checking": "Checking similarity…",
+            "scoreLabel": "AI similarity score",
+            "highlySimilarWarning": "These names look highly similar and may be confused with each other. Double-check before dispensing or purchasing.",
+            "differentResult": "These medicine names are not considered look-alike/sound-alike by the AI model.",
+            "errorMessage": "Couldn't check similarity right now. Please try again."
         }
     },
     "Calculator": {
@@ -869,6 +875,7 @@
         "success": "Account created successfully! Redirecting...",
         "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
         "errors": {
+            "fullNameInvalid": "Full name can only contain letters and spaces.",
             "databaseNotConfigured": "Authentication is not configured for this environment.",
             "generic": "Unable to create account. Please try again.",
             "fullNameRequired": "Full name is required.",
@@ -1395,7 +1402,16 @@
         "mechanism": "Mechanism:",
         "source": "Source:",
         "errorMessage": "Failed to complete interaction check. Please try again.",
-        "offlineBadge": "Offline Result — Connect to internet for latest data"
+        "offlineBadge": "Offline Result — Connect to internet for latest data",
+        "voice": {
+            "button": "Add medicines by voice",
+            "listening": "Listening… tap to stop",
+            "processing": "Adding medicines…",
+            "unsupported": "Voice input isn't supported on this browser",
+            "permissionDenied": "Microphone access is needed for voice input",
+            "error": "Couldn't add medicines by voice. Please try again.",
+            "noMedicines": "No medicine names detected. Please try again."
+        }
     },
     "ScanHistory": {
         "export_modal_title": "Export Scan History",
@@ -1434,9 +1450,14 @@
         "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
+        "item_copy_success": "Medicine name copied!",
+        "filter_status_label": "Filter by status",
+        "sort_label": "Sort by",
+        "sort_newest": "Newest first",
+        "sort_oldest": "Oldest first",
+        "no_filtered_results": "No scans match the selected filters.",
         "sync_auth_title": "Sign in to sync your history",
-        "sync_auth_action": "Sign in",
-        "item_copy_success": "Medicine name copied!"
+        "sync_auth_action": "Sign in"
     },
     "MyReports": {
         "header_title": "My Reports",
@@ -1722,7 +1743,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 Open Source Project",
+            "badge": "Free & Open Source Project",
             "title": "Privacy",
             "titleHighlight": "Policy",
             "subtitle": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it.",

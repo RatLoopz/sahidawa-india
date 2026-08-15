@@ -14,19 +14,6 @@ export default function Footer() {
 
     if (isMap) return null;
 
-    const quickLinks = [
-        {
-            href: "/expiry-tracker",
-            key: "quickLinks.expiry_tracker",
-            icon: CalendarRange,
-            highlight: true,
-        },
-        { href: "/faq", key: "quickLinks.faq" },
-        { href: "/about", key: "quickLinks.about" },
-        { href: "/privacy", key: "quickLinks.privacy" },
-        { href: "/contact", key: "quickLinks.contact" },
-    ];
-
     const resourceLinks = [
         {
             href: "https://github.com/RatLoopz/sahidawa-india",
@@ -62,117 +49,110 @@ export default function Footer() {
     ] as const;
 
     return (
-        <footer
-            className={`no-print relative mt-auto border-t border-slate-200/50 bg-white/70 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50 ${isHome ? "mb-16 md:mb-0" : ""}`}
-        >
-            {/* Decorative gradient blobs */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-emerald-500/5 blur-3xl dark:bg-emerald-500/10" />
-                <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/5 blur-3xl dark:bg-purple-500/10" />
-            </div>
-
-            <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 md:px-6">
+        <footer className={`no-print relative mt-auto border-t border-slate-200/50 bg-white dark:border-slate-800/50 dark:bg-slate-950 ${isHome ? "mb-16 md:mb-0" : ""}`}>
+            <div className="relative z-10 mx-auto max-w-5xl px-4 pt-12 pb-8 md:px-6">
                 {/* Main Footer Grid */}
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-6">
-                    {/* Brand Section - Takes more space */}
-                    <div className="md:col-span-5">
+                <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5 lg:gap-12 items-start">
+                    {/* Brand Section */}
+                    <div className="col-span-1 md:col-span-2 lg:col-span-2">
                         <h2 className="mb-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                             SahiDawa
                         </h2>
-                        <p className="mb-4 max-w-sm text-sm leading-relaxed text-slate-700 dark:text-slate-400">
+                        <p className="max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                             {t("brandSubtitle")}
                         </p>
                     </div>
 
-                    {/* Quick Links */}
-                    <nav className="md:col-span-2">
-                        <h3 className="mb-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
-                            {t("quickLinks.title")}
+                    {/* Product */}
+                    <div>
+                        <h3 className="mb-4 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
+                            Product
                         </h3>
-                        <ul className="space-y-1">
-                            {quickLinks.map((link) => (
-                                <li key={link.href}>
-                                    <Link
-                                        href={link.href}
-                                        onClick={() => {
-                                            window.scrollTo({
-                                                top: 0,
-                                                behavior: "smooth",
-                                            });
-                                        }}
-                                        className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
-                                            link.highlight
-                                                ? "font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                                                : "text-slate-700 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
-                                        }`}
-                                    >
-                                        {link.icon && <link.icon className="h-3.5 w-3.5" />}
-                                        {t(link.key)}
-                                    </Link>
-                                </li>
-                            ))}
+                        <ul className="flex flex-col gap-3">
                             <li>
-                                <Link
-                                    href="/partner"
-                                    className="inline-flex items-center gap-1.5 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
-                                >
-                                    Pharmacy Partner
+                                <Link href="/scan" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                                    Scan Medicine
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/alerts" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                                    Safety Alerts
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/map" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                                    Find Pharmacy
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/health" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                                    AI Assistant
                                 </Link>
                             </li>
                         </ul>
-                    </nav>
+                    </div>
 
                     {/* Resources */}
-                    <nav className="md:col-span-2">
-                        <h3 className="mb-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                    <div>
+                        <h3 className="mb-4 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             {t("resources.title")}
                         </h3>
-                        <ul className="space-y-1">
+                        <ul className="flex flex-col gap-3">
                             {resourceLinks.map((link) => (
                                 <li key={link.href}>
                                     <a
                                         href={link.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                                        className="inline-flex items-center gap-1 text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                                     >
                                         {t(link.key)}
-                                        <ExternalLink className="h-3 w-3" />
+                                        <ExternalLink className="h-3 w-3 opacity-50" />
                                     </a>
                                 </li>
                             ))}
+                            <li>
+                                <Link href="/faq" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                                    {t("quickLinks.faq")}
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/privacy" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
+                                    {t("quickLinks.privacy")}
+                                </Link>
+                            </li>
                         </ul>
-                    </nav>
+                    </div>
 
-                    {/* Connect Section */}
-                    <div className="md:col-span-3">
-                        <h3 className="mb-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
-                            {t("connectWithUs")}
+                    {/* Community */}
+                    <div>
+                        <h3 className="mb-4 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
+                            Community
                         </h3>
-                        <div className="mb-4 flex items-center gap-2">
-                            {socialLinks.map((social) => {
-                                const IconComponent = social.icon;
-                                return (
+                        <ul className="flex flex-col gap-3">
+                            {socialLinks.map((social) => (
+                                <li key={social.key}>
                                     <a
-                                        key={social.key}
                                         href={social.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        aria-label={t(social.key)}
-                                        className={`group flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white/50 text-slate-600 transition-all hover:scale-105 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400 ${social.hoverColor}`}
+                                        className="inline-flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                                     >
-                                        <IconComponent size={16} />
+                                        <social.icon size={14} />
+                                        {t(social.key)}
                                     </a>
-                                );
-                            })}
-                        </div>
-                        <a
-                            href="mailto:ratloopzcommunity@gmail.com"
-                            className="inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
-                        >
-                            <Mail className="h-4 w-4" />
-                            ratloopzcommunity@gmail.com
-                        </a>
+                                </li>
+                            ))}
+                            <li>
+                                <a
+                                    href="mailto:ratloopzcommunity@gmail.com"
+                                    className="inline-flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                                >
+                                    <Mail className="h-3.5 w-3.5" />
+                                    Contact
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 

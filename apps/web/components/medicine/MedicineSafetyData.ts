@@ -46,6 +46,15 @@ const safetyProfiles: MedicineSafetyProfile[] = [
     {
         activeIngredient: "paracetamol",
         genericName: "Paracetamol (Acetaminophen)",
+        description:
+            "Paracetamol is a common painkiller used to treat aches and pain. It can also be used to reduce a high temperature.",
+        commonUses: [
+            "Mild to moderate pain relief",
+            "Fever reduction",
+            "Headache",
+            "Toothache",
+            "Cold and flu symptoms",
+        ],
         brandAliases: [
             "crocin",
             "calpol",

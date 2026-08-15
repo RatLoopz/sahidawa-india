@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { fuzzyMatchBrand } from "@/lib/api";
 import { checkInteractions, type InteractionResult } from "@/lib/api/interactions";
+import { VoiceInputButton } from "@/components/ui/VoiceInputButton";
 import { PageHeader } from "../components/PageHeader";
 import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 
@@ -198,6 +199,29 @@ export default function InteractionCheckerPage() {
         inputRef.current?.focus();
     };
 
+    // Add several medicines at once (e.g. from voice extraction). Computing the
+    // whole list in one pass avoids the stale-state race of calling
+    // handleAddMedicine in a loop, and enforces sanitization/dedupe/max limit.
+    const handleAddMedicines = (medNames: string[]) => {
+        const updated = [...selectedMedicines];
+
+        for (const medName of medNames) {
+            if (updated.length >= MAX_INTERACTION_MEDICINES) break;
+
+            const sanitized = medName.trim().replace(/[\x00-\x1F\x7F-\x9F<>]/g, "");
+            if (!sanitized || sanitized.length > 100) continue;
+
+            const exists = updated.some((m) => m.toLowerCase() === sanitized.toLowerCase());
+            if (!exists) updated.push(sanitized);
+        }
+
+        if (updated.length > selectedMedicines.length) {
+            saveMedicinesList(updated);
+        }
+        setSearchQuery("");
+        setSuggestions([]);
+    };
+
     const handleRemoveMedicine = (indexToRemove: number) => {
         const updated = selectedMedicines.filter((_, idx) => idx !== indexToRemove);
         saveMedicinesList(updated);
@@ -323,6 +347,18 @@ export default function InteractionCheckerPage() {
                                 <Plus size={18} />
                                 <span>{t("addButton")}</span>
                             </button>
+                            <VoiceInputButton
+                                onMedicinesExtracted={handleAddMedicines}
+                                labels={{
+                                    button: t("voice.button"),
+                                    listening: t("voice.listening"),
+                                    processing: t("voice.processing"),
+                                    unsupported: t("voice.unsupported"),
+                                    permissionDenied: t("voice.permissionDenied"),
+                                    error: t("voice.error"),
+                                    noMedicines: t("voice.noMedicines"),
+                                }}
+                            />
                         </div>
 
                         {/* Suggestions Dropdown */}

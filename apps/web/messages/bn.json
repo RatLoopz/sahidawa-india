@@ -191,6 +191,7 @@
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
         "alerts": "সতর্কতা",
+        "tools": "সরঞ্জাম",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "my_reports": "আমার রিপোর্ট",
         "schedule": "সময়সূচি",
@@ -321,15 +322,10 @@
         "description": "এই মুহূর্তে আপনার কোনো ইন্টারনেট সংযোগ নেই।",
         "subtitle": "অফলাইনে থাকাকালীন কিছু বৈশিষ্ট্য অনুপলব্ধ। ইন্টারনেটের সাথে সংযোগ করার চেষ্টা করুন বা ক্যাশ করা সামগ্রী ব্রাউজ করুন।",
         "tryAgain": "আবার চেষ্টা করুন",
-
         "syncFailedTitle": "সারিবদ্ধ কাজগুলো প্রত্যাখ্যান করা হয়েছে",
-
         "syncFailedDescription": "সার্ভার কিছু সারিবদ্ধ কাজ প্রত্যাখ্যান করেছে। পুনরায় সংযোগের পরে আবার চেষ্টা করুন অথবা সেগুলো বাদ দিন।",
-
         "syncRetry": "সব আবার চেষ্টা করুন",
-
         "syncDiscard": "বাদ দিন",
-
         "goHome": "হোমে ফিরে যান",
         "footer": "সংযোগ ফিরে এলে SahiDawa স্বয়ংক্রিয়ভাবে সিঙ্ক হবে।",
         "cachedContent": "আপনি এখনও পূর্বে লোড করা সামগ্রী অ্যাক্সেস করতে পারেন",
@@ -343,7 +339,7 @@
         "browsedMedicines": "ব্রাউজ করা ওষুধ"
     },
     "contact": {
-        "badge": "GSSoC 2026 ওপেন সোর্স প্রজেক্ট",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "যোগাযোগ",
             "highlight": "করুন"
@@ -380,7 +376,7 @@
     },
     "Footer": {
         "brandSubtitle": "ভারতের প্রথম ওপেন-সোর্স ওষুধ যাচাইকরণ প্ল্যাটফর্ম। কমিউনিটি-চালিত স্বচ্ছতার সাথে আপনার ওষুধ স্ক্যান করুন, যাচাই করুন এবং বিশ্বাস করুন।",
-        "madeForGssoc": "GSSoC 2026-এর জন্য তৈরি",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "দ্রুত লিঙ্ক",
             "expiry_tracker": "মেয়াদোত্তীর্ণ ট্র্যাকার",
@@ -406,7 +402,7 @@
         "builtWithSuffix": "দিয়ে তৈরি"
     },
     "about": {
-        "badge": "GSSoC 2026 ওপেন সোর্স প্রজেক্ট",
+        "badge": "Free & Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> সম্পর্কে",
         "heroSubtitle": "ভারতের প্রথম ওপেন-সোর্স নাগরিক ওষুধ যাচাইকারী ও গ্রামীণ স্বাস্থ্য-সেতু। ভারতের জন্য নির্মিত—কেবল 'ইন্ডিয়া'-র জন্য নয়।",
         "features": {
@@ -472,7 +468,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 ওপেন সোর্স প্রজেক্ট",
+        "badge": "Free & Open Source Project",
         "title": "প্রায়শই জিজ্ঞাসিত",
         "title_highlight": "প্রশ্ন",
         "subtitle": "SahiDawa সম্পর্কে আপনার যা জানা দরকার — ভারতের বিনামূল্যের, ওপেন-সোর্স ওষুধ যাচাইকরণ প্ল্যাটফর্ম।",
@@ -508,7 +504,7 @@
             },
             "6": {
                 "question": "আমি কীভাবে SahiDawa-তে অবদান রাখতে পারি?",
-                "answer": "SahiDawa MIT লাইসেন্সের অধীনে ওপেন সোর্স। আপনি GitHub-এ অবদান রাখতে পারেন, বাগ রিপোর্ট করতে পারেন, ফিচার প্রস্তাব করতে পারেন অথবা GSSoC 2026 অংশগ্রহণকারী হিসেবে যোগ দিতে পারেন।"
+                "answer": "SahiDawa MIT লাইসেন্সের অধীনে ওপেন সোর্স। আপনি GitHub-এ অবদান রাখতে পারেন, বাগ রিপোর্ট করতে পারেন, ফিচার প্রস্তাব করতে পারেন অথবা open source অংশগ্রহণকারী হিসেবে যোগ দিতে পারেন।"
             },
             "7": {
                 "question": "CDSCO কী?",
@@ -521,6 +517,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1439,7 +1436,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ওপেন সোর্স প্রজেক্ট",
+            "badge": "Free & Open Source Project",
             "title": "গোপনীয়তা",
             "titleHighlight": "নীতি",
             "subtitle": "আমরা স্বচ্ছতায় বিশ্বাস করি। আমরা ঠিক কী সংগ্রহ করি, কেন এটি সংগ্রহ করি এবং আমরা কখনই এটির সাথে কী করি না তা এখানে রয়েছে।",

@@ -73,11 +73,20 @@ router.post(
             const audioBlob = new Blob([audioBytes], { type: req.file.mimetype });
             form.append("audio", audioBlob, "recording.webm");
 
-            const mlResponse = await fetch(`${ML_SERVICE_URL}/voice/verify`, {
-                method: "POST",
-                headers: getMlAuthHeaders(),
-                body: form,
-            });
+            let mlResponse: Response;
+            try {
+                mlResponse = await fetch(`${ML_SERVICE_URL}/voice/verify`, {
+                    method: "POST",
+                    headers: getMlAuthHeaders(),
+                    body: form,
+                    signal: AbortSignal.timeout(30_000), // Enforce 30s timeout
+                });
+            } catch (err: any) {
+                if (err.name === "AbortError" || err.name === "TimeoutError") {
+                    return res.status(504).json({ success: false, error: "ML service timed out during transcription" });
+                }
+                throw err;
+            }
 
             if (!mlResponse.ok) {
                 const errText = await mlResponse.text();
@@ -196,9 +205,24 @@ router.get("/languages", cacheMiddleware(3600, 7200), async (_req: Request, res:
             return res.status(503).json({ error: "ML service not configured" });
         }
 
-        const mlResponse = await fetch(`${ML_SERVICE_URL}/voice/languages`, {
-            headers: getMlAuthHeaders(),
-        });
+        let mlResponse: Response;
+        try {
+            mlResponse = await fetch(`${ML_SERVICE_URL}/voice/languages`, {
+                method: "GET",
+                headers: getMlAuthHeaders(),
+                signal: AbortSignal.timeout(10_000), // Enforce 10s timeout
+            });
+        } catch (err: any) {
+            if (err.name === "AbortError" || err.name === "TimeoutError") {
+                return res.status(504).json({ error: "ML service timed out" });
+            }
+            throw err;
+        }
+
+        if (!mlResponse.ok) {
+            const errText = await mlResponse.text();
+            return res.status(mlResponse.status).json({ error: errText });
+        }
         const data = await mlResponse.json();
         res.json(data);
     } catch {

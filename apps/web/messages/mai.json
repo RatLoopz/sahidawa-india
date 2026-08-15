@@ -239,6 +239,7 @@
         "uploadPhoto": "फोटो अपलोड करू",
         "share": {
             "button": "परिणाम शेयर करू",
+            "whatsapp_button": "WhatsApp पर शेयर करू",
             "title": "SahiDawa दवाइ सत्यापन परिणाम",
             "real_status": "असली सत्यापित",
             "suspicious_status": "संदिग्ध चिह्नित",
@@ -384,15 +385,10 @@
         "description": "अखन अहाँक इंटरनेट कनेक्शन नहि अछि।",
         "subtitle": "ऑफलाइन रहलापर किछु सुविधा अनुपलब्ध अछि। इंटरनेटसँ जुड़बाक प्रयास करू वा कैश्ड सामग्री देखू।",
         "tryAgain": "फेर प्रयास करू",
-
         "syncFailedTitle": "Queued actions were rejected",
-
         "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-
         "syncRetry": "Retry all",
-
         "syncDiscard": "Discard",
-
         "goHome": "होम पर जाऊ",
         "footer": "कनेक्शन वापस आयलापर SahiDawa स्वचालित रूपसँ सिंक हयत।",
         "cachedContent": "अहाँ पहिने लोड कयल सामग्री देखि सकैत छी",
@@ -415,7 +411,7 @@
         "empty": "कोनो लंबित स्कैन नहि अछि"
     },
     "contact": {
-        "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "संपर्क",
             "highlight": "करू"
@@ -452,7 +448,7 @@
     },
     "Footer": {
         "brandSubtitle": "भारतक पहिल ओपन-सोर्स औषधि सत्यापन प्लेटफॉर्म। समुदाय-संचालित पारदर्शिताक संग अपन औषधिक स्कैन, सत्यापित आ विश्वास करू।",
-        "madeForGssoc": "GSSoC 2026 लेल निर्मित",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "त्वरित लिंक",
             "expiry_tracker": "एक्सपायरी ट्रैकर",
@@ -478,7 +474,7 @@
         "builtWithSuffix": "क संग निर्मित"
     },
     "about": {
-        "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
+        "badge": "Free & Open Source Project",
         "heroTitle": "SahiDawa क <highlight>बारेमे</highlight>",
         "heroSubtitle": "भारतक पहिल मुक्त-स्रोत नागरिक दवाइ सत्यापक आ ग्रामीण स्वास्थ्य सेतु। भारतक लेल बनल। केवल भारतक लेल नहि।",
         "features": {
@@ -544,7 +540,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
+        "badge": "Free & Open Source Project",
         "title": "अक्सर पूछल",
         "title_highlight": "प्रश्न",
         "subtitle": "SahiDawa क बारेमे सब किछु जानू — भारतक मुफ्त, मुक्त-स्रोत दवाइ सत्यापन प्लेटफॉर्म।",
@@ -580,7 +576,7 @@
             },
             "6": {
                 "question": "SahiDawa पर कोना योगदान दऽ सकैत छी?",
-                "answer": "SahiDawa MIT लाइसेंसक अंतर्गत मुक्त-स्रोत अछि। अहाँ GitHub पर योगदान दऽ सकैत छी, बग रिपोर्ट कऽ सकैत छी, सुविधा सुझाव दऽ सकैत छी, वा GSSoC 2026 प्रतिभागी क रूपमे जुड़ि सकैत छी।"
+                "answer": "SahiDawa MIT लाइसेंसक अंतर्गत मुक्त-स्रोत अछि। अहाँ GitHub पर योगदान दऽ सकैत छी, बग रिपोर्ट कऽ सकैत छी, सुविधा सुझाव दऽ सकैत छी, वा open source प्रतिभागी क रूपमे जुड़ि सकैत छी।"
             },
             "7": {
                 "question": "CDSCO की अछि?",
@@ -1628,7 +1624,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+            "badge": "Free & Open Source Project",
             "title": "गोपनीयता",
             "titleHighlight": "नीति",
             "subtitle": "हम पारदर्शिता मे विश्वास करैत छी। अहाँक की एकत्रित करैत छी, हम की लेल एकत्रित करैत छी आ हम ओकरा सँ की कखनो नै करैत छी से अहाँ देखि सकैत छी।",

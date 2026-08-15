@@ -1,8 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { getTranslations } from "next-intl/server";
 import {
     ArrowLeft,
     Pill,
@@ -52,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 type: "website",
             },
         };
-    } catch (e) {
+    } catch {
         return {
             title: `${searchString} Alternatives & Price Check | SahiDawa`,
             description: `Check generic alternatives and price details for ${searchString}.`,
@@ -60,11 +58,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
+export async function generateStaticParams() {
+    try {
+        const { supabase } = await import("@/lib/supabase");
+        // Fetch a list of top popular medicines for static generation at build time
+        const { data } = await supabase.from("generic_alternatives").select("brand_name").limit(50);
+
+        if (!data || data.length === 0) {
+            return [];
+        }
+
+        const { routing } = await import("@/i18n/routing");
+        const locales = routing.locales;
+
+        const params: { locale: string; slug: string }[] = [];
+        for (const row of data) {
+            if (row.brand_name) {
+                const slug = slugify(row.brand_name);
+                for (const locale of locales) {
+                    params.push({ locale, slug });
+                }
+            }
+        }
+
+        return params;
+    } catch (e) {
+        console.error("Failed to generate static params for medicine pages:", e);
+        return [];
+    }
+}
+
 export default async function MedicinePage({ params }: Props) {
     const { locale, slug } = await params;
     const searchString = deslugify(slug);
-    const t = await getTranslations("Calculator");
-    const tCommon = await getTranslations("Home");
     const baseUrl = getSiteUrl();
     const pageUrl = `${baseUrl}/${locale}/medicine/${slug}`;
 

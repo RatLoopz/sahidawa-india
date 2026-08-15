@@ -191,6 +191,7 @@
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
         "alerts": "الرٹس",
+        "tools": "سঁজুলি",
         "pharmacy_map": "فارمیسی کا نقشہ",
         "my_reports": "میری رپورٹس",
         "schedule": "شیڈول",
@@ -321,15 +322,10 @@
         "description": "اس وقت آپ کا انٹرنیٹ کنکشن دستیاب نہیں ہے۔",
         "subtitle": "آف لائن ہونے کے دوران کچھ خصوصیات دستیاب نہیں ہوتیں۔ انٹرنیٹ سے منسلک ہونے کی کوشش کریں یا پہلے سے محفوظ مواد دیکھیں۔",
         "tryAgain": "دوبارہ کوشش کریں",
-
         "syncFailedTitle": "قطار میں موجود اقدامات مسترد کر دیے گئے",
-
         "syncFailedDescription": "سرور نے کچھ قطار میں موجود اقدامات مسترد کر دیے۔ دوبارہ جڑنے کے بعد دوبارہ کوشش کریں یا انہیں ہٹا دیں۔",
-
         "syncRetry": "سب دوبارہ کوشش کریں",
-
         "syncDiscard": "ہٹائیں",
-
         "goHome": "ہوم پیج پر جائیں",
         "footer": "کنکشن بحال ہونے پر SahiDawa خود بخود تبدیلیاں مطابقت پذیر کر دے گی۔",
         "cachedContent": "آپ پہلے سے لوڈ کردہ مواد تک رسائی حاصل کر سکتے ہیں",
@@ -343,7 +339,7 @@
         "browsedMedicines": "دیکھی گئی ادویات"
     },
     "contact": {
-        "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "ہم سے",
             "highlight": "رابطہ کریں"
@@ -380,7 +376,7 @@
     },
     "Footer": {
         "brandSubtitle": "بھارت کا پہلا اوپن سورس ادویات کی تصدیق کا پلیٹ فارم۔ کمیونٹی پر مبنی شفافیت کے ساتھ اپنی ادویات کو اسکین، تصدیق اور بھروسہ کریں۔",
-        "madeForGssoc": "GSSoC 2026 کے لیے تیار کردہ",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "فوری لنکس",
             "expiry_tracker": "ایکسپائری ٹریکر",
@@ -472,7 +468,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+        "badge": "Free & Open Source Project",
         "title": "اکثر پوچھے جانے والے",
         "title_highlight": "سوالات",
         "subtitle": "SahiDawa کے بارے میں وہ سب کچھ جو آپ کو جاننے کی ضرورت ہے — بھارت کا مفت، اوپن سورس دوا تصدیق پلیٹ فارم۔",
@@ -508,7 +504,7 @@
             },
             "6": {
                 "question": "میں SahiDawa میں کیسے تعاون کر سکتا/سکتی ہوں؟",
-                "answer": "SahiDawa MIT لائسنس کے تحت اوپن سورس ہے۔ آپ GitHub پر تعاون کر سکتے ہیں، بگ رپورٹ کر سکتے ہیں، فیچر تجویز کر سکتے ہیں یا GSSoC 2026 کے شریک کے طور پر شامل ہو سکتے ہیں۔"
+                "answer": "SahiDawa MIT لائسنس کے تحت اوپن سورس ہے۔ آپ GitHub پر تعاون کر سکتے ہیں، بگ رپورٹ کر سکتے ہیں، فیچر تجویز کر سکتے ہیں یا open source کے شریک کے طور پر شامل ہو سکتے ہیں۔"
             },
             "7": {
                 "question": "CDSCO کیا ہے؟",
@@ -521,6 +517,7 @@
             "avoid_and_report": "Please avoid and report to your nearest health worker.",
             "batch_label": "Batch",
             "button": "Share Result",
+            "whatsapp_button": "Share to WhatsApp",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now",
             "manufacturer_label": "Manufacturer",
@@ -1383,7 +1380,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+            "badge": "Free & Open Source Project",
             "title": "رازداری",
             "titleHighlight": "پالیسی",
             "subtitle": "ہم شفافیت پر یقین رکھتے ہیں۔ یہاں بالکل وہی دیا گیا ہے جو ہم جمع کرتے ہیں، کیوں جمع کرتے ہیں اور جو ہم کبھی نہیں کرتے۔",

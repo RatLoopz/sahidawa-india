@@ -79,11 +79,13 @@ Rules for valid medicines:
 - All text in English. Medical terms followed by layperson explanation in parentheses.
 - If reference FDA text is provided, prioritise it but keep output concise.
 
-Required JSON shape:
+Required JSON shape (ALL fields are MANDATORY — never omit any):
 {
   "isMedicine": boolean,
   "activeIngredient": "string — INN generic name",
   "genericName": "string — display name",
+  "description": "string — 1-2 sentence plain-language description of what this medicine is and how it works",
+  "commonUses": ["string — condition 1", "string — condition 2", "string — condition 3"],
   "brandAliases": ["array of common brand names"],
   "sideEffects": [{"name":"string","severity":"common|severe","frequency":"common|uncommon|rare"}],
   "ageBasedDosage": [{"group":"children|adults|elderly","label":"string","ageRange":"string","dose":"string","frequency":"string","notes":["string"],"warnings":["string"]}],
@@ -99,6 +101,8 @@ const GEMINI_SCHEMA: Schema = {
         isMedicine: { type: SchemaType.BOOLEAN },
         activeIngredient: { type: SchemaType.STRING },
         genericName: { type: SchemaType.STRING },
+        description: { type: SchemaType.STRING },
+        commonUses: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         brandAliases: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         sideEffects: {
             type: SchemaType.ARRAY,
@@ -148,6 +152,8 @@ const GEMINI_SCHEMA: Schema = {
         "isMedicine",
         "activeIngredient",
         "genericName",
+        "description",
+        "commonUses",
         "brandAliases",
         "sideEffects",
         "ageBasedDosage",
@@ -286,13 +292,24 @@ export async function GET(request: NextRequest) {
                         { status: 404 }
                     );
                 }
-                return NextResponse.json(data.profile_json, {
-                    headers: {
-                        "X-Cache": "HIT",
-                        "X-Cache-Source": "supabase",
-                        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
-                    },
-                });
+
+                // Only serve from cache if profile has the new required fields.
+                // If missing, delete the stale entry so fresh LLM data is written back.
+                if (cachedProfile.description && cachedProfile.commonUses?.length > 0) {
+                    return NextResponse.json(data.profile_json, {
+                        headers: {
+                            "X-Cache": "HIT",
+                            "X-Cache-Source": "supabase",
+                            "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+                        },
+                    });
+                }
+
+                // Stale entry — delete it so the upsert below writes fresh data
+                await db
+                    .from("medicine_safety_profiles")
+                    .delete()
+                    .eq("generic_name", genericName);
             }
         } catch {
             // non-fatal — proceed to LLM

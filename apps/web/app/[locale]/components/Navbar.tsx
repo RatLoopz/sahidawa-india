@@ -10,7 +10,6 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useSession } from "@/src/components/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
-import { motion, useScroll, useSpring } from "framer-motion";
 // Sub-components
 import DesktopNavLinks from "./Navbar/DesktopNavLinks";
 import UserDropdown from "./Navbar/UserDropdown";
@@ -78,14 +77,6 @@ export default function Navbar() {
             router.refresh();
         }
     };
-
-    /* SCROLL PROGRESSBAR */
-    const { scrollYProgress } = useScroll();
-    const scaleX = useSpring(scrollYProgress, {
-        stiffness: 140,
-        damping: 28,
-        mass: 0.25,
-    });
 
     useEffect(() => {
         setIsMenuOpen(false);
@@ -158,27 +149,8 @@ export default function Navbar() {
                         />
                     </div>
                 </div>
-                <div className="absolute bottom-0 left-0 h-[4px] w-full overflow-visible bg-black/[0.06] dark:bg-white/[0.08]">
-                    <motion.div
-                        aria-hidden="true"
-                        style={{ scaleX }}
-                        className="relative h-full w-full origin-left"
-                    >
-                        {/* Tonal gradient fill */}
-                        <div className="h-full w-full rounded-r-full bg-gradient-to-r from-emerald-500/80 to-emerald-500 dark:from-emerald-400/80 dark:to-emerald-400" />
-
-                        {/* Soft ambient glow */}
-                        <div className="absolute inset-0 rounded-r-full bg-emerald-500 opacity-30 blur-[5px] dark:bg-emerald-400 dark:opacity-40" />
-
-                        {/* Leading edge highlight */}
-                        <div
-                            className="absolute top-1/2 right-0 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-emerald-600 dark:bg-emerald-300"
-                            style={{
-                                boxShadow: "0 0 6px rgba(16,185,129,0.6)",
-                            }}
-                        />
-                    </motion.div>
-                </div>
+                {/* Clean bottom border instead of progress bar */}
+                <div className="absolute bottom-0 left-0 h-[1px] w-full bg-slate-200/50 dark:bg-slate-800/50" />
             </header>
 
             {isMenuOpen && (

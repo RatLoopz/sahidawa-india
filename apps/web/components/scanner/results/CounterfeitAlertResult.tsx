@@ -1,19 +1,23 @@
 import { VerifiedMedicine } from "@/lib/api";
-import { AlertTriangle, Check, Copy, X } from "lucide-react";
+import { AlertTriangle, Check, Copy, MessageCircle, X } from "lucide-react";
 import { ResultActions } from "./ResultActions";
 export function CounterfeitAlertResult({
     medicine,
     onScanAgain,
     onShare,
+    onShareToWhatsApp,
     onCopyMedicineDetails,
     shareLabel,
+    whatsappLabel,
     copied,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
     onShare: () => void;
+    onShareToWhatsApp: () => void;
     onCopyMedicineDetails: () => void;
     shareLabel: string;
+    whatsappLabel: string;
     copied: boolean;
 }) {
     return (
@@ -99,6 +103,19 @@ export function CounterfeitAlertResult({
                         Report to your nearest pharmacy or call the CDSCO helpline immediately.
                     </p>
                 </div>
+
+                {/* WhatsApp is the primary channel for sharing health alerts in
+                    India, so surface a dedicated one-tap action (works on desktop
+                    too, where the OS share sheet is usually unavailable). */}
+                <button
+                    type="button"
+                    onClick={onShareToWhatsApp}
+                    aria-label={whatsappLabel}
+                    className="no-print flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-3.5 font-bold text-white shadow-lg shadow-green-600/20 transition-all hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                    <MessageCircle size={18} aria-hidden="true" />
+                    <span>{whatsappLabel}</span>
+                </button>
 
                 <ResultActions
                     onScanAgain={onScanAgain}

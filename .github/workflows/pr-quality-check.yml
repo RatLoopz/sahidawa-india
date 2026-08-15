@@ -143,6 +143,14 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase locally
+        run: npx supabase start
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 

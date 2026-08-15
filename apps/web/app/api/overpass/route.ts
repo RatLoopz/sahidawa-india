@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
                                     headers: { "X-Cache": "HIT-WAIT" },
                                 });
                             }
-                        } catch (parseErr) {
+                        } catch {
                             console.warn("[overpass] Failed to parse polled cache");
                         }
                     }
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
                             });
                         }
                     }
-                } catch (e) {
+                } catch {
                     // Ignore and proceed to fetch
                 }
             }
@@ -154,84 +154,86 @@ export async function POST(req: NextRequest) {
         try {
             // Cache miss (or invalid cache): query all mirrors in parallel
             const controllers: AbortController[] = [];
-        const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
-            const controller = new AbortController();
-            controllers.push(controller);
-            // Overpass queries often take 10-15s, increase timeout to 25s
-            const timeoutId = setTimeout(() => controller.abort(), 25000);
+            const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
+                const controller = new AbortController();
+                controllers.push(controller);
+                // Overpass queries often take 10-15s, increase timeout to 25s
+                const timeoutId = setTimeout(() => controller.abort(), 25000);
 
+                try {
+                    const response = await fetch(mirror, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            Accept: "application/json",
+                            "User-Agent":
+                                "SahiDawaApp/1.0 (https://sahidawa.org; contact@sahidawa.org)",
+                        },
+                        body: `data=${encodeURIComponent(query)}`,
+                        signal: controller.signal,
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`Mirror ${mirror} returned status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    if (!data || !Array.isArray(data.elements)) {
+                        throw new Error(`Mirror ${mirror} returned invalid data structure`);
+                    }
+
+                    if (data.elements.length === 0) {
+                        throw new Error(
+                            `Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`
+                        );
+                    }
+
+                    return data;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    throw err;
+                }
+            });
+
+            let fastestData;
             try {
-                const response = await fetch(mirror, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        Accept: "application/json",
-                        "User-Agent":
-                            "SahiDawaApp/1.0 (https://sahidawa.org; contact@sahidawa.org)",
-                    },
-                    body: `data=${encodeURIComponent(query)}`,
-                    signal: controller.signal,
-                });
+                fastestData = await Promise.any(fetchPromises);
+            } catch (aggregateError: any) {
+                // Check if any mirror successfully completed but returned 0 elements
+                const zeroElementErrors = (aggregateError.errors || []).filter(
+                    (err: any) => err.message && err.message.includes("returned 0 elements")
+                );
 
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    throw new Error(`Mirror ${mirror} returned status ${response.status}`);
+                if (zeroElementErrors.length > 0) {
+                    console.warn("[overpass] At least one mirror successfully returned 0 elements");
+                    fastestData = { elements: [] };
+                } else {
+                    console.error("[overpass] All parallel mirrors failed with errors/timeouts");
+                    throw aggregateError;
                 }
+            }
 
-                const data = await response.json();
-                if (!data || !Array.isArray(data.elements)) {
-                    throw new Error(`Mirror ${mirror} returned invalid data structure`);
+            // Abort remaining in-flight requests
+            for (const c of controllers) {
+                if (!c.signal.aborted) c.abort();
+            }
+
+            // Cache write (only when elements exist)
+            if (Array.isArray(fastestData?.elements) && fastestData.elements.length > 0) {
+                try {
+                    await redis.set(cacheKey, JSON.stringify(fastestData), {
+                        ex: CACHE_TTL_SECONDS,
+                    });
+                } catch (redisErr) {
+                    console.warn("[overpass] Redis SET failed:", redisErr);
                 }
-
-                if (data.elements.length === 0) {
-                    throw new Error(
-                        `Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`
-                    );
-                }
-
-                return data;
-            } catch (err) {
-                clearTimeout(timeoutId);
-                throw err;
             }
-        });
 
-        let fastestData;
-        try {
-            fastestData = await Promise.any(fetchPromises);
-        } catch (aggregateError: any) {
-            // Check if any mirror successfully completed but returned 0 elements
-            const zeroElementErrors = (aggregateError.errors || []).filter(
-                (err: any) => err.message && err.message.includes("returned 0 elements")
-            );
-
-            if (zeroElementErrors.length > 0) {
-                console.warn("[overpass] At least one mirror successfully returned 0 elements");
-                fastestData = { elements: [] };
-            } else {
-                console.error("[overpass] All parallel mirrors failed with errors/timeouts");
-                throw aggregateError;
-            }
-        }
-
-        // Abort remaining in-flight requests
-        for (const c of controllers) {
-            if (!c.signal.aborted) c.abort();
-        }
-
-        // Cache write (only when elements exist)
-        if (Array.isArray(fastestData?.elements) && fastestData.elements.length > 0) {
-            try {
-                await redis.set(cacheKey, JSON.stringify(fastestData), { ex: CACHE_TTL_SECONDS });
-            } catch (redisErr) {
-                console.warn("[overpass] Redis SET failed:", redisErr);
-            }
-        }
-
-        return NextResponse.json(fastestData, {
-            headers: { "X-Cache": "MISS" },
-        });
+            return NextResponse.json(fastestData, {
+                headers: { "X-Cache": "MISS" },
+            });
         } finally {
             if (lockAcquired) {
                 try {

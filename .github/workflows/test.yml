@@ -39,6 +39,14 @@ jobs:
 
             - name: 📦 Install Dependencies (Monorepo)
               run: npm install --legacy-peer-deps
+
+            - name: Setup Supabase CLI
+              uses: supabase/setup-cli@v1
+              with:
+                version: latest
+
+            - name: Start Supabase locally
+              run: npx supabase start
             
             - name: ⚡ Cache Turborepo
               uses: actions/cache@v4

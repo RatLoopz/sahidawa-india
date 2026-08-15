@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GitHub Actions CI Pipeline** — Automated lint, build, and test runs on every PR targeting `main`
 - **Community & Contribution Setup**
   - `README.md` with full architecture diagram, tech stack, and project roadmap
-  - `CONTRIBUTING.md` with detailed contribution workflow, coding standards, and GSSoC 2026 guidelines
+  - `CONTRIBUTING.md` with detailed contribution workflow, coding standards, and community guidelines
   - `CODE_OF_CONDUCT.md`
   - `SETUPGUIDE.MD` for maintainer and contributor onboarding
   - `.github/ISSUE_TEMPLATE/` — bug report and feature request templates

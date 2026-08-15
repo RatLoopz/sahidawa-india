@@ -553,3 +553,23 @@ export async function checkLasaConflicts(
     // Otherwise, wait for the network request to complete
     return promise;
 }
+
+export interface CompareSimilarityResult {
+    medicine_a: string;
+    medicine_b: string;
+    similarity_score: number;
+    verdict: "highly_similar" | "different";
+}
+
+export async function compareMedicineSimilarity(
+    medicineA: string,
+    medicineB: string,
+    signal?: AbortSignal
+): Promise<CompareSimilarityResult> {
+    return fetchWithCsrf<CompareSimilarityResult>(`${API_BASE}/api/compare`, {
+        method: "POST",
+        body: JSON.stringify({ medicine_a: medicineA, medicine_b: medicineB }),
+        timeout: 10000,
+        signal,
+    });
+}

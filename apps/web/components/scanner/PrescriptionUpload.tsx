@@ -3,7 +3,6 @@
 import React, { useState, useRef } from "react";
 import { Upload, X, Loader2, Camera } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 
 export interface ScannerResult {
     medicines: {
@@ -90,11 +89,11 @@ export const PrescriptionUpload: React.FC<PrescriptionUploadProps> = ({ onScanSu
             onScanSuccess(data as ScannerResult);
         } catch (err: any) {
             console.error("Scan error:", err);
-            
+
             // For known errors like 'blurry', map to the locale key, else fallback to 'apiFailure'
             const errorKeys = ["unsupportedFile", "emptyUpload", "apiFailure", "blurry", "network"];
             const errorKey = errorKeys.includes(err.message) ? err.message : "network";
-            
+
             setError(t(`errors.${errorKey}`));
         } finally {
             setIsScanning(false);
@@ -102,17 +101,17 @@ export const PrescriptionUpload: React.FC<PrescriptionUploadProps> = ({ onScanSu
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto p-6 border rounded-xl shadow-sm bg-white dark:bg-zinc-900">
-            <h2 className="text-xl font-semibold mb-2">{t("uploadTitle")}</h2>
-            <p className="text-sm text-gray-500 mb-6">{t("uploadDescription")}</p>
+        <div className="mx-auto w-full max-w-2xl rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-900">
+            <h2 className="mb-2 text-xl font-semibold">{t("uploadTitle")}</h2>
+            <p className="mb-6 text-sm text-gray-500">{t("uploadDescription")}</p>
 
             <div className="flex flex-col items-center justify-center space-y-4">
                 {!preview && (
-                    <div 
+                    <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                        className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800"
                     >
-                        <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                        <Upload className="mb-2 h-10 w-10 text-gray-400" />
                         <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                             {t("uploadButton")}
                         </span>
@@ -128,33 +127,33 @@ export const PrescriptionUpload: React.FC<PrescriptionUploadProps> = ({ onScanSu
                 )}
 
                 {preview && (
-                    <div className="relative w-full rounded-lg overflow-hidden border bg-black/5">
-                        <img 
-                            src={preview} 
-                            alt="Prescription preview" 
-                            className="w-full h-auto object-contain max-h-[500px]"
+                    <div className="relative w-full overflow-hidden rounded-lg border bg-black/5">
+                        <img
+                            src={preview}
+                            alt="Prescription preview"
+                            className="h-auto max-h-[500px] w-full object-contain"
                         />
                         {!isScanning && (
                             <button
                                 onClick={handleClear}
-                                className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                                className="absolute top-2 right-2 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
                                 aria-label="Remove image"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="h-5 w-5" />
                             </button>
                         )}
                         {isScanning && (
-                            <div className="absolute inset-0 bg-white/70 dark:bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm">
-                                <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-                                <p className="font-medium text-lg">{t("analyzing")}</p>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm dark:bg-black/70">
+                                <Loader2 className="mb-4 h-10 w-10 animate-spin text-blue-600" />
+                                <p className="text-lg font-medium">{t("analyzing")}</p>
                             </div>
                         )}
                     </div>
                 )}
 
                 {error && (
-                    <div className="w-full p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2 border border-red-200 dark:border-red-900">
-                        <X className="w-5 h-5 shrink-0" />
+                    <div className="flex w-full items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+                        <X className="h-5 w-5 shrink-0" />
                         <span>{error}</span>
                     </div>
                 )}
@@ -162,9 +161,9 @@ export const PrescriptionUpload: React.FC<PrescriptionUploadProps> = ({ onScanSu
                 {preview && !isScanning && (
                     <button
                         onClick={handleSubmit}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-medium text-white transition-colors hover:bg-blue-700"
                     >
-                        <Camera className="w-5 h-5" />
+                        <Camera className="h-5 w-5" />
                         {t("analyzing")}
                     </button>
                 )}

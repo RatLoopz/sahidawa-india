@@ -38,7 +38,7 @@ type MedicineSafetyPanelProps = {
     onClose?: () => void;
 };
 
-type TabType = "sideEffects" | "dosage" | "diet";
+type TabType = "overview" | "sideEffects" | "dosage" | "diet";
 type AgeGroupKey = AgeGroup["group"];
 
 // ── Lucide icon resolver for dietary cue icon names ───────────────────────────
@@ -75,7 +75,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     const t = useTranslations("medicineSafety");
     const [profile, setProfile] = useState<MedicineSafetyProfile | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
+    const [activeTab, setActiveTab] = useState<TabType>("overview");
     const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
 
     useEffect(() => {
@@ -85,33 +85,54 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
         setIsLoading(true);
         setProfile(null);
 
-        fetchSafetyProfile(searchQuery)
-            .then((result) => {
-                if (!cancelled) {
-                    setProfile(result);
-                    setIsLoading(false);
-                }
-            })
-            .catch((err) => console.error("[SafetyPanel] Failed:", err));
+        fetchSafetyProfile(searchQuery).then((result) => {
+            if (!cancelled) {
+                setProfile(result);
+                setIsLoading(false);
+            }
+        }).catch(err => console.error("[SafetyPanel] Failed:", err));
 
         return () => {
             cancelled = true;
         };
     }, [searchQuery]);
 
+
     if (isLoading) {
         return (
             <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
-                    <ShieldCheck className="h-4 w-4 animate-pulse text-emerald-500" />
-                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                        Loading safety data…
+                {/* Header */}
+                <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30">
+                        <div className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        Fetching safety info
+                        <span className="ml-1 font-normal text-slate-400">for</span>{" "}
+                        <span className="text-emerald-600 dark:text-emerald-400">{searchQuery}</span>
+                        <span className="ml-0.5 inline-flex gap-0.5">
+                            <span className="animate-bounce" style={{ animationDelay: "0ms" }}>.</span>
+                            <span className="animate-bounce" style={{ animationDelay: "150ms" }}>.</span>
+                            <span className="animate-bounce" style={{ animationDelay: "300ms" }}>.</span>
+                        </span>
                     </span>
                 </div>
-                <div className="space-y-2 p-4">
-                    <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                {/* Skeleton rows */}
+                <div className="space-y-3 p-4">
+                    <div className="h-3 w-4/5 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-3/5 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="mt-4 flex gap-2">
+                        {[40, 60, 50, 55].map((w, i) => (
+                            <div
+                                key={i}
+                                className="h-7 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800"
+                                style={{ width: `${w}px` }}
+                            />
+                        ))}
+                    </div>
+                    <div className="h-3 w-full animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-4/6 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-5/6 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
                 </div>
             </div>
         );
@@ -143,6 +164,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     ];
 
     const TABS: { key: TabType; label: string; Icon: React.ElementType }[] = [
+        { key: "overview", label: "Overview & Usage", Icon: Info },
         { key: "sideEffects", label: t("tabs.sideEffects"), Icon: AlertTriangle },
         { key: "dosage", label: t("tabs.dosage"), Icon: Syringe },
         { key: "diet", label: t("tabs.dietaryIntake"), Icon: Utensils },
@@ -184,6 +206,41 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
 
             {/* Tab Content */}
             <div className="min-h-[140px] p-4 text-xs">
+                {/* Overview */}
+                {activeTab === "overview" && (
+                    <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+                        {profile.description && (
+                            <div>
+                                <h4 className="mb-1 font-semibold text-slate-900 dark:text-slate-100">
+                                    What is it?
+                                </h4>
+                                <p className="leading-relaxed">{profile.description}</p>
+                            </div>
+                        )}
+                        {profile.commonUses && profile.commonUses.length > 0 && (
+                            <div>
+                                <h4 className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
+                                    Common Uses
+                                </h4>
+                                <ul className="space-y-1">
+                                    {profile.commonUses.map((use, idx) => (
+                                        <li key={idx} className="flex items-start gap-1.5">
+                                            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                                            <span>{use}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {!profile.description &&
+                            (!profile.commonUses || profile.commonUses.length === 0) && (
+                                <p className="text-slate-500 italic">
+                                    No usage information available for this medicine.
+                                </p>
+                            )}
+                    </div>
+                )}
+
                 {/* Side Effects */}
                 {activeTab === "sideEffects" && (
                     <div className="space-y-3">

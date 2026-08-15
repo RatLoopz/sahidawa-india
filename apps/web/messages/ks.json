@@ -207,6 +207,7 @@
     "Scan": {
         "share": {
             "button": "نَتیجہِ شیئر کَریو",
+            "whatsapp_button": "WhatsApp شیئر کَریو",
             "title": "صحیح دَوا تصدیق نَتیجہِ",
             "real_status": "تصدیق شُدہ اَصلی",
             "suspicious_status": "شَک دار مَشہُور",
@@ -362,15 +363,10 @@
         "description": "تُہنٛد اِنٹرنیٹ رابطہِ چُھنہِ وَعکِے چَلان۔",
         "subtitle": "آف لائن مَنٛز چِھ کینٛہ خُصوصِیَت بَنٛد۔ اِنٹرنیٹ سٲتؠ جوڑِیو یا کَیش مَواد وُچھِیو۔",
         "tryAgain": "دوبارہ کوشِش کَریو",
-
         "syncFailedTitle": "Queued actions were rejected",
-
         "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
-
         "syncRetry": "Retry all",
-
         "syncDiscard": "Discard",
-
         "goHome": "ہوم پؠٹھ گَژھیو",
         "footer": "صحیح دَوا کَری اِنٹرنیٹ واپس یِنہِ پَتہِ خودکار ہَم آہَنٛگ۔",
         "cachedContent": "تُہؠ ہیکِیو پُرون لوڈ کَردَہ مَواد وُچھِتھ",
@@ -384,7 +380,7 @@
         "browsedMedicines": "وُچھمِژ دَواہَ"
     },
     "contact": {
-        "badge": "GSSoC 2026 اوپَن سورس پَروجیکٹ",
+        "badge": "Free & Open Source Project",
         "heroTitle": {
             "prefix": "رٲبطہِ ",
             "highlight": "کَریو"
@@ -421,7 +417,7 @@
     },
     "Footer": {
         "brandSubtitle": "ہِندوستانُک گۄڈنُک اوپن سورس دواہن ہُنٛد تصدیق کار پلیٹ فارم۔ پننہ دواہ کٔریو اسکین، تصدیق تہِ بھروسہٕ۔",
-        "madeForGssoc": "GSSoC 2026 خٲطرٕ بناومُت",
+        "madeForGssoc": "Free & Open Source Project",
         "quickLinks": {
             "title": "جلدی لنکس",
             "expiry_tracker": "ایکسپائری ٹریکر",
@@ -447,7 +443,7 @@
         "builtWithSuffix": "بناومُت"
     },
     "about": {
-        "badge": "GSSoC 2026 اوپَن سورس پَروجیکٹ",
+        "badge": "Free & Open Source Project",
         "heroTitle": "مُتلِق <highlight>صحیح دَوا</highlight>",
         "heroSubtitle": "ہندوستانُک گۆڈنُک اوپَن سورس دَوا تصدیق کَرَن وول تہِ دیہاتی صحت پُل۔ بَناون آمت بھارت خٲطرِ۔",
         "features": {
@@ -513,7 +509,7 @@
         }
     },
     "Faq": {
-        "badge": "GSSoC 2026 اوپَن سورس پَروجیکٹ",
+        "badge": "Free & Open Source Project",
         "title": "عام پُچھمِت",
         "title_highlight": "سَوال",
         "subtitle": "صحیح دَوا مُتلِق پُورے مَعلوٗمات — ہندوستانُک مُفت، اوپَن سورس دَوا تصدیق پلیٹ فارم۔",
@@ -549,7 +545,7 @@
             },
             "6": {
                 "question": "بِہ کِتھ کَن ہیکہِ صحیح دَوا مَنٛز حِصہِ دار بَنِتھ؟",
-                "answer": "صحیح دَوا چُھ MIT لائیسَنَس تَحَت اوپَن سورس۔ تُہؠ ہیکِیو گِٹ ہَب پؠٹھ حِصہِ دار بَنِتھ، خَرابی رِپورٹ کٔرتھ، یا GSSoC 2026 مَنٛز شٲمِل گَژھِتھ۔"
+                "answer": "صحیح دَوا چُھ MIT لائیسَنَس تَحَت اوپَن سورس۔ تُہؠ ہیکِیو گِٹ ہَب پؠٹھ حِصہِ دار بَنِتھ، خَرابی رِپورٹ کٔرتھ، یا open source مَنٛز شٲمِل گَژھِتھ۔"
             },
             "7": {
                 "question": "CDSCO کیا چُھ؟",
@@ -1384,7 +1380,7 @@
     },
     "Privacy": {
         "hero": {
-            "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+            "badge": "Free & Open Source Project",
             "title": "پرائیویسی",
             "titleHighlight": "پالیسی",
             "subtitle": "علاوہ ازیں، ہم شفافیت پر یقین رکھتے ہیں۔ یہاں بالکل وہی دیا گیا ہے جو ہم جمع کرتے ہیں، کیوں جمع کرتے ہیں اور جو ہم کبھی نہیں کرتے۔",

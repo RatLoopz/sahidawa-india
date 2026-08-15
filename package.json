@@ -1,6 +1,6 @@
 {
     "name": "sahidawa-india",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "private": true,
     "description": "SahiDawa Open Health — Medicine safety infrastructure for Bharat",
     "engines": {
@@ -28,7 +28,6 @@
         "medicine",
         "verification",
         "health",
-        "gssoc",
         "cdsco"
     ],
     "author": "",

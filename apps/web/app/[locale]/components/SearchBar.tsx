@@ -278,6 +278,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 }
             }
             // Supplement sparse database results with the existing fuzzy search endpoint.
+            // NOTE: fuzzyMatchBrand hits the Render backend which may be cold/unavailable.
+            // We intentionally swallow all errors here so a fuzzy-match failure never
+            // surfaces "Search temporarily unavailable" to the user.
             if (results.length < 3) {
                 try {
                     const fuzzyResults = await fuzzyMatchBrand(trimmed, controller.signal);
@@ -290,7 +293,8 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     }
                 } catch (fuzzyErr: unknown) {
                     if (isAbortError(fuzzyErr)) return;
-                    console.warn("[SearchBar] Fuzzy matching fallback error:", fuzzyErr);
+                    // Silently ignore — fuzzy endpoint is best-effort only
+                    console.info("[SearchBar] Fuzzy match unavailable, using Supabase results only.");
                 }
             }
 
@@ -302,10 +306,11 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         } catch (err: unknown) {
             if (isAbortError(err) || controller.signal.aborted) return;
             console.error("[SearchBar] Unexpected error fetching suggestions:", err);
+            // Do NOT show a blocking error UI — silently fail so the user can
+            // still type and use the search button directly.
             setSuggestions([]);
             setNoResults(false);
-            setError(SEARCH_UNAVAILABLE_MESSAGE);
-            setIsOpen(true);
+            setIsOpen(false);
         } finally {
             if (!controller.signal.aborted) {
                 setIsLoading(false);
@@ -323,7 +328,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             setIsLoading(false);
             setNoResults(false);
             setError(null);
-            onSearchChange?.("");
+            // NOTE: Do NOT call onSearchChange("") here — only explicit Submit (button/Enter)
+            // should trigger the parent. Calling it on clear causes the safety panel to close
+            // even when the user is mid-typing a new search.
             return;
         }
 
@@ -337,13 +344,15 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             }
             abortControllerRef.current?.abort();
         };
-    }, [trimmedQuery, deferredTrimmedQuery, fetchSuggestions, onSearchChange]);
+    }, [trimmedQuery, deferredTrimmedQuery, fetchSuggestions]);
 
     // ── Select a suggestion ────────────────────────────────────────────────────
     const selectSuggestion = useCallback(
         (value: string) => {
+            abortControllerRef.current?.abort();
             setQuery(value);
             setIsOpen(false);
+            setError(null);
             setActiveIndex(-1);
             addToHistory(value);
             if (onSearchChange) onSearchChange(value);
@@ -356,7 +365,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         (value: string) => {
             const trimmed = value.trim();
             if (!trimmed) return;
+            abortControllerRef.current?.abort();
             setIsOpen(false);
+            setError(null);
             setActiveIndex(-1);
             addToHistory(trimmed);
             if (onSearchChange) onSearchChange(trimmed);
@@ -425,11 +436,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 <div className="flex items-center gap-2 p-1.5 pl-3 sm:gap-3 sm:p-2 sm:pl-4">
                     <Search
                         className={`shrink-0 transition-all duration-300 ${
-                            isLoading
-                                ? "scale-110 animate-pulse text-emerald-400"
-                                : dark
-                                  ? "text-slate-500"
-                                  : "text-slate-400 dark:text-slate-500"
+                            dark
+                                ? "text-slate-500"
+                                : "text-slate-400 dark:text-slate-500"
                         }`}
                         size={20}
                         aria-hidden="true"
@@ -467,6 +476,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                                 setQuery("");
                                 setActiveIndex(-1);
                                 setSuggestions([]);
+                                setError(null);
                                 setIsOpen(false);
                                 onSearchChange?.("");
                                 inputRef.current?.focus();
@@ -492,6 +502,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     )}
 
                     <button
+                        type="button"
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
                         aria-label={tHome("submit_search")}
