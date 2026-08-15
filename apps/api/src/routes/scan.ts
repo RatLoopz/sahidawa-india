@@ -23,6 +23,7 @@ import { supabase } from "../db/client";
 import { optionalAuth } from "../middleware/auth";
 import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";
 import { computeVerifiedStatus } from "../utils/verification";
+import { refreshLiveSafety } from "../utils/safetyOverlay";
 import { scanService } from "../services/scan.service";
 
 const router = Router();
@@ -563,7 +564,19 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
             const cached = await redisClient.get(cacheKey);
             if (cached) {
                 logger.info(`Cache HIT for verify-brand: "${brandName}"`);
-                res.status(200).json(JSON.parse(cached));
+                // The cache stores a 24h snapshot of the medicine row. Safety-critical
+                // fields (counterfeit alert, CDSCO status) may have changed since it was
+                // written, and webhook-based invalidation can be missed — so overlay the
+                // live safety fields and recompute the verdict instead of trusting the
+                // cached `verified` value (issue #4146).
+                const cachedResponse = JSON.parse(cached);
+                const cachedMedicine = cachedResponse?.medicine ?? cachedResponse;
+                await refreshLiveSafety(supabase, cachedMedicine);
+                const liveResponse = {
+                    verified: computeVerifiedStatus(cachedMedicine),
+                    medicine: cachedMedicine,
+                };
+                res.status(200).json(liveResponse);
                 return;
             }
         }
@@ -623,6 +636,11 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
             });
             return;
         }
+
+        // Overlay live safety-critical fields so a stale DB snapshot (or a row
+        // updated between the brand lookup and now) can never flip the verdict
+        // to a stale "verified: true" after a recall/counterfeit update (#4146).
+        await refreshLiveSafety(supabase, data);
 
         const responseData = {
             verified: computeVerifiedStatus(data),
