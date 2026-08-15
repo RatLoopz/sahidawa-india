@@ -225,76 +225,82 @@ export default function SahiDawaHome() {
 
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
                             {/* Scan & Verify */}
-                            <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-emerald-500/30 bg-emerald-50/50 p-8 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/10 dark:border-emerald-500/20 dark:bg-emerald-500/5 dark:hover:border-emerald-500/40">
-                                <div className="absolute inset-0 bg-linear-to-b from-emerald-100/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-900/20"></div>
-                                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
-                                    <Camera size={26} strokeWidth={2.5} />
+                            <button
+                                onClick={() => handleNavigation("scan")}
+                                className="group relative flex flex-col items-start overflow-hidden rounded-3xl border border-emerald-200 bg-white p-8 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-500/20 dark:border-emerald-900/50 dark:bg-slate-900 dark:hover:border-emerald-700"
+                            >
+                                <div className="absolute inset-0 bg-linear-to-br from-emerald-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-900/20"></div>
+                                
+                                <div className="flex w-full items-start justify-between relative z-10">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
+                                        <Camera size={28} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 opacity-0 -translate-x-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 dark:bg-emerald-900/40 dark:text-emerald-400">
+                                        <ArrowRight size={20} strokeWidth={2.5} />
+                                    </div>
                                 </div>
+                                
                                 <div className="relative z-10 mt-8">
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
                                         Scan & Verify
                                     </h3>
                                     <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                                         Scan a barcode or medicine package and check available medicine information instantly.
                                     </p>
                                 </div>
-                                <div className="relative z-10 mt-auto pt-8">
-                                    <button
-                                        onClick={() => handleNavigation("scan")}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-emerald-600 border border-emerald-200 transition-colors duration-300 group-hover:bg-emerald-600 group-hover:text-white dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-400 dark:group-hover:bg-emerald-600 dark:group-hover:text-white dark:group-hover:border-emerald-600"
-                                    >
-                                        Verify Medicine <ArrowRight size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                            </button>
 
                             {/* Find a Pharmacy */}
-                            <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-500/10 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
-                                <div className="absolute inset-0 bg-linear-to-b from-slate-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-slate-800/50"></div>
-                                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 dark:bg-slate-800 dark:text-slate-300">
-                                    <MapPin size={26} strokeWidth={2.5} />
+                            <button
+                                onClick={() => handleNavigation("map")}
+                                className="group relative flex flex-col items-start overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-500/20 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
+                            >
+                                <div className="absolute inset-0 bg-linear-to-br from-blue-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-900/20"></div>
+                                
+                                <div className="flex w-full items-start justify-between relative z-10">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500 text-white shadow-lg shadow-blue-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                                        <MapPin size={28} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-500 opacity-0 -translate-x-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 dark:bg-blue-900/40 dark:text-blue-400">
+                                        <ArrowRight size={20} strokeWidth={2.5} />
+                                    </div>
                                 </div>
+                                
                                 <div className="relative z-10 mt-8">
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-blue-700 dark:group-hover:text-blue-400">
                                         Find a Pharmacy
                                     </h3>
                                     <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                        Find trusted pharmacies and nearby healthcare resources quickly and easily.
+                                        Locate trusted, verified pharmacies nearby. Find 24/7 stores and crucial healthcare resources in your area.
                                     </p>
                                 </div>
-                                <div className="relative z-10 mt-auto pt-8">
-                                    <button
-                                        onClick={() => handleNavigation("map")}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 border border-slate-200 transition-colors duration-300 group-hover:bg-slate-800 group-hover:text-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:group-hover:bg-slate-700 dark:group-hover:text-white"
-                                    >
-                                        Locate Stores <ArrowRight size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                            </button>
 
                             {/* Ask SahiDawa */}
-                            <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-500/10 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
-                                <div className="absolute inset-0 bg-linear-to-b from-slate-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-slate-800/50"></div>
-                                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 dark:bg-slate-800 dark:text-slate-300">
-                                    <MessageCircle size={26} strokeWidth={2.5} />
+                            <button
+                                onClick={() => handleNavigation("health")}
+                                className="group relative flex flex-col items-start overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700"
+                            >
+                                <div className="absolute inset-0 bg-linear-to-br from-indigo-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-indigo-900/20"></div>
+                                
+                                <div className="flex w-full items-start justify-between relative z-10">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
+                                        <MessageCircle size={28} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 opacity-0 -translate-x-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 dark:bg-indigo-900/40 dark:text-indigo-400">
+                                        <ArrowRight size={20} strokeWidth={2.5} />
+                                    </div>
                                 </div>
+                                
                                 <div className="relative z-10 mt-8">
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
                                         Ask SahiDawa
                                     </h3>
                                     <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                        Get basic health information and triage guidance in supported regional languages.
+                                        Get basic health information and triage guidance powered by AI, available in multiple regional languages.
                                     </p>
                                 </div>
-                                <div className="relative z-10 mt-auto pt-8">
-                                    <button
-                                        onClick={() => handleNavigation("health")}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 border border-slate-200 transition-colors duration-300 group-hover:bg-slate-800 group-hover:text-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:group-hover:bg-slate-700 dark:group-hover:text-white"
-                                    >
-                                        Consult AI <ArrowRight size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                            </button>
                         </div>
                     </section>
 
