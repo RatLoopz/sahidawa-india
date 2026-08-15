@@ -32,7 +32,8 @@ import {
     Syringe,
     BookOpen,
     HelpCircle,
-    Mic
+    Mic,
+    Star
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa6";
 import { useRouter, useParams } from "next/navigation";
@@ -524,7 +525,39 @@ export default function SahiDawaHome() {
                         </div>
                     </section>
 
-                    {/* ── 7. AI HEALTH ASSISTANT ── */}
+                    {/* ── 7. VACCINE HUB BANNER ── */}
+                    <section className="mb-14">
+                        <button
+                            onClick={() => handleNavigation("vaccine-hub")}
+                            className="group relative flex w-full flex-col items-start gap-4 overflow-hidden rounded-3xl border border-emerald-200 bg-white p-6 text-left transition-all hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-500/10 dark:border-emerald-900/40 dark:bg-slate-900 sm:flex-row sm:items-center sm:p-8"
+                        >
+                            <div className="absolute top-0 right-0 h-full w-1/2 bg-linear-to-l from-emerald-50/50 to-transparent dark:from-emerald-900/10 pointer-events-none"></div>
+                            
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20 transition-transform group-hover:scale-110 group-hover:rotate-3">
+                                <Syringe size={24} strokeWidth={2.5} />
+                            </div>
+                            
+                            <div className="relative z-10 flex-1">
+                                <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
+                                    Vaccine Hub & Immunization Tracker
+                                </h3>
+                                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                    Explore vaccine schedules, safety info, and aftercare guidance for better public health awareness.
+                                </p>
+                            </div>
+                            
+                            <div className="relative z-10 mt-4 flex items-center justify-between w-full sm:mt-0 sm:w-auto gap-4">
+                                <div className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-xs transition-colors group-hover:bg-emerald-700">
+                                    Open Vaccine Hub <ArrowRight size={16} className="ml-1.5" />
+                                </div>
+                            </div>
+                            <div className="absolute top-6 right-6 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 dark:bg-emerald-900/30 dark:text-emerald-400 sm:static sm:h-10 sm:w-10 sm:shrink-0 transition-transform group-hover:translate-x-1 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50">
+                                <ChevronRight size={18} strokeWidth={3} />
+                            </div>
+                        </button>
+                    </section>
+
+                    {/* ── 8. AI HEALTH ASSISTANT ── */}
                     <section className="mb-14 rounded-2xl border border-slate-200/60 bg-white p-6 sm:p-8 dark:border-slate-800/60 dark:bg-slate-900">
                         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div className="space-y-2">
@@ -548,7 +581,81 @@ export default function SahiDawaHome() {
                         </p>
                     </section>
 
-                    {/* ── 8. TRUST & COMMUNITY SECTION ── */}
+                    {/* ── 9. VOICES FROM THE SAHIDAWA COMMUNITY ── */}
+                    <section className="mb-14">
+                        <div className="mb-8 text-center">
+                            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                                Voices from the SahiDawa community
+                            </h2>
+                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                See how we are helping people across India make safer healthcare decisions.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
+                                <div>
+                                    <div className="flex gap-1 text-amber-400 mb-4">
+                                        {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
+                                    </div>
+                                    <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
+                                        "I scanned my grandmother's blood pressure medicine to make sure it wasn't affected by the recent CDSCO recalls. The instant verification gave our family immense peace of mind."
+                                    </p>
+                                </div>
+                                <div className="mt-6 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold dark:bg-indigo-900/40 dark:text-indigo-400">
+                                        AK
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Amit K.</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Delhi, India</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
+                                <div>
+                                    <div className="flex gap-1 text-amber-400 mb-4">
+                                        {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
+                                    </div>
+                                    <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
+                                        "Finding genuine medicine in rural areas can be challenging. The pharmacy map helped me locate a verified 24/7 store when we had a late-night emergency."
+                                    </p>
+                                </div>
+                                <div className="mt-6 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold dark:bg-emerald-900/40 dark:text-emerald-400">
+                                        PR
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Priya R.</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Pune, Maharashtra</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
+                                <div>
+                                    <div className="flex gap-1 text-amber-400 mb-4">
+                                        {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
+                                    </div>
+                                    <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
+                                        "The voice triage feature is incredibly helpful. I could just speak out my symptoms in Hindi, and it provided a clear, understandable summary before I visited my doctor."
+                                    </p>
+                                </div>
+                                <div className="mt-6 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-bold dark:bg-rose-900/40 dark:text-rose-400">
+                                        SM
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Suresh M.</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Lucknow, UP</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ── 10. TRUST & COMMUNITY SECTION ── */}
                     <section className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-14">
                         {/* Built with the community */}
                         <div className="rounded-2xl border border-slate-200/60 bg-white p-6 dark:border-slate-800/60 dark:bg-slate-900 flex flex-col justify-between">
