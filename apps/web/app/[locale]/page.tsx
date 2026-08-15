@@ -42,6 +42,7 @@ const SearchBar = dynamic(() => import("./components/SearchBar"));
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
+import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 
 function formatRelativeTime(dateString: string | null, locale: string): string {
     if (!dateString) return "—";
@@ -288,7 +289,12 @@ export default function SahiDawaHome() {
                         </div>
                     </section>
 
-                    {/* ── 4. SAFETY ALERTS ── */}
+                    {/* ── 4. LIVE SAFETY STATS ── */}
+                    <section className="mb-14">
+                        <SafetyStatsBanner />
+                    </section>
+
+                    {/* ── 5. SAFETY ALERTS ── */}
                     <section className="mb-14">
                         <div className="rounded-2xl border border-slate-200/60 bg-white shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
                             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 dark:border-slate-800">
@@ -412,7 +418,7 @@ export default function SahiDawaHome() {
                         </div>
                     </section>
 
-                    {/* ── 5. SECONDARY FEATURES ── */}
+                    {/* ── 6. SECONDARY FEATURES ── */}
                     <section className="mb-14">
                         <div className="mb-6">
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -498,7 +504,7 @@ export default function SahiDawaHome() {
                         </div>
                     </section>
 
-                    {/* ── 6. AI HEALTH ASSISTANT ── */}
+                    {/* ── 7. AI HEALTH ASSISTANT ── */}
                     <section className="mb-14 rounded-2xl border border-slate-200/60 bg-white p-6 sm:p-8 dark:border-slate-800/60 dark:bg-slate-900">
                         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div className="space-y-2">
@@ -522,7 +528,7 @@ export default function SahiDawaHome() {
                         </p>
                     </section>
 
-                    {/* ── 7. TRUST & COMMUNITY SECTION ── */}
+                    {/* ── 8. TRUST & COMMUNITY SECTION ── */}
                     <section className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-14">
                         {/* Built with the community */}
                         <div className="rounded-2xl border border-slate-200/60 bg-white p-6 dark:border-slate-800/60 dark:bg-slate-900 flex flex-col justify-between">
