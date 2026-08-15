@@ -32,8 +32,7 @@ import {
     Syringe,
     BookOpen,
     HelpCircle,
-    Mic,
-    Star
+    Mic
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa6";
 import { useRouter, useParams } from "next/navigation";
@@ -215,78 +214,86 @@ export default function SahiDawaHome() {
 
                     {/* ── 3. CORE PRODUCT FLOWS ── */}
                     <section className="mb-14">
-                        <div className="text-center mb-10">
-                            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
                                 How SahiDawa helps
                             </h2>
-                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                Accessible tools designed to protect you and your family.
+                            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-500 dark:text-slate-400">
+                                Accessible tools designed to protect you and your family's health.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            {/* Highlighted: Scan & Verify */}
-                            <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6 shadow-xs hover:shadow-md transition-all md:col-span-1">
-                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                                <div>
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-600/10">
-                                        <Camera size={22} />
-                                    </div>
-                                    <h3 className="mt-5 text-lg font-bold text-slate-950 dark:text-white">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
+                            {/* Scan & Verify */}
+                            <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-emerald-500/30 bg-emerald-50/50 p-8 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/10 dark:border-emerald-500/20 dark:bg-emerald-500/5 dark:hover:border-emerald-500/40">
+                                <div className="absolute inset-0 bg-linear-to-b from-emerald-100/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-900/20"></div>
+                                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
+                                    <Camera size={26} strokeWidth={2.5} />
+                                </div>
+                                <div className="relative z-10 mt-8">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                                         Scan & Verify
                                     </h3>
-                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                                        Scan a barcode or medicine package and check available medicine information.
+                                    <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                                        Scan a barcode or medicine package and check available medicine information instantly.
                                     </p>
                                 </div>
-                                <button
-                                    onClick={() => handleNavigation("scan")}
-                                    className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                                >
-                                    Verify Medicine →
-                                </button>
+                                <div className="relative z-10 mt-auto pt-8">
+                                    <button
+                                        onClick={() => handleNavigation("scan")}
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-emerald-600 border border-emerald-200 transition-colors duration-300 group-hover:bg-emerald-600 group-hover:text-white dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-400 dark:group-hover:bg-emerald-600 dark:group-hover:text-white dark:group-hover:border-emerald-600"
+                                    >
+                                        Verify Medicine <ArrowRight size={16} />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Find a Pharmacy */}
-                            <div className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-slate-300 hover:shadow-md transition-all dark:border-slate-800 dark:bg-slate-900">
-                                <div>
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                                        <MapPin size={22} />
-                                    </div>
-                                    <h3 className="mt-5 text-lg font-bold text-slate-950 dark:text-white">
+                            <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-500/10 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+                                <div className="absolute inset-0 bg-linear-to-b from-slate-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-slate-800/50"></div>
+                                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 dark:bg-slate-800 dark:text-slate-300">
+                                    <MapPin size={26} strokeWidth={2.5} />
+                                </div>
+                                <div className="relative z-10 mt-8">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                                         Find a Pharmacy
                                     </h3>
-                                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                                        Find trusted pharmacies and nearby healthcare resources.
+                                    <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                                        Find trusted pharmacies and nearby healthcare resources quickly and easily.
                                     </p>
                                 </div>
-                                <button
-                                    onClick={() => handleNavigation("map")}
-                                    className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                                >
-                                    Locate Stores →
-                                </button>
+                                <div className="relative z-10 mt-auto pt-8">
+                                    <button
+                                        onClick={() => handleNavigation("map")}
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 border border-slate-200 transition-colors duration-300 group-hover:bg-slate-800 group-hover:text-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:group-hover:bg-slate-700 dark:group-hover:text-white"
+                                    >
+                                        Locate Stores <ArrowRight size={16} />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Ask SahiDawa */}
-                            <div className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-slate-300 hover:shadow-md transition-all dark:border-slate-800 dark:bg-slate-900">
-                                <div>
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                                        <MessageCircle size={22} />
-                                    </div>
-                                    <h3 className="mt-5 text-lg font-bold text-slate-950 dark:text-white">
+                            <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-500/10 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+                                <div className="absolute inset-0 bg-linear-to-b from-slate-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-slate-800/50"></div>
+                                <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 dark:bg-slate-800 dark:text-slate-300">
+                                    <MessageCircle size={26} strokeWidth={2.5} />
+                                </div>
+                                <div className="relative z-10 mt-8">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                                         Ask SahiDawa
                                     </h3>
-                                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                                        Get basic health information and triage guidance in supported languages.
+                                    <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                                        Get basic health information and triage guidance in supported regional languages.
                                     </p>
                                 </div>
-                                <button
-                                    onClick={() => handleNavigation("health")}
-                                    className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                                >
-                                    Consult AI →
-                                </button>
+                                <div className="relative z-10 mt-auto pt-8">
+                                    <button
+                                        onClick={() => handleNavigation("health")}
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 border border-slate-200 transition-colors duration-300 group-hover:bg-slate-800 group-hover:text-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:group-hover:bg-slate-700 dark:group-hover:text-white"
+                                    >
+                                        Consult AI <ArrowRight size={16} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -581,79 +588,7 @@ export default function SahiDawaHome() {
                         </p>
                     </section>
 
-                    {/* ── 9. VOICES FROM THE SAHIDAWA COMMUNITY ── */}
-                    <section className="mb-14">
-                        <div className="mb-8 text-center">
-                            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                                Voices from the SahiDawa community
-                            </h2>
-                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                See how we are helping people across India make safer healthcare decisions.
-                            </p>
-                        </div>
 
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
-                                <div>
-                                    <div className="flex gap-1 text-amber-400 mb-4">
-                                        {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
-                                    </div>
-                                    <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
-                                        "I scanned my grandmother's blood pressure medicine to make sure it wasn't affected by the recent CDSCO recalls. The instant verification gave our family immense peace of mind."
-                                    </p>
-                                </div>
-                                <div className="mt-6 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold dark:bg-indigo-900/40 dark:text-indigo-400">
-                                        AK
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Amit K.</h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Delhi, India</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
-                                <div>
-                                    <div className="flex gap-1 text-amber-400 mb-4">
-                                        {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
-                                    </div>
-                                    <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
-                                        "Finding genuine medicine in rural areas can be challenging. The pharmacy map helped me locate a verified 24/7 store when we had a late-night emergency."
-                                    </p>
-                                </div>
-                                <div className="mt-6 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold dark:bg-emerald-900/40 dark:text-emerald-400">
-                                        PR
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Priya R.</h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Pune, Maharashtra</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
-                                <div>
-                                    <div className="flex gap-1 text-amber-400 mb-4">
-                                        {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
-                                    </div>
-                                    <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-300">
-                                        "The voice triage feature is incredibly helpful. I could just speak out my symptoms in Hindi, and it provided a clear, understandable summary before I visited my doctor."
-                                    </p>
-                                </div>
-                                <div className="mt-6 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-bold dark:bg-rose-900/40 dark:text-rose-400">
-                                        SM
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Suresh M.</h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Lucknow, UP</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
 
                     {/* ── 10. TRUST & COMMUNITY SECTION ── */}
                     <section className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-14">
