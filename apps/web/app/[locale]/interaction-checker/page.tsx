@@ -233,7 +233,7 @@ export default function InteractionCheckerPage() {
 
     const handleCheckInteractions = async () => {
         if (selectedMedicines.length < 2) {
-            setError("At least two medicines are required to check for interactions.");
+            setError(t("minMedicinesError"));
             return;
         }
 

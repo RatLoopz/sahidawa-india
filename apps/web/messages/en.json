@@ -1402,6 +1402,7 @@
         "mechanism": "Mechanism:",
         "source": "Source:",
         "errorMessage": "Failed to complete interaction check. Please try again.",
+        "minMedicinesError": "At least two medicines are required to check for interactions.",
         "offlineBadge": "Offline Result — Connect to internet for latest data",
         "voice": {
             "button": "Add medicines by voice",
