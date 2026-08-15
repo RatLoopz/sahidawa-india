@@ -28,7 +28,7 @@ from src.utils.logger import logger
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-TARGET_URL = "https://janaushadhi.gov.in/productportfolio/ProductmrpList"
+TARGET_URL = "https://janaushadhi.gov.in/product-portfolio/product-mrp-list"
 RAW_DATA_DIR = Path(__file__).resolve().parents[4] / "data" / "raw" / "janaushadhi"
 PROCESSED_DIR = Path(__file__).resolve().parents[4] / "data" / "processed"
 
