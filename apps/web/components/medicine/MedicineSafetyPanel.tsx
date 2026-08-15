@@ -85,12 +85,14 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
         setIsLoading(true);
         setProfile(null);
 
-        fetchSafetyProfile(searchQuery).then((result) => {
-            if (!cancelled) {
-                setProfile(result);
-                setIsLoading(false);
-            }
-        }).catch(err => console.error("[SafetyPanel] Failed:", err));
+        fetchSafetyProfile(searchQuery)
+            .then((result) => {
+                if (!cancelled) {
+                    setProfile(result);
+                    setIsLoading(false);
+                }
+            })
+            .catch((err) => console.error("[SafetyPanel] Failed:", err));
 
         return () => {
             cancelled = true;
@@ -117,6 +119,19 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
 
     if (!profile) return null;
 
+    if (profile.isMedicine === false || !profile.sideEffects) {
+        return (
+            <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <Info className="h-4 w-4 shrink-0" />
+                    <span>
+                        No safety information found for "{searchQuery}". It may not be a recognized
+                        medicine.
+                    </span>
+                </div>
+            </div>
+        );
+    }
     const commonEffects = profile.sideEffects.filter((e) => e.severity === "common");
     const severeEffects = profile.sideEffects.filter((e) => e.severity === "severe");
     const dosageInfo = profile.ageBasedDosage.find((d) => d.group === ageGroup);
