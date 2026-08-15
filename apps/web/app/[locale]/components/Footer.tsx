@@ -14,53 +14,6 @@ export default function Footer() {
 
     if (isMap) return null;
 
-    const quickLinks = [
-        {
-            href: "/expiry-tracker",
-            key: "quickLinks.expiry_tracker",
-            icon: CalendarRange,
-            highlight: true,
-        },
-        { href: "/faq", key: "quickLinks.faq" },
-        { href: "/about", key: "quickLinks.about" },
-        { href: "/privacy", key: "quickLinks.privacy" },
-        { href: "/contact", key: "quickLinks.contact" },
-    ];
-
-    const resourceLinks = [
-        {
-            href: "https://github.com/RatLoopz/sahidawa-india",
-            key: "resources.github",
-            external: true,
-        },
-        {
-            href: "https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md",
-            key: "resources.contributing",
-            external: true,
-        },
-    ] as const;
-
-    const socialLinks = [
-        {
-            href: "https://github.com/RatLoopz/sahidawa-india",
-            icon: FaGithub,
-            key: "social.github",
-            hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
-        },
-        {
-            href: "https://www.linkedin.com/company/ratloopz/?viewAsMember=true",
-            icon: FaLinkedin,
-            key: "social.linkedin",
-            hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
-        },
-        {
-            href: "https://twitter.com/",
-            icon: FaXTwitter,
-            key: "social.twitter",
-            hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
-        },
-    ] as const;
-
     return (
         <footer
             className={`no-print relative mt-auto border-t border-slate-200/50 bg-white dark:border-slate-800/50 dark:bg-slate-950 ${isHome ? "mb-16 md:mb-0" : ""}`}

@@ -10,7 +10,6 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useSession } from "@/src/components/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
-import { motion, useScroll, useSpring } from "framer-motion";
 // Sub-components
 import DesktopNavLinks from "./Navbar/DesktopNavLinks";
 import UserDropdown from "./Navbar/UserDropdown";
@@ -149,7 +148,6 @@ export default function Navbar() {
                             handleSignOut={handleSignOut}
                         />
                     </div>
-                </div>
                 </div>
                 {/* Clean bottom border instead of progress bar */}
                 <div className="absolute bottom-0 left-0 h-[1px] w-full bg-slate-200/50 dark:bg-slate-800/50" />

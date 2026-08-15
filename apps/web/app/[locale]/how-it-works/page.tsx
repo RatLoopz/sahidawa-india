@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
-import { useTranslations } from "next-intl";
 
 const processSteps = [
     {
@@ -113,8 +112,6 @@ const trustPrinciples = [
 ];
 
 export default function HowItWorksPage() {
-    const t = useTranslations("howItWorks");
-
     return (
         <main className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
             <PageHeader backHref="/" variant="light" />
