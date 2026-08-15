@@ -128,22 +128,22 @@ export default function HowItWorksPage() {
             </div>
 
             {/* Hero Section */}
-            <section className="relative px-6 pt-32 pb-24 lg:pt-40 lg:pb-32">
+            <section className="relative px-6 pt-24 pb-12 lg:pt-32 lg:pb-16">
                 <div className="relative mx-auto max-w-5xl text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-5 py-2 text-sm font-medium text-emerald-700 shadow-sm backdrop-blur-md dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-400">
-                            <span className="relative flex h-2.5 w-2.5">
+                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 text-sm font-medium text-emerald-700 shadow-sm backdrop-blur-md dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-400">
+                            <span className="relative flex h-2 w-2">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75"></span>
-                                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
                             </span>
                             {t("badge")}
                         </div>
 
-                        <h1 className="text-5xl leading-[1.1] font-black tracking-tight text-(--color-text-primary) sm:text-6xl md:text-7xl lg:text-[5rem]">
+                        <h1 className="text-4xl leading-[1.1] font-black tracking-tight text-(--color-text-primary) sm:text-5xl md:text-6xl">
                             {t.rich("heroTitle", {
                                 highlight: (chunks) => (
                                     <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-teal-300">
@@ -153,15 +153,15 @@ export default function HowItWorksPage() {
                             })}
                         </h1>
 
-                        <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-(--color-text-secondary) sm:text-xl">
+                        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-(--color-text-secondary) sm:text-lg">
                             {t("heroSubtitle")}
                         </p>
 
                         {/* CTA Buttons */}
-                        <div className="mt-12 flex flex-col justify-center gap-4 sm:flex-row">
+                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                             <Link
                                 href="/scan"
-                                className="group relative flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-[0.98]"
+                                className="group relative flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-[0.98]"
                             >
                                 <span>{t("ctaButtons.scan")}</span>
                                 <QrCode size={18} className="transition-transform duration-300 group-hover:scale-110" />
@@ -169,7 +169,7 @@ export default function HowItWorksPage() {
 
                             <Link
                                 href="/map"
-                                className="group flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/50 px-8 py-4 text-base font-semibold text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/50 hover:bg-emerald-50/50 hover:text-emerald-700 hover:shadow-md active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400"
+                                className="group flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/50 px-6 py-3 text-base font-semibold text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/50 hover:bg-emerald-50/50 hover:text-emerald-700 hover:shadow-md active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400"
                             >
                                 <span>{t("ctaButtons.map")}</span>
                                 <MapPin size={18} className="transition-transform duration-300 group-hover:scale-110" />
@@ -180,12 +180,12 @@ export default function HowItWorksPage() {
             </section>
 
             {/* Timeline Section */}
-            <section className="relative overflow-hidden px-6 py-10">
+            <section className="relative overflow-hidden px-6 py-6">
                 <h2 className="sr-only">How It Works Steps</h2>
                 <div className="relative mx-auto max-w-6xl">
                     {/* Desktop Connected Path */}
                     <motion.div
-                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 md:gap-6 md:overflow-x-visible md:pb-0 lg:grid-cols-3"
+                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-5 md:overflow-x-visible md:pb-0 lg:grid-cols-5"
                         variants={timelineContainerVariants}
                         initial="hidden"
                         whileInView="visible"
@@ -195,34 +195,34 @@ export default function HowItWorksPage() {
                             <motion.div
                                 key={index}
                                 variants={timelineCardVariants}
-                                className="w-[calc(100%-3rem)] max-w-sm flex-shrink-0 snap-center md:w-auto md:max-w-none"
+                                className="w-[calc(100%-3rem)] max-w-xs flex-shrink-0 snap-center md:w-auto md:max-w-none"
                             >
                                 <div
-                                    className="group relative mt-2 flex h-full flex-col rounded-[2rem] border border-slate-200/60 bg-white/60 p-8 text-left shadow-lg shadow-slate-200/40 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/10 active:scale-[0.99] dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none md:mt-0"
+                                    className="group relative flex h-full flex-col rounded-3xl border border-slate-200/60 bg-white/60 p-5 text-left shadow-md shadow-slate-200/40 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/10 active:scale-[0.99] dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-none"
                                 >
                                     {/* Subtle gradient overlay on hover */}
-                                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-white/5" />
+                                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-white/5" />
                                     
                                     <div className="relative z-10">
                                         {/* Icon Container with Floating Number Badge */}
                                         <div
-                                            className={`relative mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl border shadow-inner transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-110 ${step.bgClass}`}
+                                            className={`relative mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border shadow-inner transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105 ${step.bgClass}`}
                                         >
                                             {step.icon}
                                             <span
-                                                className={`absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white shadow-md ${step.badgeClass}`}
+                                                className={`absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm ${step.badgeClass}`}
                                             >
                                                 {index + 1}
                                             </span>
                                         </div>
 
                                         {/* Title */}
-                                        <h3 className="mb-3 text-lg font-bold tracking-tight text-(--color-text-primary) md:text-xl">
+                                        <h3 className="mb-1.5 text-base font-bold tracking-tight text-(--color-text-primary)">
                                             {t(step.titleKey)}
                                         </h3>
 
                                         {/* Description */}
-                                        <p className="text-sm leading-relaxed text-(--color-text-secondary)">
+                                        <p className="text-xs leading-relaxed text-(--color-text-secondary)">
                                             {t(step.descriptionKey)}
                                         </p>
                                     </div>
@@ -234,37 +234,37 @@ export default function HowItWorksPage() {
             </section>
 
             {/* Feature Cards */}
-            <section className="px-6 py-24 lg:py-32">
+            <section className="px-6 py-12 lg:py-16">
                 <div className="mx-auto max-w-7xl">
-                    <div className="mb-20 text-center">
-                        <h2 className="text-4xl font-bold tracking-tight text-(--color-text-primary) sm:text-5xl">
+                    <div className="mb-12 text-center">
+                        <h2 className="text-3xl font-bold tracking-tight text-(--color-text-primary) sm:text-4xl">
                             {t("features.title")}
                         </h2>
 
-                        <p className="mx-auto mt-6 max-w-2xl text-lg text-(--color-text-secondary)">
+                        <p className="mx-auto mt-4 max-w-2xl text-base text-(--color-text-secondary)">
                             {t("features.subtitle")}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8 xl:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         {steps.map((step, index) => (
                             <div
                                 key={index}
-                                className="group relative overflow-hidden rounded-[2.5rem] border border-slate-200/60 bg-white/60 p-10 shadow-sm backdrop-blur-lg transition-all duration-500 hover:-translate-y-1.5 hover:border-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/10 active:scale-[0.99] dark:border-slate-800/60 dark:bg-slate-900/60"
+                                className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-lg transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/10 active:scale-[0.99] dark:border-slate-800/60 dark:bg-slate-900/60"
                             >
                                 {/* Subtle shimmer effect */}
                                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-all duration-1000 group-hover:translate-x-full group-hover:opacity-100 dark:via-white/10" />
 
                                 <div className="relative z-10">
-                                    <div className="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 text-emerald-600 shadow-inner ring-1 ring-emerald-200/50 transition-transform duration-500 group-hover:scale-110 dark:from-emerald-900/40 dark:to-teal-900/20 dark:text-emerald-400 dark:ring-emerald-800/50">
+                                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-teal-50 text-emerald-600 shadow-inner ring-1 ring-emerald-200/50 transition-transform duration-300 group-hover:scale-110 dark:from-emerald-900/40 dark:to-teal-900/20 dark:text-emerald-400 dark:ring-emerald-800/50">
                                         {step.icon}
                                     </div>
 
-                                    <h3 className="mb-4 text-2xl font-bold tracking-tight text-(--color-text-primary)">
+                                    <h3 className="mb-2 text-xl font-bold tracking-tight text-(--color-text-primary)">
                                         {t(step.titleKey)}
                                     </h3>
 
-                                    <p className="text-base leading-relaxed text-(--color-text-secondary)">
+                                    <p className="text-sm leading-relaxed text-(--color-text-secondary)">
                                         {t(step.descriptionKey)}
                                     </p>
                                 </div>
@@ -275,36 +275,36 @@ export default function HowItWorksPage() {
             </section>
 
             {/* Bottom CTA */}
-            <section className="px-6 pb-24 lg:pb-32">
-                <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[3rem] bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-12 text-center text-white shadow-2xl sm:p-16">
-                    <div className="pointer-events-none absolute inset-0 rounded-[3rem] ring-1 ring-white/20 inset-ring inset-ring-white/10" />
+            <section className="px-6 pb-16 lg:pb-20">
+                <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-8 text-center text-white shadow-xl sm:p-12">
+                    <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-white/20 inset-ring inset-ring-white/10" />
 
                     {/* Decorative Background Elements */}
-                    <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full border border-white/10 bg-white/5 blur-2xl" />
-                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full border border-white/10 bg-white/5 blur-2xl" />
+                    <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full border border-white/10 bg-white/5 blur-xl" />
+                    <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full border border-white/10 bg-white/5 blur-xl" />
                     
                     <div className="relative z-10">
-                        <h2 className="mb-6 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">{t("ctaBanner.title")}</h2>
+                        <h2 className="mb-4 text-3xl font-black tracking-tight sm:text-4xl">{t("ctaBanner.title")}</h2>
 
-                        <p className="mx-auto max-w-2xl text-lg leading-relaxed text-emerald-50 sm:text-xl">
+                        <p className="mx-auto max-w-xl text-base leading-relaxed text-emerald-50 sm:text-lg">
                             {t("ctaBanner.subtitle")}
                         </p>
 
-                        <div className="mt-12 flex flex-col justify-center gap-4 sm:flex-row">
+                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                             <Link
                                 href="/scan"
-                                className="flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-bold text-emerald-700 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-50 hover:shadow-2xl hover:shadow-emerald-900/20 active:scale-[0.98]"
+                                className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-emerald-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-50 hover:shadow-xl hover:shadow-emerald-900/20 active:scale-[0.98]"
                             >
                                 <span>{t("ctaBanner.buttons.scan")}</span>
-                                <QrCode size={18} />
+                                <QrCode size={16} />
                             </Link>
 
                             <Link
                                 href="/alerts"
-                                className="flex items-center justify-center gap-2 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-base font-bold text-white shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:bg-white/20 active:scale-[0.98]"
+                                className="flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:bg-white/20 active:scale-[0.98]"
                             >
                                 <span>{t("ctaBanner.buttons.alerts")}</span>
-                                <BellRing size={18} />
+                                <BellRing size={16} />
                             </Link>
                         </div>
                     </div>
