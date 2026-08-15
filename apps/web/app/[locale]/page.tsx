@@ -137,9 +137,9 @@ export default function SahiDawaHome() {
                 <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-teal-500/5 blur-[120px] dark:bg-teal-900/5"></div>
             </div>
 
-            <main className="relative z-10 pb-20">
+            <main className="relative z-10 pb-12">
                 {/* ── 1. HERO SECTION (Premium & Trustworthy) ── */}
-                <section className="mx-auto max-w-5xl px-4 pt-16 pb-12 text-center md:pt-20">
+                <section className="mx-auto max-w-5xl px-4 pt-14 pb-6 text-center md:pt-16">
                     {/* Refined Glassmorphic Badge */}
                     <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold tracking-wide text-emerald-700 shadow-sm backdrop-blur-md dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300">
                         <span className="relative flex h-2 w-2">
@@ -180,7 +180,7 @@ export default function SahiDawaHome() {
                     </div>
 
                     {/* Trust Signals Row */}
-                    <div className="mx-auto mt-14 flex max-w-3xl flex-col items-center justify-center gap-6 border-t border-slate-200/60 pt-8 dark:border-slate-800/60 sm:flex-row sm:gap-10">
+                    <div className="mx-auto mt-8 flex max-w-3xl flex-col items-center justify-center gap-4 border-t border-slate-200/60 pt-6 dark:border-slate-800/60 sm:flex-row sm:gap-8">
                         <div className="flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-slate-400">
                             <ShieldCheck size={20} className="text-emerald-500" />
                             <span>Powered by <strong>CDSCO</strong> Data</span>
@@ -200,7 +200,7 @@ export default function SahiDawaHome() {
 
                 <div className="mx-auto max-w-5xl px-4">
                     {/* ── 2. MEDICINE SEARCH SECTION ── */}
-                    <section className="mb-14 rounded-3xl border border-slate-200/60 bg-white/70 p-6 sm:p-8 shadow-sm backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-900/60">
+                    <section className="mb-10 rounded-2xl border border-slate-200/60 bg-white/70 p-5 sm:p-6 shadow-sm backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-900/60">
                         <div className="mx-auto max-w-2xl text-center">
                             <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                                 Check a medicine
@@ -235,8 +235,8 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── 3. CORE PRODUCT FLOWS ── */}
-                    <section className="mb-14">
-                        <div className="text-center mb-12">
+                    <section className="mb-10">
+                        <div className="text-center mb-7">
                             <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
                                 How SahiDawa helps
                             </h2>
@@ -249,7 +249,7 @@ export default function SahiDawaHome() {
                             {/* Scan & Verify */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex flex-col items-start overflow-hidden rounded-3xl border border-emerald-200 bg-white p-8 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-500/20 dark:border-emerald-900/50 dark:bg-slate-900 dark:hover:border-emerald-700"
+                                className="group relative flex flex-col items-start overflow-hidden rounded-2xl border border-emerald-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/20 dark:border-emerald-900/50 dark:bg-slate-900 dark:hover:border-emerald-700"
                             >
                                 <div className="absolute inset-0 bg-linear-to-br from-emerald-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-900/20"></div>
                                 
@@ -262,7 +262,7 @@ export default function SahiDawaHome() {
                                     </div>
                                 </div>
                                 
-                                <div className="relative z-10 mt-8">
+                                <div className="relative z-10 mt-5">
                                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
                                         Scan & Verify
                                     </h3>
@@ -275,7 +275,7 @@ export default function SahiDawaHome() {
                             {/* Find a Pharmacy */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex flex-col items-start overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-500/20 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
+                                className="group relative flex flex-col items-start overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/20 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
                             >
                                 <div className="absolute inset-0 bg-linear-to-br from-blue-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-900/20"></div>
                                 
@@ -288,7 +288,7 @@ export default function SahiDawaHome() {
                                     </div>
                                 </div>
                                 
-                                <div className="relative z-10 mt-8">
+                                <div className="relative z-10 mt-5">
                                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-blue-700 dark:group-hover:text-blue-400">
                                         Find a Pharmacy
                                     </h3>
@@ -301,7 +301,7 @@ export default function SahiDawaHome() {
                             {/* Ask SahiDawa */}
                             <button
                                 onClick={() => handleNavigation("health")}
-                                className="group relative flex flex-col items-start overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700"
+                                className="group relative flex flex-col items-start overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700"
                             >
                                 <div className="absolute inset-0 bg-linear-to-br from-indigo-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-indigo-900/20"></div>
                                 
@@ -314,7 +314,7 @@ export default function SahiDawaHome() {
                                     </div>
                                 </div>
                                 
-                                <div className="relative z-10 mt-8">
+                                <div className="relative z-10 mt-5">
                                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
                                         Ask SahiDawa
                                     </h3>
@@ -327,12 +327,12 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── 4. LIVE SAFETY STATS ── */}
-                    <section className="mb-14">
+                    <section className="mb-10">
                         <SafetyStatsBanner />
                     </section>
 
                     {/* ── 5. SAFETY ALERTS ── */}
-                    <section className="mb-14">
+                    <section className="mb-10">
                         <div className="rounded-2xl border border-slate-200/60 bg-white shadow-xs dark:border-slate-800/60 dark:bg-slate-900">
                             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 dark:border-slate-800">
                                 <div className="flex items-center gap-3">
@@ -456,8 +456,8 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── 6. QUICK ACTIONS / SECONDARY FEATURES ── */}
-                    <section className="mb-14">
-                        <div className="mb-6">
+                    <section className="mb-10">
+                        <div className="mb-4">
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                                 Quick Actions
                             </h2>
@@ -561,7 +561,7 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── 7. VACCINE HUB BANNER ── */}
-                    <section className="mb-14">
+                    <section className="mb-10">
                         <button
                             onClick={() => handleNavigation("vaccine-hub")}
                             className="group relative flex w-full flex-col items-start gap-4 overflow-hidden rounded-3xl border border-emerald-200 bg-white p-6 text-left transition-all hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-500/10 dark:border-emerald-900/40 dark:bg-slate-900 sm:flex-row sm:items-center sm:p-8"
@@ -593,7 +593,7 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── 8. AI HEALTH ASSISTANT ── */}
-                    <section className="mb-14 rounded-2xl border border-slate-200/60 bg-white p-6 sm:p-8 dark:border-slate-800/60 dark:bg-slate-900">
+                    <section className="mb-10 rounded-2xl border border-slate-200/60 bg-white p-5 sm:p-6 dark:border-slate-800/60 dark:bg-slate-900">
                         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div className="space-y-2">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -616,10 +616,8 @@ export default function SahiDawaHome() {
                         </p>
                     </section>
 
-
-
                     {/* ── 10. TRUST & COMMUNITY SECTION ── */}
-                    <section className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-14">
+                    <section className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-10">
                         {/* Built with the community */}
                         <div className="rounded-2xl border border-slate-200/60 bg-white p-6 dark:border-slate-800/60 dark:bg-slate-900 flex flex-col justify-between">
                             <div>
