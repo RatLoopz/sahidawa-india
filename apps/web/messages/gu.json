@@ -1881,5 +1881,12 @@
         "savePreferences": "પસંદગીઓ સાચવો",
         "locationLabel": "સ્થાન સેવાઓ",
         "scanHistoryLabel": "સ્કેન ઇતિહાસ સંગ્રહ"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

@@ -1881,5 +1881,12 @@
         "savePreferences": "प्राधान्ये जतन करा",
         "locationLabel": "स्थान सेवा",
         "scanHistoryLabel": "इतिहास स्टोरेज स्कॅन करा"
+    },
+    "Scanner": {
+        "playAudio": "ऑडियो चालवा",
+        "stopAudio": "थांबा",
+        "loadingAudio": "ऑडियो लोड होत आहे...",
+        "audioError": "ऑडियो चालवण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+        "audioUnavailable": "या परिणामासाठी ऑडियो उपलब्ध नाही."
     }
 }

@@ -1875,5 +1875,12 @@
         "savePreferences": "محفوظ ڪريو ترجيحات",
         "locationLabel": "جڳھ جون خدمتون",
         "scanHistoryLabel": "اسڪين تاريخ اسٽوريج"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

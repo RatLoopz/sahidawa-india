@@ -1881,5 +1881,12 @@
         "savePreferences": "ಆದ್ಯತೆಗಳನ್ನು ಉಳಿಸಿ",
         "locationLabel": "ಸ್ಥಳ ಸೇವೆಗಳು",
         "scanHistoryLabel": "ಇತಿಹಾಸ ಸಂಗ್ರಹಣೆಯನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

@@ -1881,5 +1881,12 @@
         "savePreferences": "পছন্দগুলি সংরক্ষণ করুন",
         "locationLabel": "অবস্থান পরিষেবা",
         "scanHistoryLabel": "স্ক্যান ইতিহাস সঞ্চয়স্থান"
+    },
+    "Scanner": {
+        "playAudio": "অডিও চালান",
+        "stopAudio": "থামুন",
+        "loadingAudio": "অডিও লোড হচ্ছে...",
+        "audioError": "অডিও চালানো ব্যর্থ। আবার চেষ্টা করুন।",
+        "audioUnavailable": "এই ফলাফলের জন্য অডিও উপলব্ধ নেই।"
     }
 }
