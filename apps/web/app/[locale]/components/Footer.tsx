@@ -49,14 +49,12 @@ export default function Footer() {
     ] as const;
 
     return (
-        <footer
-            className={`no-print relative mt-auto border-t border-slate-200/50 bg-white dark:border-slate-800/50 dark:bg-slate-950 ${isHome ? "mb-16 md:mb-0" : ""}`}
-        >
-            <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 md:px-6">
+        <footer className={`no-print relative mt-auto border-t border-slate-200/50 bg-white dark:border-slate-800/50 dark:bg-slate-950 ${isHome ? "mb-16 md:mb-0" : ""}`}>
+            <div className="relative z-10 mx-auto max-w-5xl px-4 pt-12 pb-8 md:px-6">
                 {/* Main Footer Grid */}
-                <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5 lg:gap-8">
+                <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5 lg:gap-12 items-start">
                     {/* Brand Section */}
-                    <div className="col-span-2 lg:col-span-2">
+                    <div className="col-span-1 md:col-span-2 lg:col-span-2">
                         <h2 className="mb-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                             SahiDawa
                         </h2>
@@ -67,10 +65,10 @@ export default function Footer() {
 
                     {/* Product */}
                     <div>
-                        <h3 className="mb-4 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-5 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             Product
                         </h3>
-                        <ul className="flex flex-col gap-3">
+                        <ul className="flex flex-col gap-4">
                             <li>
                                 <Link href="/scan" className="text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400">
                                     Scan Medicine
@@ -96,10 +94,10 @@ export default function Footer() {
 
                     {/* Resources */}
                     <div>
-                        <h3 className="mb-4 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-5 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             {t("resources.title")}
                         </h3>
-                        <ul className="flex flex-col gap-3">
+                        <ul className="flex flex-col gap-4">
                             {resourceLinks.map((link) => (
                                 <li key={link.href}>
                                     <a
@@ -128,10 +126,10 @@ export default function Footer() {
 
                     {/* Community */}
                     <div>
-                        <h3 className="mb-4 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-5 text-sm font-bold tracking-widest text-slate-900 uppercase dark:text-white">
                             Community
                         </h3>
-                        <ul className="flex flex-col gap-3">
+                        <ul className="flex flex-col gap-4">
                             {socialLinks.map((social) => (
                                 <li key={social.key}>
                                     <a
