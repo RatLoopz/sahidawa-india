@@ -18,6 +18,7 @@ import {
 import { FaGithub } from "react-icons/fa6";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
+import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 
 const processSteps = [
     {
@@ -262,6 +263,11 @@ export default function HowItWorksPage() {
                         ))}
                     </div>
                 </div>
+            </section>
+
+            {/* Live Data Proof Section */}
+            <section className="px-6 py-16 lg:py-24">
+                <SafetyStatsBanner />
             </section>
 
             {/* Trust / Safety Section */}
