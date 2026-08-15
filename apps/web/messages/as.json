@@ -1881,5 +1881,27 @@
         "savePreferences": "পছন্দসমূহ সংৰক্ষণ কৰক",
         "locationLabel": "অৱস্থান সেৱাসমূহ",
         "scanHistoryLabel": "ইতিহাস সংৰক্ষণ স্কেন কৰক"
+    },
+    "LabAnalyzer": {
+        "title": "AI Lab Report Analyzer",
+        "description": "Upload a photo or PDF of your blood test or lab report. Our AI parses the results and explains them in plain language.",
+        "disclaimer": "This is an AI-generated summary, not a medical diagnosis. Always consult your doctor before making any health decisions.",
+        "uploadTitle": "Upload Lab Report",
+        "uploadDescription": "Drag & drop or click to upload a clear image (JPEG/PNG/WebP) or PDF of your lab report (max 10 MB).",
+        "uploadButton": "Select File",
+        "analyzeButton": "Analyze Report",
+        "analyzing": "Analyzing report...",
+        "analyzeAnother": "Analyze another report",
+        "summary": "Summary",
+        "yourValue": "Your Value",
+        "referenceRange": "Reference Range",
+        "errors": {
+            "emptyUpload": "Please select a file to upload.",
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG, PNG, WebP, or PDF.",
+            "fileTooLarge": "File is too large. Maximum size is 10 MB.",
+            "apiFailure": "Failed to analyze the report. Please try again.",
+            "unreadable": "The report is unreadable. Please upload a clearer image or PDF.",
+            "network": "Network error. Please check your connection."
+        }
     }
 }
