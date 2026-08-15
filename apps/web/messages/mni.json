@@ -1875,5 +1875,31 @@
         "savePreferences": "ꯄ꯭ꯔꯤꯐꯔꯦꯟꯁꯁꯤꯡ ꯁꯦꯚ ꯇꯧꯕꯥ꯫",
         "locationLabel": "ꯂꯣꯀꯦꯁꯟ ꯁꯔꯚꯤꯁꯁꯤꯡ꯫",
         "scanHistoryLabel": "ꯁ꯭ꯀꯦꯟ ꯍꯤꯁ꯭ꯇꯔꯤ ꯁ꯭ꯇꯣꯔꯦꯖ꯫"
+    },
+    "PillIdentifier": {
+        "title": "Visual Pill Identifier",
+        "description": "Lost the medicine box and only have a cut strip or loose pill? Take a clear close-up photo and our AI will try to identify it.",
+        "disclaimer": "This is an AI guess, not a confirmation. Always verify with a pharmacist before taking any unidentified medicine.",
+        "uploadTitle": "Capture Pill / Strip",
+        "uploadDescription": "Take or upload a sharp close-up photo of the pill, cut strip, or partial packaging (JPEG/PNG/WebP).",
+        "uploadButton": "Take or Select Photo",
+        "identifyButton": "Identify Medicine",
+        "analyzing": "Identifying...",
+        "scanAnother": "Identify another pill",
+        "confidence": "Confidence",
+        "genericName": "Generic / Salt",
+        "observedFeatures": "Observed Features",
+        "possibleUses": "Typical Uses",
+        "unknown": "Could not identify",
+        "defaultSafetyNote": "This is an AI-generated guess. Do not consume the medicine based solely on this result. Please confirm with a pharmacist.",
+        "checkInteractions": "Check this medicine's interactions",
+        "errors": {
+            "emptyUpload": "Please select an image to upload.",
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG, PNG, or WebP image.",
+            "fileTooLarge": "File is too large. Maximum size is 10 MB.",
+            "apiFailure": "Failed to identify the medicine. Please try again.",
+            "unreadable": "The image is unreadable or does not contain a pill. Please upload a clearer photo.",
+            "network": "Network error. Please check your connection."
+        }
     }
 }
