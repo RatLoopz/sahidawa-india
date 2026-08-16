@@ -1912,6 +1912,11 @@
         "instructions": "Instructions",
         "sideEffects": "Side Effects",
         "vitals": "Patient Vitals",
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result.",
         "errors": {
             "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
             "emptyUpload": "Please select an image to upload.",

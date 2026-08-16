@@ -1881,5 +1881,12 @@
         "savePreferences": "ପସନ୍ଦଗୁଡିକ ସଞ୍ଚୟ କରନ୍ତୁ |",
         "locationLabel": "ଅବସ୍ଥାନ ସେବା",
         "scanHistoryLabel": "ଇତିହାସ ସଂରକ୍ଷଣ ସ୍କାନ୍ କରନ୍ତୁ |"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

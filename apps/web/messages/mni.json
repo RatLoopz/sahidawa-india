@@ -1875,5 +1875,12 @@
         "savePreferences": "ꯄ꯭ꯔꯤꯐꯔꯦꯟꯁꯁꯤꯡ ꯁꯦꯚ ꯇꯧꯕꯥ꯫",
         "locationLabel": "ꯂꯣꯀꯦꯁꯟ ꯁꯔꯚꯤꯁꯁꯤꯡ꯫",
         "scanHistoryLabel": "ꯁ꯭ꯀꯦꯟ ꯍꯤꯁ꯭ꯇꯔꯤ ꯁ꯭ꯇꯣꯔꯦꯖ꯫"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

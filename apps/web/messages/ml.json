@@ -1880,5 +1880,12 @@
         "savePreferences": "മുൻഗണനകൾ സംരക്ഷിക്കുക",
         "locationLabel": "ലൊക്കേഷൻ സേവനങ്ങൾ",
         "scanHistoryLabel": "ചരിത്ര സംഭരണം സ്കാൻ ചെയ്യുക"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

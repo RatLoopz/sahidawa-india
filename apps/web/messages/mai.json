@@ -1876,5 +1876,12 @@
         "savePreferences": "वरीयता सहेजें",
         "locationLabel": "स्थान सेवाएँ",
         "scanHistoryLabel": "स्कैन इतिहास भंडारण"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

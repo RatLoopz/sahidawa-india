@@ -1881,5 +1881,12 @@
         "savePreferences": "ترجیحات محفوظ کریں۔",
         "locationLabel": "مقام کی خدمات",
         "scanHistoryLabel": "اسکین ہسٹری اسٹوریج"
+    },
+    "Scanner": {
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result."
     }
 }

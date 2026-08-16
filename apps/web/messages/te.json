@@ -1881,5 +1881,12 @@
         "savePreferences": "ప్రాధాన్యతలను సేవ్ చేయండి",
         "locationLabel": "స్థాన సేవలు",
         "scanHistoryLabel": "చరిత్ర నిల్వను స్కాన్ చేయండి"
+    },
+    "Scanner": {
+        "playAudio": "ఆడియో ప్లే చేయి",
+        "stopAudio": "ఆపు",
+        "loadingAudio": "ఆడియో లోడ్ అవుతోంది...",
+        "audioError": "ఆడియో ప్లే విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+        "audioUnavailable": "ఈ ఫలితానికి ఆడియో అందుబాటులో లేదు."
     }
 }
