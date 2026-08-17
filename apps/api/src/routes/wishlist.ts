@@ -260,31 +260,13 @@ router.get(
             return;
         }
 
-        let page = parseInt(req.query.page as string, 10);
-        let limit = parseInt(req.query.limit as string, 10);
-
-        if (isNaN(page) || page <= 0) {
-            page = 1;
-        }
-        if (isNaN(limit) || limit <= 0) {
-            limit = 20;
-        }
-        if (limit > 100) {
-            limit = 100;
-        }
-
-        const from = (page - 1) * limit;
-        const to = from + limit - 1;
+        const rawPage = parseInt(req.query.page as string, 10);
+        const rawLimit = parseInt(req.query.limit as string, 10);
+        const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+        const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
+        const offset = (page - 1) * limit;
 
         try {
-            const rawPage = parseInt(req.query.page as string, 10);
-            const rawLimit = parseInt(req.query.limit as string, 10);
-
-            const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
-            const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
-
-            const offset = (page - 1) * limit;
-
             const {
                 data: wishlistItems,
                 error: fetchError,
@@ -295,7 +277,6 @@ router.get(
                 .eq("user_id", req.user.id)
                 .order("created_at", { ascending: false })
                 .range(offset, offset + limit - 1);
-                .range(from, to);
 
             if (fetchError) {
                 next(fetchError);
@@ -303,9 +284,6 @@ router.get(
             }
 
             const totalCount = count ?? 0;
-
-            res.json({
-            const totalCount = count || 0;
             const totalPages = Math.ceil(totalCount / limit);
 
             res.json({
@@ -315,10 +293,6 @@ router.get(
                 count: totalCount,
                 totalPages,
                 items: wishlistItems || [],
-                count: totalCount,
-                page,
-                limit,
-                totalPages: Math.ceil(totalCount / limit),
             });
         } catch (err) {
             next(err);

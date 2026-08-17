@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
     Check,
     Plus,
@@ -38,10 +38,11 @@ function cleanTextForSpeech(text: string): string {
             // Remove markdown italic
             .replace(/\*(.+?)\*/g, "$1")
             .replace(/_(.+?)_/g, "$1")
+            .replace(/[*_`#>]/g, "")
             // Remove markdown headers
             .replace(/^#+\s+/gm, "")
             // Remove bullet points and list markers
-            .replace(/^[\-\*\+]\s+/gm, "")
+            .replace(/^[\-\*\+•]\s+/gm, "")
             .replace(/^\d+\.\s+/gm, "")
             // Convert common abbreviations for better speech
             .replace(/\bmg\b/gi, "milligrams")
@@ -62,7 +63,7 @@ function generateSpeechDescription(data: ScannerResult): string {
     const parts: string[] = [];
 
     // Opening summary
-    const medicineCount = data.medicines.length;
+    const medicineCount = data.medicines?.length || 0;
     if (medicineCount === 0) {
         return "No medicines were detected in the prescription.";
     }
@@ -112,15 +113,14 @@ function generateSpeechDescription(data: ScannerResult): string {
     return cleanTextForSpeech(fullText);
 }
 
-export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
+const PlayAudioButton: React.FC<{ data: ScannerResult }> = ({ data }) => {
     const t = useTranslations("Scanner");
     const locale = useLocale();
-    const { addMedicine } = useMedicineTracker();
-    const router = useRouter();
-    const [isAdding, setIsAdding] = useState(false);
-    const [added, setAdded] = useState(false);
+    const { playTTS, stopTTS, isLoading, isPlaying } = useCloudTTS();
+    const [hasError, setHasError] = useState(false);
 
-    const { playTTS, stopTTS, isLoading: isTTSLoading, isPlaying } = useCloudTTS();
+    const languageCode = useMemo(() => getVoiceLanguageForLocale(locale), [locale]);
+    const script = useMemo(() => generateSpeechDescription(data), [data]);
 
     // Stop audio when component unmounts or data changes
     useEffect(() => {
@@ -129,32 +129,95 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
         };
     }, [stopTTS]);
 
-    // Stop audio when data changes
     useEffect(() => {
         stopTTS();
     }, [data, stopTTS]);
 
-    const handlePlayAudio = async () => {
+    if (!script) {
+        return (
+            <span className="text-xs text-gray-400" role="note">
+                {t("audioUnavailable")}
+            </span>
+        );
+    }
+
+    const handleFallback = () => {
+        // Cloud TTS failed — fall back to the browser's native speech
+        // synthesis so the feature still works offline / without keys.
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(script);
+                utterance.lang = languageCode;
+                window.speechSynthesis.speak(utterance);
+            } catch {
+                setHasError(true);
+                toast.error(
+                    t("errors.audioPlayback") ||
+                        t("audioError") ||
+                        "Unable to play audio. Please try again."
+                );
+            }
+        } else {
+            setHasError(true);
+            toast.error(
+                t("errors.audioPlayback") ||
+                    t("audioError") ||
+                    "Unable to play audio. Please try again."
+            );
+        }
+    };
+
+    const handleClick = async () => {
         if (isPlaying) {
             stopTTS();
             return;
         }
 
-        const speechText = generateSpeechDescription(data);
-        const languageCode = getVoiceLanguageForLocale(locale);
-
+        setHasError(false);
         try {
-            await playTTS(speechText, languageCode, {
+            await playTTS(script, languageCode, {
                 onError: () => {
-                    toast.error(
-                        t("errors.audioPlayback") || "Unable to play audio. Please try again."
-                    );
+                    handleFallback();
                 },
             });
         } catch {
-            toast.error(t("errors.audioPlayback") || "Unable to play audio. Please try again.");
+            handleFallback();
         }
     };
+
+    const label = isLoading ? t("loadingAudio") : isPlaying ? t("stopAudio") : t("playAudio");
+
+    return (
+        <button
+            type="button"
+            onClick={handleClick}
+            disabled={isLoading}
+            aria-live="polite"
+            aria-label={label}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-70 sm:w-auto"
+        >
+            {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+            ) : isPlaying ? (
+                <Square className="h-5 w-5" />
+            ) : (
+                <Volume2 className="h-5 w-5" />
+            )}
+            {label}
+            {hasError && !isLoading && !isPlaying && (
+                <span className="sr-only">{t("errors.audioPlayback") || t("audioError")}</span>
+            )}
+        </button>
+    );
+};
+
+export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
+    const t = useTranslations("Scanner");
+    const { addMedicine } = useMedicineTracker();
+    const router = useRouter();
+    const [isAdding, setIsAdding] = useState(false);
+    const [added, setAdded] = useState(false);
 
     const handleAddAll = async () => {
         setIsAdding(true);
@@ -216,29 +279,7 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
                     <p className="text-sm text-gray-500">Review the extracted details below</p>
                 </div>
                 <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                    <button
-                        onClick={handlePlayAudio}
-                        disabled={isTTSLoading}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-70 sm:w-auto"
-                        aria-label={isPlaying ? "Stop audio" : "Play audio description"}
-                    >
-                        {isTTSLoading ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                Loading audio...
-                            </>
-                        ) : isPlaying ? (
-                            <>
-                                <Square className="h-5 w-5" />
-                                Stop Audio
-                            </>
-                        ) : (
-                            <>
-                                <Volume2 className="h-5 w-5" />
-                                Play Audio
-                            </>
-                        )}
-                    </button>
+                    <PlayAudioButton data={data} />
                     <button
                         onClick={handleAddAll}
                         disabled={isAdding || added}

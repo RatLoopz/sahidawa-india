@@ -1882,6 +1882,8 @@
         "scanHistoryLabel": "ചരിത്ര സംഭരണം സ്കാൻ ചെയ്യുക"
     },
     "Scanner": {
+        "title": "സ്മാർട്ട് പ്രസ്ക്രിപ്ഷൻ സ്കാനർ",
+        "description": "നിങ്ങളുടെ കൈയെഴുത്തിലുള്ള പ്രസ്ക്രിപ്ഷന്റെ ഒരു ചിത്രം അപ്‌ലോഡ് ചെയ്യുക, കൂടാതെ ഞങ്ങളുടെ AI നിങ്ങൾക്കായി മരുന്നുകളും നിർദ്ദേശനങ്ങളും വേർതിരിച്ചെടുക്കും.",
         "uploadTitle": "Upload",
         "uploadDescription": "Upload prescription image",
         "uploadButton": "Select Image",
@@ -1895,6 +1897,11 @@
         "instructions": "Instructions",
         "sideEffects": "Side Effects",
         "vitals": "Patient Vitals",
+        "playAudio": "Play Audio",
+        "stopAudio": "Stop",
+        "loadingAudio": "Loading audio...",
+        "audioError": "Audio playback failed. Please try again.",
+        "audioUnavailable": "Audio is not available for this result.",
         "errors": {
             "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
             "emptyUpload": "Please select an image to upload.",
@@ -1902,8 +1909,54 @@
             "blurry": "Image too blurry. Please upload a clearer prescription.",
             "network": "Network error. Please check your connection.",
             "audioPlayback": "ഓഡിയോ പ്ലേ ചെയ്യാൻ കഴിയുന്നില്ല. വീണ്ടും ശ്രമിക്കുക."
-        },
-        "title": "സ്മാർട്ട് പ്രസ്ക്രിപ്ഷൻ സ്കാനർ",
-        "description": "നിങ്ങളുടെ കൈയെഴുത്തിലുള്ള പ്രസ്ക്രിപ്ഷന്റെ ഒരു ചിത്രം അപ്‌ലോഡ് ചെയ്യുക, കൂടാതെ ഞങ്ങളുടെ AI നിങ്ങൾക്കായി മരുന്നുകളും നിർദ്ദേശനങ്ങളും വേർതിരിച്ചെടുക്കും."
+        }
+    },
+    "LabAnalyzer": {
+        "title": "AI Lab Report Analyzer",
+        "description": "Upload a photo or PDF of your blood test or lab report. Our AI parses the results and explains them in plain language.",
+        "disclaimer": "This is an AI-generated summary, not a medical diagnosis. Always consult your doctor before making any health decisions.",
+        "uploadTitle": "Upload Lab Report",
+        "uploadDescription": "Drag & drop or click to upload a clear image (JPEG/PNG/WebP) or PDF of your lab report (max 10 MB).",
+        "uploadButton": "Select File",
+        "analyzeButton": "Analyze Report",
+        "analyzing": "Analyzing report...",
+        "analyzeAnother": "Analyze another report",
+        "summary": "Summary",
+        "yourValue": "Your Value",
+        "referenceRange": "Reference Range",
+        "errors": {
+            "emptyUpload": "Please select a file to upload.",
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG, PNG, WebP, or PDF.",
+            "fileTooLarge": "File is too large. Maximum size is 10 MB.",
+            "apiFailure": "Failed to analyze the report. Please try again.",
+            "unreadable": "The report is unreadable. Please upload a clearer image or PDF.",
+            "network": "Network error. Please check your connection."
+        }
+    },
+    "PillIdentifier": {
+        "title": "Visual Pill Identifier",
+        "description": "Lost the medicine box and only have a cut strip or loose pill? Take a clear close-up photo and our AI will try to identify it.",
+        "disclaimer": "This is an AI guess, not a confirmation. Always verify with a pharmacist before taking any unidentified medicine.",
+        "uploadTitle": "Capture Pill / Strip",
+        "uploadDescription": "Take or upload a sharp close-up photo of the pill, cut strip, or partial packaging (JPEG/PNG/WebP).",
+        "uploadButton": "Take or Select Photo",
+        "identifyButton": "Identify Medicine",
+        "analyzing": "Identifying...",
+        "scanAnother": "Identify another pill",
+        "confidence": "Confidence",
+        "genericName": "Generic / Salt",
+        "observedFeatures": "Observed Features",
+        "possibleUses": "Typical Uses",
+        "unknown": "Could not identify",
+        "defaultSafetyNote": "This is an AI-generated guess. Do not consume the medicine based solely on this result. Please confirm with a pharmacist.",
+        "checkInteractions": "Check this medicine's interactions",
+        "errors": {
+            "emptyUpload": "Please select an image to upload.",
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG, PNG, or WebP image.",
+            "fileTooLarge": "File is too large. Maximum size is 10 MB.",
+            "apiFailure": "Failed to identify the medicine. Please try again.",
+            "unreadable": "The image is unreadable or does not contain a pill. Please upload a clearer photo.",
+            "network": "Network error. Please check your connection."
+        }
     }
 }

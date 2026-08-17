@@ -1883,6 +1883,8 @@
         "scanHistoryLabel": "इतिहास स्टोरेज स्कॅन करा"
     },
     "Scanner": {
+        "title": "स्मार्ट प्रिस्क्रिप्शन स्कॅनर",
+        "description": "आपल्या हस्तलिखित प्रिस्क्रिप्शनचा चित्र अपलोड करा, आणि आमचा AI तुमच्यासाठी औषधे आणि सूचना काढून देईल.",
         "uploadTitle": "Upload",
         "uploadDescription": "Upload prescription image",
         "uploadButton": "Select Image",
@@ -1896,6 +1898,11 @@
         "instructions": "Instructions",
         "sideEffects": "Side Effects",
         "vitals": "Patient Vitals",
+        "playAudio": "ऑडियो चालवा",
+        "stopAudio": "थांबा",
+        "loadingAudio": "ऑडियो लोड होत आहे...",
+        "audioError": "ऑडियो चालवण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+        "audioUnavailable": "या परिणामासाठी ऑडियो उपलब्ध नाही.",
         "errors": {
             "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
             "emptyUpload": "Please select an image to upload.",
@@ -1903,8 +1910,54 @@
             "blurry": "Image too blurry. Please upload a clearer prescription.",
             "network": "Network error. Please check your connection.",
             "audioPlayback": "ऑडिओ चालवू शकत नाही. कृपया पुन्हा प्रयत्न करा."
-        },
-        "title": "स्मार्ट प्रिस्क्रिप्शन स्कॅनर",
-        "description": "आपल्या हस्तलिखित प्रिस्क्रिप्शनचा चित्र अपलोड करा, आणि आमचा AI तुमच्यासाठी औषधे आणि सूचना काढून देईल."
+        }
+    },
+    "LabAnalyzer": {
+        "title": "एआय लॅब अहवाल विश्लेषक",
+        "description": "तुमच्या रक्त तपासणी किंवा लॅब अहवालाचा फोटो किंवा PDF अपलोड करा. आमची एआय निकाल सोप्या भाषेत समजावून सांगेल.",
+        "disclaimer": "हा एआयने तयार केलेला सारांश आहे, वैद्यकीय निदान नाही. कोणताही आरोग्य निर्णय घेण्यापूर्वी नेहमी तुमच्या डॉक्टरांचा सल्ला घ्या.",
+        "uploadTitle": "लॅब अहवाल अपलोड करा",
+        "uploadDescription": "तुमच्या लॅब अहवालाची स्पष्ट प्रतिमा (JPEG/PNG/WebP) किंवा PDF अपलोड करा (कमाल 10 MB).",
+        "uploadButton": "फाइल निवडा",
+        "analyzeButton": "अहवाल विश्लेषण करा",
+        "analyzing": "अहवाल विश्लेषण केला जात आहे...",
+        "analyzeAnother": "दुसरा अहवाल विश्लेषण करा",
+        "summary": "सारांश",
+        "yourValue": "तुमचे मूल्य",
+        "referenceRange": "संदर्भ श्रेणी",
+        "errors": {
+            "emptyUpload": "अपलोड करण्यासाठी कृपया एक फाइल निवडा.",
+            "unsupportedFile": "असमर्थित फाइल प्रकार. कृपया JPEG, PNG, WebP किंवा PDF अपलोड करा.",
+            "fileTooLarge": "फाइल खूप मोठी आहे. कमाल आकार 10 MB आहे.",
+            "apiFailure": "अहवाल विश्लेषण करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+            "unreadable": "अहवाल वाचता येत नाही. कृपया स्पष्ट प्रतिमा किंवा PDF अपलोड करा.",
+            "network": "नेटवर्क त्रुटी. कृपया तुमचा कनेक्शन तपासा."
+        }
+    },
+    "PillIdentifier": {
+        "title": "व्हिज्युअल पिल आयडेंटिफायर",
+        "description": "औषधाचे बॉक्स हरवले आणि फक्त कापलेला स्ट्रिप आहे? एक स्पष्ट क्लोज-अप फोटो घ्या आणि आमची एआय ते ओळखण्याचा प्रयत्न करेल.",
+        "disclaimer": "ही एआयचा अंदाज आहे, पुष्टी नाही. कोणतेही ओळखीचे औषध घेण्यापूर्वी नेहमी फार्मासिस्टकडून पडताळून पहा.",
+        "uploadTitle": "पिल / स्ट्रिप कॅप्चर करा",
+        "uploadDescription": "पिल, कापलेला स्ट्रिप किंवा आंशिक पॅकेजिंगचा तीक्ष्ण क्लोज-अप फोटो घ्या किंवा अपलोड करा (JPEG/PNG/WebP).",
+        "uploadButton": "फोटो घ्या किंवा निवडा",
+        "identifyButton": "औषध ओळखा",
+        "analyzing": "ओळखत आहे...",
+        "scanAnother": "दुसरा पिल ओळखा",
+        "confidence": "विश्वास",
+        "genericName": "जेनेरिक / साल्ट",
+        "observedFeatures": "निरीक्षित वैशिष्ट्ये",
+        "possibleUses": "सामान्य वापर",
+        "unknown": "ओळखता आले नाही",
+        "defaultSafetyNote": "ही एआयने तयार केलेली अंदाज आहे. फक्त या परिणामावर औषध घेऊ नका. कृपया फार्मासिस्टकडून पुष्टी करा.",
+        "checkInteractions": "या औषधाच्या संवादांची तपासणी करा",
+        "errors": {
+            "emptyUpload": "अपलोड करण्यासाठी कृपया एक प्रतिमा निवडा.",
+            "unsupportedFile": "असमर्थित फाइल प्रकार. कृपया JPEG, PNG किंवा WebP प्रतिमा अपलोड करा.",
+            "fileTooLarge": "फाइल खूप मोठी आहे. कमाल आकार 10 MB आहे.",
+            "apiFailure": "औषध ओळखण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+            "unreadable": "प्रतिमा वाचता येत नाही किंवा पिल नाही. कृपया स्पष्ट फोटो अपलोड करा.",
+            "network": "नेटवर्क त्रुटी. कृपया तुमचा कनेक्शन तपासा."
+        }
     }
 }

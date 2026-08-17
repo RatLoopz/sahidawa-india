@@ -1883,6 +1883,8 @@
         "scanHistoryLabel": "স্ক্যান ইতিহাস সঞ্চয়স্থান"
     },
     "Scanner": {
+        "title": "স্মার্ট প্রেসক্রিপশন স্ক্যানার",
+        "description": "আপনার হাতে লেখা প্রেসক্রিপশনের একটি ছবি আপলোড করুন এবং আমাদের AI আপনার জন্য ওষুধ এবং নির্দেশনা বের করবে।",
         "uploadTitle": "Upload",
         "uploadDescription": "Upload prescription image",
         "uploadButton": "Select Image",
@@ -1896,6 +1898,11 @@
         "instructions": "Instructions",
         "sideEffects": "Side Effects",
         "vitals": "Patient Vitals",
+        "playAudio": "অডিও চালান",
+        "stopAudio": "থামুন",
+        "loadingAudio": "অডিও লোড হচ্ছে...",
+        "audioError": "অডিও চালানো ব্যর্থ। আবার চেষ্টা করুন।",
+        "audioUnavailable": "এই ফলাফলের জন্য অডিও উপলব্ধ নেই।",
         "errors": {
             "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
             "emptyUpload": "Please select an image to upload.",
@@ -1903,8 +1910,54 @@
             "blurry": "Image too blurry. Please upload a clearer prescription.",
             "network": "Network error. Please check your connection.",
             "audioPlayback": "অডিও চালাতে অক্ষম। অনুগ্রহ করে আবার চেষ্টা করুন।"
-        },
-        "title": "স্মার্ট প্রেসক্রিপশন স্ক্যানার",
-        "description": "আপনার হাতে লেখা প্রেসক্রিপশনের একটি ছবি আপলোড করুন এবং আমাদের AI আপনার জন্য ওষুধ এবং নির্দেশনা বের করবে।"
+        }
+    },
+    "LabAnalyzer": {
+        "title": "এআই ল্যাব রিপোর্ট বিশ্লেষক",
+        "description": "আপনার রক্ত পরীক্ষা বা ল্যাব রিপোর্টের ছবি বা PDF আপলোড করুন। আমাদের এআই ফলাফলগুলি সহজ ভাষায় ব্যাখ্যা করবে।",
+        "disclaimer": "এটি এআই দ্বারা তৈরি একটি সারাংশ, চিকিৎসা নির্ণয় নয়। যেকোনো স্বাস্থ্য সিদ্ধান্ত নেওয়ার আগে সর্বদা আপনার ডাক্তারের পরামর্শ নিন।",
+        "uploadTitle": "ল্যাব রিপোর্ট আপলোড করুন",
+        "uploadDescription": "আপনার ল্যাব রিপোর্টের স্পষ্ট ছবি (JPEG/PNG/WebP) বা PDF আপলোড করুন (সর্বোচ্চ 10 MB)।",
+        "uploadButton": "ফাইল নির্বাচন করুন",
+        "analyzeButton": "রিপোর্ট বিশ্লেষণ করুন",
+        "analyzing": "রিপোর্ট বিশ্লেষণ করা হচ্ছে...",
+        "analyzeAnother": "অন্য একটি রিপোর্ট বিশ্লেষণ করুন",
+        "summary": "সারাংশ",
+        "yourValue": "আপনার মান",
+        "referenceRange": "রেফারেন্স সীমা",
+        "errors": {
+            "emptyUpload": "আপলোড করতে একটি ফাইল নির্বাচন করুন।",
+            "unsupportedFile": "অসমর্থিত ফাইলের ধরন। JPEG, PNG, WebP বা PDF আপলোড করুন।",
+            "fileTooLarge": "ফাইলটি খুব বড়। সর্বোচ্চ আকার 10 MB।",
+            "apiFailure": "রিপোর্ট বিশ্লেষণে ব্যর্থ। আবার চেষ্টা করুন।",
+            "unreadable": "রিপোর্টটি পড়া যাচ্ছে না। একটি স্পষ্ট ছবি বা PDF আপলোড করুন।",
+            "network": "নেটওয়ার্ক ত্রুটি। আপনার সংযোগ পরীক্ষা করুন।"
+        }
+    },
+    "PillIdentifier": {
+        "title": "ভিজ্যুয়াল পিল আইডেন্টিফায়ার",
+        "description": "ওষুধের বাক্স হারিয়ে শুধু কাটা স্ট্রিপ বা ঢিলেঢালা ওষুধ আছে? একটি পরিষ্কার ক্লোজ-আপ ছবি তুলুন এবং আমাদের এআই এটি চিহ্নিত করার চেষ্টা করবে।",
+        "disclaimer": "এটি এআই-এর অনুমান, নিশ্চিতকরণ নয়। অজানা ওষুধ খাওয়ার আগে সর্বদা ফার্মাসিস্টের সাথে যাচাই করুন।",
+        "uploadTitle": "পিল / স্ট্রিপ ক্যাপচার করুন",
+        "uploadDescription": "পিল, কাটা স্ট্রিপ, বা আংশিক প্যাকেজিংয়ের তীক্ষ্ণ ক্লোজ-আপ ছবি তুলুন বা আপলোড করুন (JPEG/PNG/WebP)।",
+        "uploadButton": "ছবি তুলুন বা নির্বাচন করুন",
+        "identifyButton": "ওষুধ চিহ্নিত করুন",
+        "analyzing": "চিহ্নিত করা হচ্ছে...",
+        "scanAnother": "অন্য একটি পিল চিহ্নিত করুন",
+        "confidence": "নিশ্চয়তা",
+        "genericName": "জেনেরিক / সাল্ট",
+        "observedFeatures": "পর্যবেক্ষিত বৈশিষ্ট্য",
+        "possibleUses": "সাধারণ ব্যবহার",
+        "unknown": "চিহ্নিত করা যায়নি",
+        "defaultSafetyNote": "এটি এআই দ্বারা তৈরি একটি অনুমান। শুধুমাত্র এই ফলাফলের উপর ভিত্তি করে ওষুধ খাবেন না। ফার্মাসিস্টের সাথে নিশ্চিত করুন।",
+        "checkInteractions": "এই ওষুধের মিথস্ক্রিয়া পরীক্ষা করুন",
+        "errors": {
+            "emptyUpload": "আপলোড করতে একটি ছবি নির্বাচন করুন।",
+            "unsupportedFile": "অসমর্থিত ফাইলের ধরন। JPEG, PNG, বা WebP ছবি আপলোড করুন।",
+            "fileTooLarge": "ফাইলটি খুব বড়। সর্বোচ্চ আকার 10 MB।",
+            "apiFailure": "ওষুধ চিহ্নিত করতে ব্যর্থ। আবার চেষ্টা করুন।",
+            "unreadable": "ছবিটি পড়া যাচ্ছে না বা পিল নেই। একটি পরিষ্কার ছবি আপলোড করুন।",
+            "network": "নেটওয়ার্ক ত্রুটি। আপনার সংযোগ পরীক্ষা করুন।"
+        }
     }
 }

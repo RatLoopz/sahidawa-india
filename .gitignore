@@ -80,3 +80,4 @@ ml_model_dev_pipeline/data
 scratch/
 /reports/
 .lighthouseci
+\n# GSSoC Reports\npr_data.json\nartifacts/
