@@ -1881,5 +1881,30 @@
         "savePreferences": "পছন্দগুলি সংরক্ষণ করুন",
         "locationLabel": "অবস্থান পরিষেবা",
         "scanHistoryLabel": "স্ক্যান ইতিহাস সঞ্চয়স্থান"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "অডিও চালাতে অক্ষম। অনুগ্রহ করে আবার চেষ্টা করুন।"
+        },
+        "title": "স্মার্ট প্রেসক্রিপশন স্ক্যানার",
+        "description": "আপনার হাতে লেখা প্রেসক্রিপশনের একটি ছবি আপলোড করুন এবং আমাদের AI আপনার জন্য ওষুধ এবং নির্দেশনা বের করবে।"
     }
 }

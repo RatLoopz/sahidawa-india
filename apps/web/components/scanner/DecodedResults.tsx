@@ -1,23 +1,160 @@
 "use client";
 
-import React, { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Check, Plus, AlertCircle, Clock, Heart, ShieldAlert, FileText, Info } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import {
+    Check,
+    Plus,
+    AlertCircle,
+    Clock,
+    Heart,
+    ShieldAlert,
+    FileText,
+    Info,
+    Volume2,
+    Square,
+    Loader2,
+} from "lucide-react";
 import { ScannerResult } from "./PrescriptionUpload";
 import { useMedicineTracker } from "@/hooks/useMedicineTracker";
 import { toast } from "sonner";
 import { useRouter } from "@/i18n/routing";
+import { useCloudTTS } from "@/app/[locale]/voice/lib/useCloudTTS";
+import { getVoiceLanguageForLocale } from "@/app/[locale]/voice/lib/languages";
 
 interface DecodedResultsProps {
     data: ScannerResult;
 }
 
+/**
+ * Cleans AI-generated text for natural speech by removing markdown formatting
+ * and converting symbols to spoken words.
+ */
+function cleanTextForSpeech(text: string): string {
+    return (
+        text
+            // Remove markdown bold
+            .replace(/\*\*(.+?)\*\*/g, "$1")
+            // Remove markdown italic
+            .replace(/\*(.+?)\*/g, "$1")
+            .replace(/_(.+?)_/g, "$1")
+            // Remove markdown headers
+            .replace(/^#+\s+/gm, "")
+            // Remove bullet points and list markers
+            .replace(/^[\-\*\+]\s+/gm, "")
+            .replace(/^\d+\.\s+/gm, "")
+            // Convert common abbreviations for better speech
+            .replace(/\bmg\b/gi, "milligrams")
+            .replace(/\bml\b/gi, "milliliters")
+            .replace(/\bg\b(?=\s|$)/gi, "grams")
+            // Replace excessive whitespace with single space
+            .replace(/\s+/g, " ")
+            // Replace multiple newlines with period for natural pause
+            .replace(/\n+/g, ". ")
+            .trim()
+    );
+}
+
+/**
+ * Generates a natural speech description from the scan results
+ */
+function generateSpeechDescription(data: ScannerResult): string {
+    const parts: string[] = [];
+
+    // Opening summary
+    const medicineCount = data.medicines.length;
+    if (medicineCount === 0) {
+        return "No medicines were detected in the prescription.";
+    }
+
+    parts.push(`${medicineCount} ${medicineCount === 1 ? "medicine" : "medicines"} found.`);
+
+    // Patient vitals if available
+    if (
+        data.patientVitals &&
+        (data.patientVitals.bloodPressure || data.patientVitals.temperature)
+    ) {
+        parts.push("Patient vitals:");
+        if (data.patientVitals.bloodPressure) {
+            parts.push(`Blood pressure: ${data.patientVitals.bloodPressure}.`);
+        }
+        if (data.patientVitals.temperature) {
+            parts.push(`Temperature: ${data.patientVitals.temperature}.`);
+        }
+    }
+
+    // Each medicine
+    data.medicines.forEach((med, index) => {
+        parts.push(`Medicine ${index + 1}: ${med.name}.`);
+
+        if (med.dosage) {
+            parts.push(`Dosage: ${med.dosage}.`);
+        }
+
+        if (med.simpleTiming || med.timing) {
+            parts.push(`Timing: ${med.simpleTiming || med.timing}.`);
+        }
+
+        if (med.instructions) {
+            parts.push(`Instructions: ${med.instructions}.`);
+        }
+
+        if (med.purpose) {
+            parts.push(`Purpose: ${med.purpose}.`);
+        }
+
+        if (med.side_effects) {
+            parts.push(`Side effects: ${med.side_effects}.`);
+        }
+    });
+
+    const fullText = parts.join(" ");
+    return cleanTextForSpeech(fullText);
+}
+
 export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
     const t = useTranslations("Scanner");
+    const locale = useLocale();
     const { addMedicine } = useMedicineTracker();
     const router = useRouter();
     const [isAdding, setIsAdding] = useState(false);
     const [added, setAdded] = useState(false);
+
+    const { playTTS, stopTTS, isLoading: isTTSLoading, isPlaying } = useCloudTTS();
+
+    // Stop audio when component unmounts or data changes
+    useEffect(() => {
+        return () => {
+            stopTTS();
+        };
+    }, [stopTTS]);
+
+    // Stop audio when data changes
+    useEffect(() => {
+        stopTTS();
+    }, [data, stopTTS]);
+
+    const handlePlayAudio = async () => {
+        if (isPlaying) {
+            stopTTS();
+            return;
+        }
+
+        const speechText = generateSpeechDescription(data);
+        const languageCode = getVoiceLanguageForLocale(locale);
+
+        try {
+            await playTTS(speechText, languageCode, {
+                onError: () => {
+                    toast.error(
+                        t("errors.audioPlayback") || "Unable to play audio. Please try again."
+                    );
+                },
+            });
+        } catch {
+            toast.error(t("errors.audioPlayback") || "Unable to play audio. Please try again.");
+        }
+    };
 
     const handleAddAll = async () => {
         setIsAdding(true);
@@ -31,7 +168,8 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
                 // Compile all the AI extracted data into the notes field
                 const notesParts = [];
                 if (med.dosage) notesParts.push(`Dosage: ${med.dosage}`);
-                if (med.timing || med.simpleTiming) notesParts.push(`Timing: ${med.simpleTiming || med.timing}`);
+                if (med.timing || med.simpleTiming)
+                    notesParts.push(`Timing: ${med.simpleTiming || med.timing}`);
                 if (med.instructions) notesParts.push(`Instructions: ${med.instructions}`);
                 if (med.purpose) notesParts.push(`Purpose: ${med.purpose}`);
                 if (med.side_effects) notesParts.push(`Side Effects: ${med.side_effects}`);
@@ -39,18 +177,17 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
                 await addMedicine({
                     name: med.name,
                     expiryDate: expiryString,
-                    notes: notesParts.join("\n")
+                    notes: notesParts.join("\n"),
                 });
             }
 
             setAdded(true);
             toast.success(t("addedSuccess"));
-            
+
             // Optionally redirect to tracker after a short delay
             setTimeout(() => {
                 router.push("/expiry-tracker");
             }, 1500);
-            
         } catch (error) {
             console.error("Failed to add medicines:", error);
             toast.error(t("errors.apiFailure"));
@@ -61,72 +198,113 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
 
     if (!data.medicines || data.medicines.length === 0) {
         return (
-            <div className="w-full max-w-2xl mx-auto p-6 border rounded-xl shadow-sm bg-white dark:bg-zinc-900 text-center">
-                <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+            <div className="mx-auto w-full max-w-2xl rounded-xl border bg-white p-6 text-center shadow-sm dark:bg-zinc-900">
+                <AlertCircle className="mx-auto mb-4 h-12 w-12 text-yellow-500" />
                 <h3 className="text-lg font-medium">No medicines detected</h3>
-                <p className="text-gray-500 mt-2">We couldn't confidently identify any medicines in this image.</p>
+                <p className="mt-2 text-gray-500">
+                    We couldn't confidently identify any medicines in this image.
+                </p>
             </div>
         );
     }
 
     return (
-        <div className="w-full max-w-2xl mx-auto space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-900 p-4 border rounded-xl shadow-sm">
+        <div className="mx-auto w-full max-w-2xl space-y-6">
+            <div className="flex flex-col items-start justify-between gap-4 rounded-xl border bg-white p-4 shadow-sm sm:flex-row sm:items-center dark:bg-zinc-900">
                 <div>
                     <h2 className="text-xl font-bold">{data.medicines.length} Medicines Found</h2>
                     <p className="text-sm text-gray-500">Review the extracted details below</p>
                 </div>
-                <button
-                    onClick={handleAddAll}
-                    disabled={isAdding || added}
-                    className="w-full sm:w-auto px-6 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:opacity-70 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                    {added ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                    {added ? "Added!" : t("addAll")}
-                </button>
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                    <button
+                        onClick={handlePlayAudio}
+                        disabled={isTTSLoading}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-70 sm:w-auto"
+                        aria-label={isPlaying ? "Stop audio" : "Play audio description"}
+                    >
+                        {isTTSLoading ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                Loading audio...
+                            </>
+                        ) : isPlaying ? (
+                            <>
+                                <Square className="h-5 w-5" />
+                                Stop Audio
+                            </>
+                        ) : (
+                            <>
+                                <Volume2 className="h-5 w-5" />
+                                Play Audio
+                            </>
+                        )}
+                    </button>
+                    <button
+                        onClick={handleAddAll}
+                        disabled={isAdding || added}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-green-700 disabled:bg-green-800 disabled:opacity-70 sm:w-auto"
+                    >
+                        {added ? <Check className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                        {added ? "Added!" : t("addAll")}
+                    </button>
+                </div>
             </div>
 
-            {data.patientVitals && (data.patientVitals.bloodPressure || data.patientVitals.temperature) && (
-                <div className="p-4 border rounded-xl bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900">
-                    <h3 className="font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2 mb-3">
-                        <Heart className="w-5 h-5" />
-                        {t("vitals")}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        {data.patientVitals.bloodPressure && (
-                            <div>
-                                <span className="text-sm text-blue-600 dark:text-blue-400 block">Blood Pressure</span>
-                                <span className="font-medium">{data.patientVitals.bloodPressure}</span>
-                            </div>
-                        )}
-                        {data.patientVitals.temperature && (
-                            <div>
-                                <span className="text-sm text-blue-600 dark:text-blue-400 block">Temperature</span>
-                                <span className="font-medium">{data.patientVitals.temperature}</span>
-                            </div>
-                        )}
+            {data.patientVitals &&
+                (data.patientVitals.bloodPressure || data.patientVitals.temperature) && (
+                    <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-900/20">
+                        <h3 className="mb-3 flex items-center gap-2 font-medium text-blue-800 dark:text-blue-300">
+                            <Heart className="h-5 w-5" />
+                            {t("vitals")}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            {data.patientVitals.bloodPressure && (
+                                <div>
+                                    <span className="block text-sm text-blue-600 dark:text-blue-400">
+                                        Blood Pressure
+                                    </span>
+                                    <span className="font-medium">
+                                        {data.patientVitals.bloodPressure}
+                                    </span>
+                                </div>
+                            )}
+                            {data.patientVitals.temperature && (
+                                <div>
+                                    <span className="block text-sm text-blue-600 dark:text-blue-400">
+                                        Temperature
+                                    </span>
+                                    <span className="font-medium">
+                                        {data.patientVitals.temperature}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
             <div className="space-y-4">
                 {data.medicines.map((med, idx) => (
-                    <div key={idx} className="p-5 border rounded-xl bg-white dark:bg-zinc-900 shadow-sm transition-all hover:shadow-md">
-                        <div className="border-b pb-3 mb-3">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 w-6 h-6 rounded-full flex items-center justify-center text-xs">
+                    <div
+                        key={idx}
+                        className="rounded-xl border bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-zinc-900"
+                    >
+                        <div className="mb-3 border-b pb-3">
+                            <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300">
                                     {idx + 1}
                                 </span>
                                 {med.name}
                             </h3>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             {med.dosage && (
                                 <div className="flex gap-2 text-sm">
-                                    <FileText className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                                    <FileText className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
                                     <div>
-                                        <span className="text-gray-500 block text-xs uppercase tracking-wider">{t("dosage")}</span>
+                                        <span className="block text-xs tracking-wider text-gray-500 uppercase">
+                                            {t("dosage")}
+                                        </span>
                                         <span className="font-medium">{med.dosage}</span>
                                     </div>
                                 </div>
@@ -134,9 +312,11 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
 
                             {(med.simpleTiming || med.timing) && (
                                 <div className="flex gap-2 text-sm">
-                                    <Clock className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
                                     <div>
-                                        <span className="text-gray-500 block text-xs uppercase tracking-wider">{t("timing")}</span>
+                                        <span className="block text-xs tracking-wider text-gray-500 uppercase">
+                                            {t("timing")}
+                                        </span>
                                         <span className="font-medium text-blue-700 dark:text-blue-300">
                                             {med.simpleTiming || med.timing}
                                         </span>
@@ -146,19 +326,25 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
 
                             {med.instructions && (
                                 <div className="flex gap-2 text-sm sm:col-span-2">
-                                    <Info className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
                                     <div>
-                                        <span className="text-gray-500 block text-xs uppercase tracking-wider">{t("instructions")}</span>
-                                        <span className="font-medium text-gray-800 dark:text-gray-200">{med.instructions}</span>
+                                        <span className="block text-xs tracking-wider text-gray-500 uppercase">
+                                            {t("instructions")}
+                                        </span>
+                                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                                            {med.instructions}
+                                        </span>
                                     </div>
                                 </div>
                             )}
 
                             {med.purpose && (
                                 <div className="flex gap-2 text-sm">
-                                    <Heart className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                    <Heart className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
                                     <div>
-                                        <span className="text-gray-500 block text-xs uppercase tracking-wider">{t("purpose")}</span>
+                                        <span className="block text-xs tracking-wider text-gray-500 uppercase">
+                                            {t("purpose")}
+                                        </span>
                                         <span>{med.purpose}</span>
                                     </div>
                                 </div>
@@ -166,9 +352,11 @@ export const DecodedResults: React.FC<DecodedResultsProps> = ({ data }) => {
 
                             {med.side_effects && (
                                 <div className="flex gap-2 text-sm">
-                                    <ShieldAlert className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
+                                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" />
                                     <div>
-                                        <span className="text-gray-500 block text-xs uppercase tracking-wider">{t("sideEffects")}</span>
+                                        <span className="block text-xs tracking-wider text-gray-500 uppercase">
+                                            {t("sideEffects")}
+                                        </span>
                                         <span>{med.side_effects}</span>
                                     </div>
                                 </div>

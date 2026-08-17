@@ -1881,5 +1881,30 @@
         "savePreferences": "ترجیحات محفوظ کریں۔",
         "locationLabel": "مقام کی خدمات",
         "scanHistoryLabel": "اسکین ہسٹری اسٹوریج"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "آڈیو چلانے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔"
+        },
+        "title": "سمارٹ پروسکریپشن اسکینر",
+        "description": "اپنے ہاتھ سے لکھے ہوئے نسخے کی تصویر اپ لوڈ کریں، اور ہمارا AI آپ کے لیے ادویات اور ہدایات نکالے گا۔"
     }
 }

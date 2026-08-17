@@ -1881,5 +1881,30 @@
         "savePreferences": "ਤਰਜੀਹਾਂ ਨੂੰ ਸੁਰੱਖਿਅਤ ਕਰੋ",
         "locationLabel": "ਟਿਕਾਣਾ ਸੇਵਾਵਾਂ",
         "scanHistoryLabel": "ਇਤਿਹਾਸ ਸਟੋਰੇਜ ਨੂੰ ਸਕੈਨ ਕਰੋ"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ਆਡੀਓ ਚਲਾਉਣ ਲਈ ਅਸਮਰੱਥ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+        },
+        "title": "ਸਮਾਰਟ ਪ੍ਰੈਸਕ੍ਰਿਪਸ਼ਨ ਸਕੈਨਰ",
+        "description": "ਆਪਣੀ ਹੱਥੀਂ ਲਿਖਤ ਪ੍ਰੈਸਕ੍ਰਿਪਸ਼ਨ ਦੀ ਇੱਕ ਤਸਵੀਰ ਅਪਲੋਡ ਕਰੋ, ਅਤੇ ਸਾਡਾ AI ਤੁਹਾਡੇ ਲਈ ਦਵਾਈਆਂ ਅਤੇ ਹਦਾਇਤਾਂ ਕੱਢੇਗਾ।"
     }
 }

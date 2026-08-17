@@ -1880,5 +1880,30 @@
         "savePreferences": "മുൻഗണനകൾ സംരക്ഷിക്കുക",
         "locationLabel": "ലൊക്കേഷൻ സേവനങ്ങൾ",
         "scanHistoryLabel": "ചരിത്ര സംഭരണം സ്കാൻ ചെയ്യുക"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ഓഡിയോ പ്ലേ ചെയ്യാൻ കഴിയുന്നില്ല. വീണ്ടും ശ്രമിക്കുക."
+        },
+        "title": "സ്മാർട്ട് പ്രസ്ക്രിപ്ഷൻ സ്കാനർ",
+        "description": "നിങ്ങളുടെ കൈയെഴുത്തിലുള്ള പ്രസ്ക്രിപ്ഷന്റെ ഒരു ചിത്രം അപ്‌ലോഡ് ചെയ്യുക, കൂടാതെ ഞങ്ങളുടെ AI നിങ്ങൾക്കായി മരുന്നുകളും നിർദ്ദേശനങ്ങളും വേർതിരിച്ചെടുക്കും."
     }
 }

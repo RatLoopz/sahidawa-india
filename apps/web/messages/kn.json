@@ -1881,5 +1881,30 @@
         "savePreferences": "ಆದ್ಯತೆಗಳನ್ನು ಉಳಿಸಿ",
         "locationLabel": "ಸ್ಥಳ ಸೇವೆಗಳು",
         "scanHistoryLabel": "ಇತಿಹಾಸ ಸಂಗ್ರಹಣೆಯನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ಆಡಿಯೊ ಪ್ಲೇ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+        },
+        "title": "ಸ್ಮಾರ್ಟ್ ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಸ್ಕ್ಯಾನರ್",
+        "description": "ನಿಮ್ಮ ಹಸ್ತಬರೆದ ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್‌ನ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ, ಮತ್ತು ನಮ್ಮ AI ನಿಮಗಾಗಿ ಔಷಧಗಳು ಮತ್ತು ನಿರ್ದೇಶನಗಳನ್ನು ಹೊರತೆಗೆಯುತ್ತದೆ."
     }
 }

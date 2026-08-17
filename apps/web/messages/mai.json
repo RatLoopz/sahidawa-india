@@ -1876,5 +1876,30 @@
         "savePreferences": "वरीयता सहेजें",
         "locationLabel": "स्थान सेवाएँ",
         "scanHistoryLabel": "स्कैन इतिहास भंडारण"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ऑडियो चलेबाक में विफल। कृपया फिर से प्रयास करु।"
+        },
+        "title": "स्मार्ट प्रिस्क्रिपशन स्कैनर",
+        "description": "आपनेक हाथसँ लिखल प्रिस्क्रिपशनक एक चित्र अपलोड करु, आ आमर AI आपनेक लेल औषध आ निर्देश निकालत अछि।"
     }
 }

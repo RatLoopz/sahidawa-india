@@ -1881,5 +1881,30 @@
         "savePreferences": "પસંદગીઓ સાચવો",
         "locationLabel": "સ્થાન સેવાઓ",
         "scanHistoryLabel": "સ્કેન ઇતિહાસ સંગ્રહ"
+    },
+    "Scanner": {
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ઑડિયો ચલાવવામાં અસમર્થ. કૃપયા ફરીથી પ્રયાસ કરો."
+        },
+        "title": "સ્માર્ટ પ્રિસ્ક્રિપ્શન સ્કેનર",
+        "description": "તમારી હસ્તલેખિત પ્રિસ્ક્રિપ્શનનો ચિત્ર અપલોડ કરો, અને અમારો AI તમારા માટે દવાઓ અને સૂચનાઓ કાઢશે."
     }
 }
