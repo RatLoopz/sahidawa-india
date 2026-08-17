@@ -90,6 +90,7 @@ export default function InteractionCheckerPage() {
     const [error, setError] = useState<string | null>(null);
     const [hasChecked, setHasChecked] = useState(false);
     const [isOfflineResult, setIsOfflineResult] = useState(false);
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -332,10 +333,32 @@ export default function InteractionCheckerPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t("searchPlaceholder")}
+                                role="combobox"
+                                aria-expanded={suggestions.length > 0}
+                                aria-autocomplete="list"
+                                aria-controls="interaction-search-suggestions"
+                                aria-activedescendant={activeSuggestionIndex >= 0 ? `suggestion-${activeSuggestionIndex}` : undefined}
                                 className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 font-semibold text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter" && searchQuery.trim()) {
-                                        handleAddMedicine(searchQuery);
+                                    if (e.key === "Enter") {
+                                        if (activeSuggestionIndex >= 0 && activeSuggestionIndex < suggestions.length) {
+                                            handleAddMedicine(suggestions[activeSuggestionIndex]);
+                                        } else if (searchQuery.trim()) {
+                                            handleAddMedicine(searchQuery);
+                                        }
+                                    } else if (e.key === "ArrowDown") {
+                                        e.preventDefault();
+                                        setActiveSuggestionIndex((prev) =>
+                                            prev < suggestions.length - 1 ? prev + 1 : 0
+                                        );
+                                    } else if (e.key === "ArrowUp") {
+                                        e.preventDefault();
+                                        setActiveSuggestionIndex((prev) =>
+                                            prev > 0 ? prev - 1 : suggestions.length - 1
+                                        );
+                                    } else if (e.key === "Escape") {
+                                        setSuggestions([]);
+                                        setActiveSuggestionIndex(-1);
                                     }
                                 }}
                             />
@@ -363,12 +386,21 @@ export default function InteractionCheckerPage() {
 
                         {/* Suggestions Dropdown */}
                         {suggestions.length > 0 && (
-                            <div className="absolute right-0 left-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-2 shadow-lg">
+                            <div
+                                id="interaction-search-suggestions"
+                                role="listbox"
+                                aria-label={t("searchLabel")}
+                                className="absolute right-0 left-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-2 shadow-lg"
+                            >
                                 {suggestions.map((name, idx) => (
                                     <button
                                         key={idx}
+                                        id={`suggestion-${idx}`}
+                                        role="option"
+                                        aria-selected={idx === activeSuggestionIndex}
                                         onClick={() => handleAddMedicine(name)}
-                                        className="w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-(--color-text-primary) hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20 dark:hover:text-emerald-400"
+                                        onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                                        className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-(--color-text-primary) hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20 dark:hover:text-emerald-400 ${idx === activeSuggestionIndex ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400" : ""}`}
                                     >
                                         {name}
                                     </button>
