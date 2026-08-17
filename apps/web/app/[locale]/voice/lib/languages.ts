@@ -16,163 +16,46 @@ export type SupportedVoiceLanguagesResponse = {
 
 export const DEFAULT_VOICE_LANGUAGE = "en-IN";
 
-const LOCALE_TO_VOICE_LANGUAGE: Record<string, string> = {
-    en: "en-IN",
-    hi: "hi-IN",
-    ta: "ta-IN",
-    bn: "bn-IN",
-    mr: "mr-IN",
-    te: "te-IN",
-    gu: "gu-IN",
-    kn: "kn-IN",
-    ml: "ml-IN",
-    or: "or-IN",
-    pa: "pa-IN",
-    as: "as-IN",
-    ks: "ks-IN",
-    kok: "kok-IN",
-    mai: "mai-IN",
-    mni: "mni-IN",
-    sa: "sa-IN",
-    sd: "sd-IN",
-    ur: "ur-IN",
-};
+type LanguageMeta = [code: string, label: string, responseLanguage: string];
 
-export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = [
-    {
-        value: "en-IN",
-        label: "English",
-        speechRecognition: "en-IN",
-        responseLanguage: "English",
-        speechSynthesisLang: "en-IN",
-    },
-    {
-        value: "hi-IN",
-        label: "हिन्दी (Hindi)",
-        speechRecognition: "hi-IN",
-        responseLanguage: "Hindi",
-        speechSynthesisLang: "hi-IN",
-    },
-    {
-        value: "ta-IN",
-        label: "தமிழ் (Tamil)",
-        speechRecognition: "ta-IN",
-        responseLanguage: "Tamil",
-        speechSynthesisLang: "ta-IN",
-    },
-    {
-        value: "bn-IN",
-        label: "বাংলা (Bengali)",
-        speechRecognition: "bn-IN",
-        responseLanguage: "Bengali",
-        speechSynthesisLang: "bn-IN",
-    },
-    {
-        value: "mr-IN",
-        label: "मराठी (Marathi)",
-        speechRecognition: "mr-IN",
-        responseLanguage: "Marathi",
-        speechSynthesisLang: "mr-IN",
-    },
-    {
-        value: "te-IN",
-        label: "తెలుగు (Telugu)",
-        speechRecognition: "te-IN",
-        responseLanguage: "Telugu",
-        speechSynthesisLang: "te-IN",
-    },
-    {
-        value: "gu-IN",
-        label: "ગુજરાતી (Gujarati)",
-        speechRecognition: "gu-IN",
-        responseLanguage: "Gujarati",
-        speechSynthesisLang: "gu-IN",
-    },
-    {
-        value: "kn-IN",
-        label: "ಕನ್ನಡ (Kannada)",
-        speechRecognition: "kn-IN",
-        responseLanguage: "Kannada",
-        speechSynthesisLang: "kn-IN",
-    },
-    {
-        value: "ml-IN",
-        label: "മലയാളം (Malayalam)",
-        speechRecognition: "ml-IN",
-        responseLanguage: "Malayalam",
-        speechSynthesisLang: "ml-IN",
-    },
-    {
-        value: "or-IN",
-        label: "ଓଡ଼ିଆ (Odia)",
-        speechRecognition: "or-IN",
-        responseLanguage: "Odia",
-        speechSynthesisLang: "or-IN",
-    },
-    {
-        value: "pa-IN",
-        label: "ਪੰਜਾਬੀ (Punjabi)",
-        speechRecognition: "pa-IN",
-        responseLanguage: "Punjabi",
-        speechSynthesisLang: "pa-IN",
-    },
-    {
-        value: "as-IN",
-        label: "অসমীয়া (Assamese)",
-        speechRecognition: "as-IN",
-        responseLanguage: "Assamese",
-        speechSynthesisLang: "as-IN",
-    },
-    {
-        value: "ks-IN",
-        label: "کشمیری (Kashmiri)",
-        speechRecognition: "ks-IN",
-        responseLanguage: "Kashmiri",
-        speechSynthesisLang: "ks-IN",
-    },
-    {
-        value: "kok-IN",
-        label: "कोंकणी (Konkani)",
-        speechRecognition: "kok-IN",
-        responseLanguage: "Konkani",
-        speechSynthesisLang: "kok-IN",
-    },
-    {
-        value: "mai-IN",
-        label: "मैथिली (Maithili)",
-        speechRecognition: "mai-IN",
-        responseLanguage: "Maithili",
-        speechSynthesisLang: "mai-IN",
-    },
-    {
-        value: "mni-IN",
-        label: "ꯃꯤꯇꯩꯔꯣꯟ (Manipuri)",
-        speechRecognition: "mni-IN",
-        responseLanguage: "Manipuri",
-        speechSynthesisLang: "mni-IN",
-    },
-    {
-        value: "sa-IN",
-        label: "संस्कृतम् (Sanskrit)",
-        speechRecognition: "sa-IN",
-        responseLanguage: "Sanskrit",
-        speechSynthesisLang: "sa-IN",
-    },
-    {
-        value: "sd-IN",
-        label: "سنڌي (Sindhi)",
-        speechRecognition: "sd-IN",
-        responseLanguage: "Sindhi",
-        speechSynthesisLang: "sd-IN",
-    },
-    {
-        value: "ur-IN",
-        label: "اردو (Urdu)",
-        speechRecognition: "ur-IN",
-        responseLanguage: "Urdu",
-        speechSynthesisLang: "ur-IN",
-    },
+const LANGUAGE_DEFINITIONS: readonly LanguageMeta[] = [
+    ["en", "English", "English"],
+    ["hi", "हिन्दी (Hindi)", "Hindi"],
+    ["ta", "தமிழ் (Tamil)", "Tamil"],
+    ["bn", "বাংলা (Bengali)", "Bengali"],
+    ["mr", "मराठी (Marathi)", "Marathi"],
+    ["te", "తెలుగు (Telugu)", "Telugu"],
+    ["gu", "ગુજરાતી (Gujarati)", "Gujarati"],
+    ["kn", "ಕನ್ನಡ (Kannada)", "Kannada"],
+    ["ml", "മലയാളം (Malayalam)", "Malayalam"],
+    ["or", "ଓଡ଼ିଆ (Odia)", "Odia"],
+    ["pa", "ਪੰਜਾਬੀ (Punjabi)", "Punjabi"],
+    ["as", "অসমীয়া (Assamese)", "Assamese"],
+    ["ks", "کشمیری (Kashmiri)", "Kashmiri"],
+    ["kok", "कोंकणी (Konkani)", "Konkani"],
+    ["mai", "मैथिली (Maithili)", "Maithili"],
+    ["mni", "ꯃꯤꯇꯩꯔꯣꯟ (Manipuri)", "Manipuri"],
+    ["sa", "संस्कृतम् (Sanskrit)", "Sanskrit"],
+    ["sd", "سنڌي (Sindhi)", "Sindhi"],
+    ["ur", "اردو (Urdu)", "Urdu"],
 ];
+
+const LOCALE_TO_VOICE_LANGUAGE: Record<string, string> = Object.fromEntries(
+    LANGUAGE_DEFINITIONS.map(([code]) => [code, `${code}-IN`])
+);
+
+export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = LANGUAGE_DEFINITIONS.map(
+    ([code, label, responseLanguage]) => {
+        const langTag = `${code}-IN`;
+        return {
+            value: langTag,
+            label,
+            speechRecognition: langTag,
+            responseLanguage,
+            speechSynthesisLang: langTag,
+        };
+    }
+);
 
 export function getVoiceLanguageOption(value: string): VoiceLanguageOption {
     return (

@@ -79,6 +79,19 @@ describe("voice language config", () => {
             "bn-IN",
             "mr-IN",
             "te-IN",
+            "gu-IN",
+            "kn-IN",
+            "ml-IN",
+            "or-IN",
+            "pa-IN",
+            "as-IN",
+            "ks-IN",
+            "kok-IN",
+            "mai-IN",
+            "mni-IN",
+            "sa-IN",
+            "sd-IN",
+            "ur-IN",
         ]);
     });
 
