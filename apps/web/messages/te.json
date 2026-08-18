@@ -1883,11 +1883,34 @@
         "scanHistoryLabel": "చరిత్ర నిల్వను స్కాన్ చేయండి"
     },
     "Scanner": {
+        "title": "స్మార్ట్ ప్రెస్క్రిప్షన్ స్కానర్",
+        "description": "మీ చేతిలో రాసిన ప్రెస్క్రిప్షన్ చిత్రాన్ని అప్‌లోడ్ చేసి, మా AI మీ కోసం ఔషధాలు మరియు సూచనలను సంగ్రహించుకుంటుంది.",
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
         "playAudio": "ఆడియో ప్లే చేయి",
         "stopAudio": "ఆపు",
         "loadingAudio": "ఆడియో లోడ్ అవుతోంది...",
         "audioError": "ఆడియో ప్లే విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
-        "audioUnavailable": "ఈ ఫలితానికి ఆడియో అందుబాటులో లేదు."
+        "audioUnavailable": "ఈ ఫలితానికి ఆడియో అందుబాటులో లేదు.",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ఆడియోను ప్లే చేయలేకపోయాను. దయచేసి మళ్లీ ప్రయత్నించండి."
+        }
     },
     "LabAnalyzer": {
         "title": "AI ల్యాబ్ నివేదిక విశ్లేషకం",

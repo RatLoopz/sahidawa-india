@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
     Check,
@@ -27,33 +27,90 @@ interface DecodedResultsProps {
 }
 
 /**
- * Strip markdown / bullet formatting so the TTS engine reads the text
- * naturally instead of spelling out asterisks and dashes.
+ * Cleans AI-generated text for natural speech by removing markdown formatting
+ * and converting symbols to spoken words.
  */
 function cleanTextForSpeech(text: string): string {
-    return text
-        .replace(/\*\*(.*?)\*\*/g, "$1")
-        .replace(/[*_`#>]/g, "")
-        .replace(/^\s*[-•]\s+/gm, "")
-        .replace(/\n{2,}/g, ". ")
-        .replace(/\s+/g, " ")
-        .trim();
+    return (
+        text
+            // Remove markdown bold
+            .replace(/\*\*(.+?)\*\*/g, "$1")
+            // Remove markdown italic
+            .replace(/\*(.+?)\*/g, "$1")
+            .replace(/_(.+?)_/g, "$1")
+            .replace(/[*_`#>]/g, "")
+            // Remove markdown headers
+            .replace(/^#+\s+/gm, "")
+            // Remove bullet points and list markers
+            .replace(/^[\-\*\+•]\s+/gm, "")
+            .replace(/^\d+\.\s+/gm, "")
+            // Convert common abbreviations for better speech
+            .replace(/\bmg\b/gi, "milligrams")
+            .replace(/\bml\b/gi, "milliliters")
+            .replace(/\bg\b(?=\s|$)/gi, "grams")
+            // Replace excessive whitespace with single space
+            .replace(/\s+/g, " ")
+            // Replace multiple newlines with period for natural pause
+            .replace(/\n+/g, ". ")
+            .trim()
+    );
 }
 
-/** Build a single, naturally-worded sentence for each decoded medicine. */
-function buildSpeechScript(data: ScannerResult): string {
-    return data.medicines
-        .map((med, idx) => {
-            const parts: string[] = [`Medicine ${idx + 1}: ${med.name}.`];
-            if (med.dosage) parts.push(`Dosage: ${med.dosage}.`);
-            if (med.simpleTiming || med.timing) {
-                parts.push(`Timing: ${med.simpleTiming || med.timing}.`);
-            }
-            if (med.instructions) parts.push(med.instructions);
-            if (med.purpose) parts.push(`Purpose: ${med.purpose}.`);
-            return parts.join(" ");
-        })
-        .join(". ");
+/**
+ * Generates a natural speech description from the scan results
+ */
+function generateSpeechDescription(data: ScannerResult): string {
+    const parts: string[] = [];
+
+    // Opening summary
+    const medicineCount = data.medicines?.length || 0;
+    if (medicineCount === 0) {
+        return "No medicines were detected in the prescription.";
+    }
+
+    parts.push(`${medicineCount} ${medicineCount === 1 ? "medicine" : "medicines"} found.`);
+
+    // Patient vitals if available
+    if (
+        data.patientVitals &&
+        (data.patientVitals.bloodPressure || data.patientVitals.temperature)
+    ) {
+        parts.push("Patient vitals:");
+        if (data.patientVitals.bloodPressure) {
+            parts.push(`Blood pressure: ${data.patientVitals.bloodPressure}.`);
+        }
+        if (data.patientVitals.temperature) {
+            parts.push(`Temperature: ${data.patientVitals.temperature}.`);
+        }
+    }
+
+    // Each medicine
+    data.medicines.forEach((med, index) => {
+        parts.push(`Medicine ${index + 1}: ${med.name}.`);
+
+        if (med.dosage) {
+            parts.push(`Dosage: ${med.dosage}.`);
+        }
+
+        if (med.simpleTiming || med.timing) {
+            parts.push(`Timing: ${med.simpleTiming || med.timing}.`);
+        }
+
+        if (med.instructions) {
+            parts.push(`Instructions: ${med.instructions}.`);
+        }
+
+        if (med.purpose) {
+            parts.push(`Purpose: ${med.purpose}.`);
+        }
+
+        if (med.side_effects) {
+            parts.push(`Side effects: ${med.side_effects}.`);
+        }
+    });
+
+    const fullText = parts.join(" ");
+    return cleanTextForSpeech(fullText);
 }
 
 const PlayAudioButton: React.FC<{ data: ScannerResult }> = ({ data }) => {
@@ -63,7 +120,18 @@ const PlayAudioButton: React.FC<{ data: ScannerResult }> = ({ data }) => {
     const [hasError, setHasError] = useState(false);
 
     const languageCode = useMemo(() => getVoiceLanguageForLocale(locale), [locale]);
-    const script = useMemo(() => cleanTextForSpeech(buildSpeechScript(data)), [data]);
+    const script = useMemo(() => generateSpeechDescription(data), [data]);
+
+    // Stop audio when component unmounts or data changes
+    useEffect(() => {
+        return () => {
+            stopTTS();
+        };
+    }, [stopTTS]);
+
+    useEffect(() => {
+        stopTTS();
+    }, [data, stopTTS]);
 
     if (!script) {
         return (
@@ -73,6 +141,33 @@ const PlayAudioButton: React.FC<{ data: ScannerResult }> = ({ data }) => {
         );
     }
 
+    const handleFallback = () => {
+        // Cloud TTS failed — fall back to the browser's native speech
+        // synthesis so the feature still works offline / without keys.
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(script);
+                utterance.lang = languageCode;
+                window.speechSynthesis.speak(utterance);
+            } catch {
+                setHasError(true);
+                toast.error(
+                    t("errors.audioPlayback") ||
+                        t("audioError") ||
+                        "Unable to play audio. Please try again."
+                );
+            }
+        } else {
+            setHasError(true);
+            toast.error(
+                t("errors.audioPlayback") ||
+                    t("audioError") ||
+                    "Unable to play audio. Please try again."
+            );
+        }
+    };
+
     const handleClick = async () => {
         if (isPlaying) {
             stopTTS();
@@ -81,24 +176,13 @@ const PlayAudioButton: React.FC<{ data: ScannerResult }> = ({ data }) => {
 
         setHasError(false);
         try {
-            await playTTS(script, languageCode);
+            await playTTS(script, languageCode, {
+                onError: () => {
+                    handleFallback();
+                },
+            });
         } catch {
-            // Cloud TTS failed — fall back to the browser's native speech
-            // synthesis so the feature still works offline / without keys.
-            if (typeof window !== "undefined" && "speechSynthesis" in window) {
-                try {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(script);
-                    utterance.lang = languageCode;
-                    window.speechSynthesis.speak(utterance);
-                } catch {
-                    setHasError(true);
-                    toast.error(t("audioError"));
-                }
-            } else {
-                setHasError(true);
-                toast.error(t("audioError"));
-            }
+            handleFallback();
         }
     };
 
@@ -122,7 +206,7 @@ const PlayAudioButton: React.FC<{ data: ScannerResult }> = ({ data }) => {
             )}
             {label}
             {hasError && !isLoading && !isPlaying && (
-                <span className="sr-only">{t("audioError")}</span>
+                <span className="sr-only">{t("errors.audioPlayback") || t("audioError")}</span>
             )}
         </button>
     );

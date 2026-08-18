@@ -1882,11 +1882,34 @@
         "scanHistoryLabel": "इतिहास भण्डारणं स्कैन कुर्वन्तु"
     },
     "Scanner": {
+        "title": "बुद्धिमान् प्रिस्क्रिप्शन स्कैनर",
+        "description": "आपके हस्तलिखित प्रिस्क्रिप्शन की एक छवि अपलोड करें, और हमारा AI आपके लिए दवाएं और निर्देश निकालेगा।",
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
         "playAudio": "Play Audio",
         "stopAudio": "Stop",
         "loadingAudio": "Loading audio...",
         "audioError": "Audio playback failed. Please try again.",
-        "audioUnavailable": "Audio is not available for this result."
+        "audioUnavailable": "Audio is not available for this result.",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ऑडियो चलाने में असमर्थ। कृपया पुनः प्रयास करें।"
+        }
     },
     "LabAnalyzer": {
         "title": "AI Lab Report Analyzer",

@@ -1877,11 +1877,34 @@
         "scanHistoryLabel": "ꯁ꯭ꯀꯦꯟ ꯍꯤꯁ꯭ꯇꯔꯤ ꯁ꯭ꯇꯣꯔꯦꯖ꯫"
     },
     "Scanner": {
+        "title": "ꯁ꯫ꯗ꯭ꯔ ꯄ꯭ꯔꯦꯁ꯭ꯀꯥ꯱ꯛ꯫ꯁꯟ ꯁ꯫ꯀ꯭ꯌꯥ꯬ꯔ",
+        "description": "ꯊꯪꯩ ꯈ꯬ꯈꯛ ꯄ꯭ꯔꯦꯁ꯭ꯀꯥ꯱ꯛ꯫ꯁꯟꯒ ꯑ ꯌ꯭ꯕ ꯅꯨꯏ ꯎ꯱ꯪꯅꯤ, ꯑ꯫ꯞ ꯑꯦ ꯑꯌꯌꯥ꯫ꯕ ꯑꯦꯐ ꯗꯒ ꯁ ꯍꯩ ꯑꯪꯗ ꯔꯒꯐ ꯒ ꯂꯕ ꯒꯃ꯫ꯏ",
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
         "playAudio": "Play Audio",
         "stopAudio": "Stop",
         "loadingAudio": "Loading audio...",
         "audioError": "Audio playback failed. Please try again.",
-        "audioUnavailable": "Audio is not available for this result."
+        "audioUnavailable": "Audio is not available for this result.",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ꯑ꯭ꯗ꯰ꯏ ꯌ꯭ꯌ ꯎ꯱ꯪꯅ꯲ ꯊꯤ ꯑꯦ꯫ꯀꯏ। ꯑꯣꯏ꯭ꯌꯧ ꯕ ꯔ ꯎ꯱ꯪ꯫ꯏ।"
+        }
     },
     "LabAnalyzer": {
         "title": "AI Lab Report Analyzer",

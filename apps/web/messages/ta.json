@@ -1883,11 +1883,34 @@
         "scanHistoryLabel": "வரலாற்று சேமிப்பகத்தை ஸ்கேன் செய்யவும்"
     },
     "Scanner": {
+        "title": "ஸ்மார்ட் மருந்து பரிந்துரை ஸ্கேனர்",
+        "description": "உங்கள் கையெழுத்து மருந்து பரிந்துரையின் படத்தை பதிவேற்றவும், எங்கள் AI உங்களுக்கு மருந்துகள் மற்றும் வழிமுறைகளை பிரித்தெடுக்கும்.",
+        "uploadTitle": "Upload",
+        "uploadDescription": "Upload prescription image",
+        "uploadButton": "Select Image",
+        "analyzing": "Analyzing prescription...",
+        "addAll": "Add All to My Medicines",
+        "addedSuccess": "Medicines added to tracker successfully!",
+        "dosage": "Dosage",
+        "timing": "Timing",
+        "simpleTiming": "Simple Timing",
+        "purpose": "Purpose",
+        "instructions": "Instructions",
+        "sideEffects": "Side Effects",
+        "vitals": "Patient Vitals",
         "playAudio": "ஆடியோவை இயக்கு",
         "stopAudio": "நிறுத்து",
         "loadingAudio": "ஆடியோ ஏற்றப்படுகிறது...",
         "audioError": "ஆடியோ இயக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
-        "audioUnavailable": "இந்த முடிவுக்கு ஆடியோ கிடைக்கவில்லை."
+        "audioUnavailable": "இந்த முடிவுக்கு ஆடியோ கிடைக்கவில்லை.",
+        "errors": {
+            "unsupportedFile": "Unsupported file type. Please upload a JPEG or PNG.",
+            "emptyUpload": "Please select an image to upload.",
+            "apiFailure": "Failed to analyze prescription. Please try again.",
+            "blurry": "Image too blurry. Please upload a clearer prescription.",
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "ஆடியோவை இயக்க முடியவில்லை. மீண்டும் முயற்சி செய்க."
+        }
     },
     "LabAnalyzer": {
         "title": "AI ஆய்வக அறிக்கை பகுப்பாய்வி",

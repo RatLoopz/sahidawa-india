@@ -1,4 +1,3 @@
-
 export type VoiceLanguageOption = {
     value: string;
     label: string;
@@ -6,7 +5,7 @@ export type VoiceLanguageOption = {
     responseLanguage: string;
     speechSynthesisLang: string;
 };
- 
+
 // Shape returned by GET /api/medicine/languages (proxied from the ML
 // service's /voice/languages endpoint). Keys are 2-letter ISO codes
 // (e.g. "hi", "ta"), values are the script name — the script isn't
@@ -14,69 +13,56 @@ export type VoiceLanguageOption = {
 export type SupportedVoiceLanguagesResponse = {
     supported_languages: Record<string, string>;
 };
- 
+
 export const DEFAULT_VOICE_LANGUAGE = "en-IN";
- 
-const LOCALE_TO_VOICE_LANGUAGE: Record<string, string> = {
-    en: "en-IN",
-    hi: "hi-IN",
-    ta: "ta-IN",
-    bn: "bn-IN",
-    mr: "mr-IN",
-    te: "te-IN",
-};
- 
-export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = [
-    {
-        value: "en-IN",
-        label: "English",
-        speechRecognition: "en-IN",
-        responseLanguage: "English",
-        speechSynthesisLang: "en-IN",
-    },
-    {
-        value: "hi-IN",
-        label: "हिन्दी (Hindi)",
-        speechRecognition: "hi-IN",
-        responseLanguage: "Hindi",
-        speechSynthesisLang: "hi-IN",
-    },
-    {
-        value: "ta-IN",
-        label: "தமிழ் (Tamil)",
-        speechRecognition: "ta-IN",
-        responseLanguage: "Tamil",
-        speechSynthesisLang: "ta-IN",
-    },
-    {
-        value: "bn-IN",
-        label: "বাংলা (Bengali)",
-        speechRecognition: "bn-IN",
-        responseLanguage: "Bengali",
-        speechSynthesisLang: "bn-IN",
-    },
-    {
-        value: "mr-IN",
-        label: "मराठी (Marathi)",
-        speechRecognition: "mr-IN",
-        responseLanguage: "Marathi",
-        speechSynthesisLang: "mr-IN",
-    },
-    {
-        value: "te-IN",
-        label: "తెలుగు (Telugu)",
-        speechRecognition: "te-IN",
-        responseLanguage: "Telugu",
-        speechSynthesisLang: "te-IN",
-    },
+
+type LanguageMeta = [code: string, label: string, responseLanguage: string];
+
+const LANGUAGE_DEFINITIONS: readonly LanguageMeta[] = [
+    ["en", "English", "English"],
+    ["hi", "हिन्दी (Hindi)", "Hindi"],
+    ["ta", "தமிழ் (Tamil)", "Tamil"],
+    ["bn", "বাংলা (Bengali)", "Bengali"],
+    ["mr", "मराठी (Marathi)", "Marathi"],
+    ["te", "తెలుగు (Telugu)", "Telugu"],
+    ["gu", "ગુજરાતી (Gujarati)", "Gujarati"],
+    ["kn", "ಕನ್ನಡ (Kannada)", "Kannada"],
+    ["ml", "മലയാളം (Malayalam)", "Malayalam"],
+    ["or", "ଓଡ଼ିଆ (Odia)", "Odia"],
+    ["pa", "ਪੰਜਾਬੀ (Punjabi)", "Punjabi"],
+    ["as", "অসমীয়া (Assamese)", "Assamese"],
+    ["ks", "کشمیری (Kashmiri)", "Kashmiri"],
+    ["kok", "कोंकणी (Konkani)", "Konkani"],
+    ["mai", "मैथिली (Maithili)", "Maithili"],
+    ["mni", "ꯃꯤꯇꯩꯔꯣꯟ (Manipuri)", "Manipuri"],
+    ["sa", "संस्कृतम् (Sanskrit)", "Sanskrit"],
+    ["sd", "سنڌي (Sindhi)", "Sindhi"],
+    ["ur", "اردو (Urdu)", "Urdu"],
 ];
- 
+
+const LOCALE_TO_VOICE_LANGUAGE: Record<string, string> = Object.fromEntries(
+    LANGUAGE_DEFINITIONS.map(([code]) => [code, `${code}-IN`])
+);
+
+export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = LANGUAGE_DEFINITIONS.map(
+    ([code, label, responseLanguage]) => {
+        const langTag = `${code}-IN`;
+        return {
+            value: langTag,
+            label,
+            speechRecognition: langTag,
+            responseLanguage,
+            speechSynthesisLang: langTag,
+        };
+    }
+);
+
 export function getVoiceLanguageOption(value: string): VoiceLanguageOption {
     return (
         VOICE_LANGUAGE_OPTIONS.find((option) => option.value === value) ?? VOICE_LANGUAGE_OPTIONS[0]
     );
 }
- 
+
 export function resolveVoiceWorkflowLanguage(
     sessionLanguage: string | null | undefined,
     activeLanguage: string | null | undefined,
@@ -85,20 +71,20 @@ export function resolveVoiceWorkflowLanguage(
     if (sessionLanguage?.trim()) {
         return sessionLanguage;
     }
- 
+
     return activeLanguage?.trim() ? activeLanguage : selectedLanguage;
 }
- 
+
 export function getVoiceLanguageForLocale(locale: string): string {
     const normalized = locale.toLowerCase();
- 
+
     return (
         LOCALE_TO_VOICE_LANGUAGE[normalized] ??
         LOCALE_TO_VOICE_LANGUAGE[normalized.split("-")[0]] ??
         DEFAULT_VOICE_LANGUAGE
     );
 }
- 
+
 /**
  * Filters VOICE_LANGUAGE_OPTIONS down to the languages the ML voice
  * pipeline currently supports, matching on the 2-letter language
@@ -119,18 +105,18 @@ export function filterSupportedVoiceLanguages(
     const normalizedSupported = new Set(
         Array.from(supportedCodes, (code) => code.trim().toLowerCase()).filter(Boolean)
     );
- 
+
     if (normalizedSupported.size === 0) {
         return options;
     }
- 
+
     const filtered = options.filter((option) =>
         normalizedSupported.has(option.value.split("-")[0].toLowerCase())
     );
- 
+
     return filtered.length > 0 ? filtered : options;
 }
- 
+
 /**
  * Fetches the list of Indian languages the ML voice pipeline currently
  * supports via GET /api/medicine/languages, and uses it to filter
@@ -148,18 +134,18 @@ export async function fetchSupportedVoiceLanguages(
         const res = await fetch(`${apiBase}/api/medicine/languages`, {
             signal: options.signal,
         });
- 
+
         if (!res.ok) {
             return VOICE_LANGUAGE_OPTIONS;
         }
- 
+
         const data = (await res.json()) as Partial<SupportedVoiceLanguagesResponse>;
         const supportedCodes = data?.supported_languages;
- 
+
         if (!supportedCodes || typeof supportedCodes !== "object") {
             return VOICE_LANGUAGE_OPTIONS;
         }
- 
+
         return filterSupportedVoiceLanguages(Object.keys(supportedCodes));
     } catch {
         // Network failure, abort, timeout, or malformed JSON — degrade
@@ -168,11 +154,3 @@ export async function fetchSupportedVoiceLanguages(
         return VOICE_LANGUAGE_OPTIONS;
     }
 }
- 
-
-
-
-
-
-
-

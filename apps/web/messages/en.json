@@ -1922,7 +1922,8 @@
             "emptyUpload": "Please select an image to upload.",
             "apiFailure": "Failed to analyze prescription. Please try again.",
             "blurry": "Image too blurry. Please upload a clearer prescription.",
-            "network": "Network error. Please check your connection."
+            "network": "Network error. Please check your connection.",
+            "audioPlayback": "Unable to play audio. Please try again."
         }
     },
     "LabAnalyzer": {
