@@ -98,6 +98,7 @@ export function ChildVaccinationTracker() {
     const todayDateInput = useMemo(() => getTodayDateInput(), []);
     const [tracker, setTracker] = useState<ChildTrackerState>(EMPTY_TRACKER_STATE);
     const [isOcrScanning, setIsOcrScanning] = useState(false);
+    const [scanProgress, setScanProgress] = useState(0);
     const [ocrError, setOcrError] = useState<string | null>(null);
     const [syncError, setSyncError] = useState<string | null>(null);
     const [syncRetryToken, setSyncRetryToken] = useState(0);
@@ -385,6 +386,7 @@ export function ChildVaccinationTracker() {
         }
 
         setIsOcrScanning(true);
+        setScanProgress(0);
         let worker: Tesseract.Worker | null = null;
         try {
             const Tesseract = (await import("tesseract.js")).default;
@@ -394,7 +396,13 @@ export function ChildVaccinationTracker() {
                 reader.onerror = () => reject(new Error("Failed to read file"));
                 reader.readAsDataURL(file);
             });
-            worker = await Tesseract.createWorker("eng");
+            worker = await Tesseract.createWorker("eng", 1, {
+                logger: (m) => {
+                    if (m.status === "recognizing text" && typeof m.progress === "number") {
+                        setScanProgress(Math.round(m.progress * 100));
+                    }
+                }
+            });
             const { data } = await worker.recognize(dataUrl);
             const text = data.text;
 
@@ -443,6 +451,7 @@ export function ChildVaccinationTracker() {
                 }
             }
             setIsOcrScanning(false);
+            setScanProgress(0);
         }
     };
     const downloadCalendarReminders = () => {
@@ -495,6 +504,19 @@ export function ChildVaccinationTracker() {
                     <ScanLine size={16} aria-hidden="true" />
                     {isOcrScanning ? "Scanning..." : "Autofill via Scan"}
                 </button>
+                {isOcrScanning && (
+                    <div className="mt-3 flex items-center gap-3" role="progressbar" aria-valuenow={scanProgress} aria-valuemin={0} aria-valuemax={100} aria-label="OCR scanning progress">
+                        <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden dark:bg-slate-700">
+                            <div
+                                className="h-full bg-emerald-600 transition-all duration-300 ease-out"
+                                style={{ width: `${scanProgress}%` }}
+                            />
+                        </div>
+                        <span className="text-sm font-semibold text-(--color-text-primary) w-20 text-right">
+                            Scanning: {scanProgress}%
+                        </span>
+                    </div>
+                )}
                 <button
                     type="button"
                     onClick={downloadCalendarReminders}
