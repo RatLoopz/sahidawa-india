@@ -1403,6 +1403,16 @@
         "source": "Source:",
         "errorMessage": "Failed to complete interaction check. Please try again.",
         "minMedicinesError": "At least two medicines are required to check for interactions.",
+        "suggestionsCount": "{count, plural, one {# suggestion found} other {# suggestions found}}",
+        "cabinetImport": {
+            "button": "Import from Cabinet",
+            "importing": "Importing...",
+            "success": "Imported {count} medicine(s) from your cabinet",
+            "noMedicines": "Your cabinet is empty",
+            "allAlreadyAdded": "All cabinet medicines are already in your check list",
+            "error": "Failed to import from cabinet",
+            "maxReachedTitle": "Maximum medicine limit reached"
+        },
         "offlineBadge": "Offline Result — Connect to internet for latest data",
         "voice": {
             "button": "Add medicines by voice",

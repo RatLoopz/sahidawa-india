@@ -13,12 +13,17 @@ import {
     RefreshCw,
     CheckCircle2,
     WifiOff,
+    PlusSquare,
 } from "lucide-react";
 import { fuzzyMatchBrand } from "@/lib/api";
 import { checkInteractions, type InteractionResult } from "@/lib/api/interactions";
 import { VoiceInputButton } from "@/components/ui/VoiceInputButton";
 import { PageHeader } from "../components/PageHeader";
 import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
+import { API_BASE } from "@/lib/api";
+import { fetchWithRetry } from "@/lib/apiWithRetry";
+import { useSession } from "@/src/components/AuthProvider";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "sahidawa-my-medicines";
 
@@ -94,6 +99,9 @@ export default function InteractionCheckerPage() {
 
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const { token, isLoading: isSessionLoading } = useSession();
+    const [isImporting, setIsImporting] = useState(false);
 
     // Load from LocalStorage
     useEffect(() => {
@@ -230,6 +238,50 @@ export default function InteractionCheckerPage() {
 
     const handleClearAll = () => {
         saveMedicinesList([]);
+    };
+
+    const importFromCabinet = async () => {
+        if (!token || isImporting) return;
+
+        setIsImporting(true);
+        try {
+            const res = await fetchWithRetry(`${API_BASE}/api/v1/medicines/tracked`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!res.ok) {
+                throw new Error(t("errors.statusError", { status: res.status }));
+            }
+
+            const data = await res.json();
+            const trackedMedicines = Array.isArray(data) ? data.map((m: any) => m.medicine_name || m.name).filter(Boolean) : [];
+
+            if (trackedMedicines.length === 0) {
+                toast.info(t("cabinetImport.noMedicines"));
+                return;
+            }
+
+            const existingNames = new Set(selectedMedicines.map((m) => m.toLowerCase()));
+            const newMedicines = trackedMedicines.filter(
+                (name: string) => !existingNames.has(name.toLowerCase())
+            );
+
+            const remainingSlots = MAX_INTERACTION_MEDICINES - selectedMedicines.length;
+            const toAdd = newMedicines.slice(0, remainingSlots);
+
+            if (toAdd.length === 0) {
+                toast.info(t("cabinetImport.allAlreadyAdded"));
+                return;
+            }
+
+            saveMedicinesList([...selectedMedicines, ...toAdd]);
+            toast.success(t("cabinetImport.success", { count: toAdd.length }));
+        } catch (err) {
+            console.error("Failed to import from cabinet:", err);
+            toast.error(t("cabinetImport.error"));
+        } finally {
+            setIsImporting(false);
+        }
     };
 
     const handleCheckInteractions = async () => {
@@ -412,10 +464,29 @@ export default function InteractionCheckerPage() {
 
                 {/* Selected Medicines Chips List */}
                 <div className="mb-6 rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm">
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-4 flex items-center justify-between gap-3">
                         <h2 className="text-sm font-bold text-(--color-text-primary)">
                             {t("myMedicines")} ({selectedMedicines.length})
                         </h2>
+                        {token && !isSessionLoading && (
+                            <button
+                                type="button"
+                                onClick={importFromCabinet}
+                                disabled={isImporting || selectedMedicines.length >= MAX_INTERACTION_MEDICINES}
+                                className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-600 px-3 py-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                                title={selectedMedicines.length >= MAX_INTERACTION_MEDICINES ? t("cabinetImport.maxReachedTitle") : undefined}
+                            >
+                                <PlusSquare size={14} aria-hidden="true" />
+                                {isImporting ? (
+                                    <>
+                                        <span className="animate-spin">⟳</span>
+                                        {t("cabinetImport.importing")}
+                                    </>
+                                ) : (
+                                    t("cabinetImport.button")
+                                )}
+                            </button>
+                        )}
                         {selectedMedicines.length > 0 && (
                             <button
                                 onClick={handleClearAll}
