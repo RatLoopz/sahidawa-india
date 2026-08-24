@@ -1403,6 +1403,7 @@
         "source": "Source:",
         "errorMessage": "Failed to complete interaction check. Please try again.",
         "minMedicinesError": "At least two medicines are required to check for interactions.",
+        "suggestionsCount": "{count, plural, one {# suggestion found} other {# suggestions found}}",
         "offlineBadge": "Offline Result — Connect to internet for latest data",
         "voice": {
             "button": "Add medicines by voice",

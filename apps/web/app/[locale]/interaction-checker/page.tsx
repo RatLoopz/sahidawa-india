@@ -159,6 +159,11 @@ export default function InteractionCheckerPage() {
         };
     }, [searchQuery]);
 
+    // Reset active suggestion index when suggestions change
+    useEffect(() => {
+        setActiveSuggestionIndex(-1);
+    }, [suggestions]);
+
     // Handle clicks outside suggestions dropdown to close it
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -386,26 +391,36 @@ export default function InteractionCheckerPage() {
 
                         {/* Suggestions Dropdown */}
                         {suggestions.length > 0 && (
-                            <div
-                                id="interaction-search-suggestions"
-                                role="listbox"
-                                aria-label={t("searchLabel")}
-                                className="absolute right-0 left-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-2 shadow-lg"
-                            >
-                                {suggestions.map((name, idx) => (
-                                    <button
-                                        key={idx}
-                                        id={`suggestion-${idx}`}
-                                        role="option"
-                                        aria-selected={idx === activeSuggestionIndex}
-                                        onClick={() => handleAddMedicine(name)}
-                                        onMouseEnter={() => setActiveSuggestionIndex(idx)}
-                                        className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-(--color-text-primary) hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20 dark:hover:text-emerald-400 ${idx === activeSuggestionIndex ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400" : ""}`}
-                                    >
-                                        {name}
-                                    </button>
-                                ))}
-                            </div>
+                            <>
+                                <div
+                                    id="interaction-search-suggestions"
+                                    role="listbox"
+                                    aria-label="Medicine search suggestions"
+                                    className="absolute right-0 left-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-2 shadow-lg"
+                                >
+                                    {suggestions.map((name, idx) => (
+                                        <button
+                                            key={idx}
+                                            id={`suggestion-${idx}`}
+                                            role="option"
+                                            aria-selected={idx === activeSuggestionIndex}
+                                            onClick={() => handleAddMedicine(name)}
+                                            onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                                            className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-(--color-text-primary) hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20 dark:hover:text-emerald-400 ${idx === activeSuggestionIndex ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400" : ""}`}
+                                        >
+                                            {name}
+                                        </button>
+                                    ))}
+                                </div>
+                                {/* Screen reader announcement for suggestion count */}
+                                <div
+                                    aria-live="polite"
+                                    className="sr-only"
+                                    role="status"
+                                >
+                                    {t("suggestionsCount", { count: suggestions.length })}
+                                </div>
+                            </>
                         )}
                     </div>
                 </div>
