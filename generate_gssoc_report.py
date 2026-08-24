@@ -70,6 +70,9 @@ def calculate_pr_score(labels, is_first_pr):
     return score, rationale
 
 def main():
+    import os
+    os.makedirs('artifacts', exist_ok=True)
+    
     with open('pr_data.json', 'r', encoding='utf-8') as f:
         prs = json.load(f)
         

@@ -1,0 +1,190 @@
+name: "GSSoC 2026 Score Report"
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC (11:30 AM IST) to keep leaderboard fresh
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  generate-gssoc-report:
+    name: "🏆 Generate GSSoC Score Report"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: "⬇️ Checkout full history"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "⚙️ Setup Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: "📦 Install Dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests python-dateutil
+
+      - name: "📊 Fetch Merged PRs with GSSoC Labels"
+        id: fetch_prs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Fetch all closed PRs from main branch with gssoc:approved label
+          # Using GraphQL for efficiency
+          QUERY='
+          query($owner: String!, $repo: String!, $cursor: String) {
+            repository(owner: $owner, name: $repo) {
+              pullRequests(first: 100, states: MERGED, orderBy: {field: MERGED_AT, direction: ASC}, after: $cursor) {
+                pageInfo { hasNextPage, endCursor }
+                nodes {
+                  number
+                  title
+                  body
+                  mergedAt
+                  author { login }
+                  labels(first: 20) { nodes { name } }
+                  commits(first: 50) { nodes { commit { messageHeadline } } }
+                  files(first: 100) { nodes { path } }
+                }
+              }
+            }
+          }
+          '
+
+          OWNER="${REPO%/*}"
+          REPO_NAME="${REPO#*/}"
+          
+          ALL_PRS=()
+          CURSOR=""
+          HAS_NEXT=true
+          
+          while [ "$HAS_NEXT" = "true" ]; do
+            VARS="{\"owner\":\"$OWNER\",\"repo\":\"$REPO_NAME\""
+            if [ -n "$CURSOR" ]; then
+              VARS="$VARS,\"cursor\":\"$CURSOR\""
+            fi
+            VARS="$VARS}"
+            
+            RESULT=$(gh api graphql -f query="$QUERY" -F variables="$VARS" 2>/dev/null)
+            
+            if [ -z "$RESULT" ]; then
+              echo "Failed to fetch PRs"
+              exit 1
+            fi
+            
+            PRS=$(echo "$RESULT" | jq -c '.data.repository.pullRequests.nodes[]')
+            while IFS= read -r pr; do
+              ALL_PRS+=("$pr")
+            done <<< "$PRS"
+            
+            HAS_NEXT=$(echo "$RESULT" | jq -r '.data.repository.pullRequests.pageInfo.hasNextPage')
+            CURSOR=$(echo "$RESULT" | jq -r '.data.repository.pullRequests.pageInfo.endCursor')
+          done
+          
+          # Write to JSON file
+          printf '%s\n' "${ALL_PRS[@]}" | jq -s '.' > pr_data.json
+          echo "Fetched ${#ALL_PRS[@]} merged PRs"
+          echo "pr_data_path=pr_data.json" >> $GITHUB_OUTPUT
+
+      - name: "🤖 Generate GSSoC Report"
+        run: |
+          python generate_gssoc_report.py
+          echo "Report generated at artifacts/GSSoC_Report.md and artifacts/GSSoC_GitHub_Issue.md"
+
+      - name: "📝 Update GSSoC_REPORT.md in repo"
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+            
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Read generated report
+            const reportContent = fs.readFileSync("artifacts/GSSoC_Report.md", "utf8");
+            
+            // Try to get current file
+            let currentSha;
+            try {
+              const { data: fileData } = await github.rest.repos.getContent({
+                owner, repo, path: "GSSoC_REPORT.md", ref: "main"
+              });
+              currentSha = fileData.sha;
+            } catch (e) {
+              if (e.status !== 404) throw e;
+            }
+            
+            // Update or create
+            await github.rest.repos.createOrUpdateFileContents({
+              owner, repo,
+              path: "GSSoC_REPORT.md",
+              message: "docs(gssoc): update GSSoC 2026 contributor score report [skip ci]",
+              content: Buffer.from(reportContent).toString("base64"),
+              sha: currentSha,
+              branch: "main",
+              committer: {
+                name: "sahidawa-gssoc[bot]",
+                email: "gssoc@sahidawa.noreply"
+              },
+              author: {
+                name: "sahidawa-gssoc[bot]",
+                email: "gssoc@sahidawa.noreply"
+              }
+            });
+            
+            console.log("✅ GSSoC_REPORT.md updated in repo");
+
+      - name: "📋 Update GitHub Issue with Leaderboard"
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Read the GitHub issue formatted report
+            const issueContent = fs.readFileSync("artifacts/GSSoC_GitHub_Issue.md", "utf8");
+            
+            // Find issue #4361
+            const issueNumber = 4361;
+            
+            try {
+              await github.rest.issues.update({
+                owner, repo,
+                issue_number: issueNumber,
+                body: issueContent
+              });
+              console.log(`✅ Issue #${issueNumber} updated with latest leaderboard`);
+            } catch (e) {
+              console.error(`Failed to update issue: ${e.message}`);
+            }
+
+      - name: "📋 Post Update Comment"
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = 4361;
+            
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: issueNumber,
+              body: "🤖 **Automated GSSoC Report Update**\n\nThe official GSSoC 2026 leaderboard has been refreshed with the latest merged PR data. See the updated scores above!\n\n*Triggered by scheduled workflow on " + new Date().toISOString().split('T')[0] + "*"
+            });
+            console.log("✅ Update comment posted");
