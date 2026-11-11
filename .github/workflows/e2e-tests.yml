@@ -9,9 +9,9 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version-file: .nvmrc
         cache: 'npm'
@@ -20,7 +20,7 @@ jobs:
       run: npm install --legacy-peer-deps
 
     - name: Setup Supabase CLI
-      uses: supabase/setup-cli@v1
+      uses: supabase/setup-cli@v3
       with:
         version: latest
 
@@ -51,9 +51,9 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version-file: .nvmrc
         cache: 'npm'
@@ -62,7 +62,7 @@ jobs:
       run: npm install --legacy-peer-deps
 
     - name: Setup Supabase CLI
-      uses: supabase/setup-cli@v1
+      uses: supabase/setup-cli@v3
       with:
         version: latest
 
@@ -83,7 +83,7 @@ jobs:
         NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
         NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: always()
       with:
         name: playwright-report
